@@ -6,8 +6,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javacyco.*;
 import javacyco.Network.Edge;
@@ -16,13 +20,13 @@ import javacyco.Network.Edge;
 public class ToolBox {
 	//static private String connectionString =  "jrwalsh.student.iastate.edu";
 	static private String connectionString =  "ecoserver.vrac.iastate.edu";
-	static private String organismStringK12 =  "ECOLI"; //Built in K12 model
-	static private String organismStringCBiRC =  "ECOTEST"; //Editable copy of built in K12 model
+	static private String organismStringK12 =  "ECOLI"; //Built-in K12 model
+	static private String organismStringCBiRC =  "ECOTEST"; //Edit-able copy of built-in K12 model
 	static private String organismString0157 =  "ECOO157"; //0157:H7 EDL933 strain
 	static private String organismStringCFT073 =  "ECOL199310"; //CRT073 strain
 	static private int port =  4444;
 	
-	//
+	// Functions for the GUI interface
  	public static HashMap<String,String> getAllPathways() {
  		HashMap<String,String> PathwayMap = new HashMap<String,String>();
  		
@@ -36,7 +40,6 @@ public class ToolBox {
 			try {
 				allPwys = Pathway.all(conn);
 			} catch (PtoolsErrorException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			for (Pathway pwy : allPwys) {
@@ -53,7 +56,7 @@ public class ToolBox {
 	}
  	
  	
- 	//
+ 	// Export a selected group of pathways to a tab file using the print commands
  	public static void exportPathway(String pathwayID) {
  		//TODO Verify Pathway
  		
@@ -132,10 +135,9 @@ public class ToolBox {
  	}
  	
  	
- 	//
+ 	//TODO Match up Al's new regulation information to ecocyc
  	public static void regulators() {
 		// File Reader Code http://www.kodejava.org/examples/28.html
- 		
  		
  		//>> The Strategy  >> \\
  		/*
@@ -144,7 +146,6 @@ public class ToolBox {
  		 * 3) Check appropriate strain for the bnumber/ID/CommonName/Synonym
  		 * 4) Print original file, then print which organism was matched and match's IDs
  		 */
- 		
  		
 		File file = new File("/home/Jesse/Desktop/Predicted_Links.csv");
 		StringBuffer contents = new StringBuffer();
@@ -282,7 +283,7 @@ public class ToolBox {
 	}
  	
  	
- 	// Affymetrix Probe Translations
+ 	// Affymetrix Probe ID's Mapped to EcoCyc ID's
  	public static void createAffyProbeIDTranslationFile(String filePath, String writePath, boolean hasHeaders) {
  		// This method expects a tab delimited file at filePath containing the probeID, b-number, and gene common names delimited by '///'
  		// This method will write a tab delimited file at writePath with the probeID, b-number, and gene common names delimited by '///' found in the readIn file
@@ -486,18 +487,146 @@ public class ToolBox {
  	}
  	
  	
+ 	// Print a stoich matrix
+ 	public static void printFlux(String[] pathwayIDs, String writePath) {
+ 		printStoichMatrix(pathwayIDs, writePath);
+ 		printPathwayReactionRegulation(pathwayIDs, writePath);
+ 	}
+ 	
+ 	private static void printStoichMatrix(String[] pathwayIDs, String writePath) {
+		//TODO write to writePath
+// 		PrintStream o = null;
+//		try {
+//			o = new PrintStream(new File("pathway_stoich.tab"));
+//		}
+//		catch(Exception e) {
+//			e.printStackTrace();
+//			System.exit(0);
+//		}
+		
+ 		HashMap<String, HashMap<String, String>> reactionMap = getStoichMatrix(pathwayIDs);
+ 		
+ 		// Get a sorted set of all metabolite names
+ 		TreeSet<String> metaboliteSet = new TreeSet<String>();
+ 		for (String reaction : reactionMap.keySet()) metaboliteSet.addAll(reactionMap.get(reaction).keySet());
+
+		// Print Headers
+		for (String metabolite : metaboliteSet) System.out.print("\t" + metabolite);
+		System.out.println();
+		
+ 		// Print matrix
+ 		for (String reaction : reactionMap.keySet()) {
+			System.out.print(reaction);
+			
+			for (String metabolite : metaboliteSet) {
+				String coeff = reactionMap.get(reaction).get(metabolite);
+				if (coeff != null && coeff.length() > 0) {
+					System.out.print("\t" + coeff);
+				} else {
+					System.out.print("\t0");
+				}
+			}
+			System.out.println();
+		}
+ 	}
+ 	
+ 	private static void printPathwayReactionRegulation(String[] pathwayIDs, String writePath) {
+		//TODO write to writePath
+// 		PrintStream o = null;
+//		try {
+//			o = new PrintStream(new File("pathway_stoich.tab"));
+//		}
+//		catch(Exception e) {
+//			e.printStackTrace();
+//			System.exit(0);
+//		}
+		
+ 		JavacycConnection conn = null;
+		try {
+			conn = new JavacycConnection(connectionString,port);
+			conn.selectOrganism(organismStringK12);
+			
+			// Print Headers
+			System.out.println("Reactions" + "\tEnzymes");
+			
+	 		for (String pathwayID : pathwayIDs) {
+	 			Frame pway = Pathway.load(conn, pathwayID);
+	 			
+	 			for (Reaction rxn : ((Pathway)pway).getReactions()) {
+	 				System.out.print(rxn.getLocalID());
+	 				
+	 				if(rxn instanceof EnzymeReaction) {
+	 					for(Frame f : ((EnzymeReaction)rxn).getCatalysis()) {
+	 						Catalysis c = (Catalysis)f;
+	 						Protein p = c.getEnzyme();
+	 						
+	 						System.out.print("\t" + p.getLocalID());
+	 					}
+	 				} else {
+	 					System.out.print("\tN/A");
+	 				}
+	 				
+	 				System.out.println();
+	 			}
+	 		}
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			conn.close();
+		}
+		
+ 	}
+ 	
+ 	private static HashMap<String, HashMap<String, String>> getStoichMatrix(String[] pathwayIDs) {
+ 		HashMap<String, HashMap<String, String>> reactionMap = new HashMap<String, HashMap<String, String>>();
+ 		JavacycConnection conn = null;
+		try {
+			conn = new JavacycConnection(connectionString,port);
+			conn.selectOrganism(organismStringK12);
+			
+			for (String pathwayID : pathwayIDs) {
+				Frame pway = Pathway.load(conn, pathwayID);
+				
+				for (Reaction rxn : ((Pathway)pway).getReactions()) {
+					HashMap<String, String> map = new HashMap<String, String>();
+					
+					for (Frame reactant : rxn.getReactants()) {
+						String coeff = reactant.annotations.get("COEFFICIENT");
+						if (coeff == null) coeff = "1";
+						map.put(reactant.getLocalID(), "-" + coeff.replace("(", "").replace(")", "").trim());
+					}
+					for (Frame product : rxn.getProducts()) {
+						String coeff = product.annotations.get("COEFFICIENT");
+						if (coeff == null) coeff = "1";
+						map.put(product.getLocalID(), coeff.replace("(", "").replace(")", "").trim());
+					}
+					
+					reactionMap.put(rxn.getLocalID(), map);
+				}
+			}
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			conn.close();
+		}
+		
+		return reactionMap;
+ 	}
  	
  	
  	// Print File
-// 	
-//	private static void printStructureTab(Network net)	{
+	private static void printStructureTab(Network net) {
 //		PrintStream o = null;
-//		try
-//		{
+//		try {
 //			o = new PrintStream(new File(net.getName()+"_structure.tab"));
 //		}
-//		catch(Exception e)
-//		{
+//		catch(Exception e) {
 //			e.printStackTrace();
 //			System.exit(0);
 //		}
@@ -509,25 +638,22 @@ public class ToolBox {
 //			String inPathways = "";
 //			String superPathways = "";
 //			
-//			for (String pway : this.pathways) {
+//			for (String pway : eg.pathways) {
 //				inPathways = inPathways + pway + "::";
 //			}
 //			
 //			if (inPathways.isEmpty()) inPathways = null;
-//			//else inPathways = inPathways.substring(0, inPathways.length()-2);
 //			
-//			o.println(source.getLocalID()+"\t"+info+"\t"+target.getLocalID()+"\t"+inPathways);
+//			o.println(eg.getSource().getLocalID()+"\t"+eg.getInfo()+"\t"+eg.getTarget().getLocalID()+"\t"+inPathways);
 //		}
-//	}
-//	
-//	private static void printNodeAttributesTab(Network net) {
+	}
+	
+	private static void printNodeAttributesTab(Network net) {
 //		PrintStream o = null;
-//		try
-//		{
+//		try {
 //			o = new PrintStream(new File(name+"_node_atts.tab"));
 //		}
-//		catch(Exception e)
-//		{
+//		catch(Exception e) {
 //			e.printStackTrace();
 //			System.exit(0);
 //		}
@@ -591,242 +717,15 @@ public class ToolBox {
 //			
 //			o.println(node.getLocalID()+"\t"+node.getCommonName()+"\t"+node.getComment()+"\t"+node.getClass().getName().replace("javacyc.", "")+"\t"+inPathways+"\t"+superPathways);
 //		}
-//	}
-// 	
-// 	public static void printTabDelimitedNetwork(Network net) {
-// 		printStructureTab(net);
-//		printNodeAttributesTab(net);
-// 	}
+	}
+ 	
+ 	public static void printTabDelimitedNetwork(Network net) {
+ 		printStructureTab(net);
+		printNodeAttributesTab(net);
+ 	}
  	
  	public static void printNetworkRegulators(Network net) {
  		
  	}
  	
 }
-
-
-
-//	public static void regulators() {
-//	// File Reader Code http://www.kodejava.org/examples/28.html
-//		
-//	File file = new File("/home/Jesse/Desktop/Predicted_Links.csv");
-//	StringBuffer contents = new StringBuffer();
-//	BufferedReader reader = null;
-//	JavacycConnection conn = null;
-//	HashMap<String, Frame> geneCommonNameMap = new HashMap<String, Frame>();
-//	HashMap<String, Frame> geneSynonymMap = new HashMap<String, Frame>();
-//	HashMap<String, Frame> proteinCommonNameMap = new HashMap<String, Frame>();
-//	HashMap<String, Frame> proteinSynonymMap = new HashMap<String, Frame>();
-//	
-//	try {
-//		conn = new JavacycConnection(connectionString,port);
-//		conn.selectOrganism(organismString);
-//		
-//		
-//		
-//		//TEST>>
-//		Frame thePathway = Frame.load(conn, "GLYCOLYSIS-TCA-GLYOX-BYPASS");
-//		ArrayList<Frame> genesOfPathway = ((Pathway)thePathway).getGenes();
-//		ArrayList<String> genesOfPathwayNames = new ArrayList<String>();
-//		for (Frame f : genesOfPathway) {
-//			genesOfPathwayNames.add(f.getLocalID());
-//		}
-//		//<<TEST
-//		
-//		
-//		
-//		// Get all Genes from EcoCyc
-//		System.out.print("Reading Genes....");
-//		ArrayList<Frame> allGenes = conn.getAllGFPInstances(Gene.GFPtype);
-//		System.out.println("done");
-//		
-//		// Create HashMaps to facilitate fast searching
-//		System.out.print("Generating Gene Maps....");
-//		for (Frame g : allGenes) {
-//			if (g.getCommonName() != null && g.getCommonName().length() > 0) geneCommonNameMap.put(g.getCommonName(), g);
-//			if (g.hasSlot("Synonyms")) {
-//				for (Object synonym : g.getSlotValues("Synonyms")) geneSynonymMap.put((String)synonym, g);
-//			}
-//		}
-//		System.out.println("done");
-//		
-//		// Get all Proteins from EcoCyc
-//		System.out.print("Reading Proteins....");
-//		ArrayList<Frame> allProteins = conn.getAllGFPInstances(Protein.GFPtype);
-//		System.out.println("done");
-//		
-//		// Create HashMaps to facilitate fast searching
-//		System.out.print("Generating Protein Maps....");
-//		for (Frame p : allProteins) {
-//			if (p.getCommonName() != null && p.getCommonName().length() > 0) proteinCommonNameMap.put(p.getCommonName(), p);
-//			if (p.hasSlot("Synonyms")) {
-//				for (Object synonym : p.getSlotValues("Synonyms")) proteinSynonymMap.put(((String)synonym).replace("'", "").replace("\"", ""), p);
-//			}
-//		}
-//		System.out.println("done");
-//
-//		reader = new BufferedReader(new FileReader(file));
-//		String text = null;
-//		
-//		//TODO Headers
-//		reader.readLine();
-//		
-//		while ((text = reader.readLine()) != null) {
-//			String[] line = text.split("\t");
-//			
-//			//Get frame of TF
-//			Frame tf = proteinCommonNameMap.get(line[0]);
-//			if (tf == null) tf = proteinSynonymMap.get(line[0]);
-//			
-//			//Get frame of gene
-//			Frame gene = geneCommonNameMap.get(line[1]);
-//			if (gene == null) gene = geneSynonymMap.get(line[1]);
-//			
-//			String tfName = "";
-//			String geneName = "";
-//			String tfID = "";
-//			String geneID = "";
-//			String pathways = "";
-//			String superPathways = "";
-//			if (tf != null) {
-//				tfName = tf.getCommonName();
-//				tfID = tf.getLocalID();
-//			}
-//			if (gene != null) {
-//				geneName = gene.getCommonName();
-//				geneID = gene.getLocalID();
-//				
-//				ArrayList<Frame> pways = ((Gene)gene).getPathways();
-//				for (Frame pway : pways) {
-//					pathways = pathways + "::" + pway.getLocalID();
-//				}
-//				for (Frame pway : pways) {
-//					if (((Pathway)pway).hasSlot("In-Pathway") && pway.getSlotValue("In-Pathway") != null) {
-//						superPathways = superPathways + "::" + pway.getSlotValue("In-Pathway");
-//					}
-//					pathways = pathways + "::" + pway.getLocalID();
-//				}
-//			}
-//			
-//			//TEST>>
-//			if (gene != null && genesOfPathwayNames.contains(gene.getLocalID())) {
-//				System.out.println(tfID + "\t" + "AL_PREDICTED_REGULATION" + "\t" + "1" + "\t" + "-" + "\t" + geneID + "\t" + "null");
-//			}
-//			//<<TEST
-//			
-//			//System.out.println(tfName + "\t" + geneName + "\t" + tfID + "\t" + geneID + "\t" + pathways + "\t" + superPathways);
-//			//System.out.println(line[0] + "=" + tfName + " || " + line[1] + "=" + geneName);
-//		}
-//	} catch (FileNotFoundException e) {
-//		e.printStackTrace();
-//	} catch (IOException e) {
-//		e.printStackTrace();
-//	} catch (PtoolsErrorException e) {
-//		e.printStackTrace();
-//	} catch (Exception e) {
-//		e.printStackTrace();
-//	}
-//	finally {
-//		try {
-//			if (reader != null) {
-//				conn.close();
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		try {
-//			if (reader != null) {
-//				reader.close();
-//			}
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	//TODO Print results to file
-//}
-
-
-
-
-
-
-
-
-
-
-//private static String findRegulator(JavacycConnection conn, String ID) throws PtoolsErrorException {
-////Test test = new Test();
-//String returnString = "";
-//ArrayList<SearchResult> list = new ArrayList<SearchResult>();
-//for (Frame f : conn.search(ID, "|Proteins|")) {
-////TODO list.add(new SearchResult(f.getLocalID(), f.getCommonName(), ((Protein)f).getSlotValue("Regulates"), ((Protein)f).getSlotValue("isComplex"), false));
-//
-//
-//System.out.println(f.getLocalID() + " : " + f.getCommonName());
-//System.out.println(((Protein)f).getSlotValue("Regulates"));
-//}
-//return returnString;
-//}
-
-//private static void regulators() throws PtoolsErrorException {
-//// File Reader Code http://www.kodejava.org/examples/28.html
-//
-////File file = new File("/home/Jesse/Desktop/Predicted_Links.csv");
-//File file = new File("/home/Jesse/Desktop/test.txt");
-//StringBuffer contents = new StringBuffer();
-//BufferedReader reader = null;
-//
-//try {
-//reader = new BufferedReader(new FileReader(file));
-//String text = null;
-//
-//while ((text = reader.readLine()) != null) {
-//	System.out.println(text);
-//	findRegulator(conn, text);
-//	System.out.println("");
-//}
-//} catch (FileNotFoundException e) {
-//e.printStackTrace();
-//} catch (IOException e) {
-//e.printStackTrace();
-//} finally {
-//try {
-//	if (reader != null) {
-//		reader.close();
-//	}
-//} catch (IOException e) {
-//	e.printStackTrace();
-//}
-//}
-//}
-//
-//private static String findRegulator(JavacycConnection conn, String ID) throws PtoolsErrorException {
-////Test test = new Test();
-//String returnString = "";
-//ArrayList<SearchResult> list = new ArrayList<SearchResult>();
-//for (Frame f : conn.search(ID, "|Proteins|")) {
-////TODO list.add(new SearchResult(f.getLocalID(), f.getCommonName(), ((Protein)f).getSlotValue("Regulates"), ((Protein)f).getSlotValue("isComplex"), false));
-//
-//
-//System.out.println(f.getLocalID() + " : " + f.getCommonName());
-//System.out.println(((Protein)f).getSlotValue("Regulates"));
-//}
-//return returnString;
-//}
-//
-//public static class SearchResult {
-//public String ID;
-//public String CommonName;
-//public boolean hasRegulation;
-//public boolean isComplex;
-//public boolean isPredicted;
-//
-//public SearchResult(String ID, String CommonName, boolean hasRegulation, boolean isComplex, boolean isPredicted) {
-//this.ID = ID;
-//this.CommonName = CommonName;
-//this.hasRegulation = hasRegulation;
-//this.isComplex = isComplex;
-//this.isPredicted = isPredicted;
-//}
-//}
