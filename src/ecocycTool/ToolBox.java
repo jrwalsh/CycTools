@@ -18,12 +18,15 @@ import javacyco.Network.Edge;
 
 
 public class ToolBox {
-	//static private String connectionString =  "jrwalsh.student.iastate.edu";
-	static private String connectionString =  "ecoserver.vrac.iastate.edu";
+	static private String connectionString =  "jrwalsh.student.iastate.edu";
+	//static private String connectionString =  "ecoserver.vrac.iastate.edu";
+	//static private String connectionString =  "vitis.student.iastate.edu";
 	static private String organismStringK12 =  "ECOLI"; //Built-in K12 model
+	static private String organismStringABC =  "ABC"; //Edit-able copy of built-in K12 model on local machine
 	static private String organismStringCBiRC =  "ECOTEST"; //Edit-able copy of built-in K12 model
 	static private String organismString0157 =  "ECOO157"; //0157:H7 EDL933 strain
 	static private String organismStringCFT073 =  "ECOL199310"; //CRT073 strain
+	static private String organismStringARA =  "ARA"; //Aracyc model
 	static private int port =  4444;
 	
 	// Functions for the GUI interface
@@ -34,7 +37,7 @@ public class ToolBox {
 		JavacycConnection conn = null;
 		try {
 			conn = new JavacycConnection(connectionString,port);
-			conn.selectOrganism(organismStringK12);
+			conn.selectOrganism(organismStringABC);
 		
 			ArrayList<Pathway> allPwys = null;
 			try {
@@ -64,7 +67,7 @@ public class ToolBox {
  		JavacycConnection conn = null;
 		try {
 			conn = new JavacycConnection(connectionString,port);
-			conn.selectOrganism(organismStringK12);
+			conn.selectOrganism(organismStringABC);
 			
 			Frame pway = Pathway.load(conn, pathwayID);
 			Network net = ((Pathway)pway).getNetwork();
@@ -89,7 +92,7 @@ public class ToolBox {
  		JavacycConnection conn = null;
 		try {
 			conn = new JavacycConnection(connectionString,port);
-			conn.selectOrganism(organismStringK12);
+			conn.selectOrganism(organismStringABC);
 			
 			if (pathwayIDs.length == 1) exportPathway(pathwayIDs[0]);
 			else {
@@ -119,7 +122,7 @@ public class ToolBox {
  		JavacycConnection conn = null;
 		try {
 			conn = new JavacycConnection(connectionString,port);
-			conn.selectOrganism(organismStringK12);
+			conn.selectOrganism(organismStringABC);
 		
 			Organism org = conn.getOrganism();
 			org.printPathwayNetwork();
@@ -133,7 +136,36 @@ public class ToolBox {
 			conn.close();
 		}
  	}
+
  	
+ 	// Push into Ecocyc
+ 	public static void updateFrameSlot(String frameID, String slot, String value) {
+ 		JavacycConnection conn = null;
+		try {
+			conn = new JavacycConnection(connectionString,port);
+			conn.selectOrganism(organismStringABC);
+			
+			Frame frame = Frame.load(conn, frameID);
+			frame.putSlotValue(slot, value);
+			
+			try {
+				frame.commit();
+				conn.saveKB();
+			} catch (PtoolsErrorException e) {
+				System.out.println("Reverting");
+				conn.revertKB();
+			}
+
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally
+		{
+			conn.close();
+		}
+ 	}
  	
  	//TODO Match up Al's new regulation information to ecocyc
  	public static void regulators() {
@@ -158,7 +190,7 @@ public class ToolBox {
 		
 		try {
 			conn = new JavacycConnection(connectionString,port);
-			conn.selectOrganism(organismStringK12);
+			conn.selectOrganism(organismStringABC);
 			
 			
 			
@@ -299,7 +331,7 @@ public class ToolBox {
 			conn = new JavacycConnection(connectionString,port);
 
 			//K12 info
-			conn.selectOrganism(organismStringK12);
+			conn.selectOrganism(organismStringABC);
 			ArrayList<HashMap<String, Frame>> maps = getGeneMaps(conn);
 			
 			//0157:H7 info
@@ -344,11 +376,11 @@ public class ToolBox {
 					gene = mapSearch(bNum, commonNames, mapsCFT073);
 					species = "CFT073";
 				} else if (tokens[1].trim() != null && tokens[1].trim().length() > 0 && tokens[1].trim().startsWith("MG1655")) {
-					conn.selectOrganism(organismStringK12);
+					conn.selectOrganism(organismStringABC);
 					gene = mapSearch(bNum, commonNames, maps);
 					species = "MG1655";
 				} else {
-					conn.selectOrganism(organismStringK12);
+					conn.selectOrganism(organismStringABC);
 					gene = mapSearch(bNum, commonNames, maps);
 					if (gene != null) {
 						species = "MG1655";
@@ -544,7 +576,7 @@ public class ToolBox {
  		JavacycConnection conn = null;
 		try {
 			conn = new JavacycConnection(connectionString,port);
-			conn.selectOrganism(organismStringK12);
+			conn.selectOrganism(organismStringABC);
 			
 			// Print Headers
 			System.out.println("Reactions" + "\tEnzymes");
@@ -585,7 +617,7 @@ public class ToolBox {
  		JavacycConnection conn = null;
 		try {
 			conn = new JavacycConnection(connectionString,port);
-			conn.selectOrganism(organismStringK12);
+			conn.selectOrganism(organismStringABC);
 			
 			for (String pathwayID : pathwayIDs) {
 				Frame pway = Pathway.load(conn, pathwayID);
