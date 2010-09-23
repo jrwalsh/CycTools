@@ -123,7 +123,7 @@ public class ToolBox {
 		try {
 			conn = new JavacycConnection(connectionString,port);
 			conn.selectOrganism(organismStringABC);
-		
+			
 			Organism org = conn.getOrganism();
 			org.printPathwayNetwork();
 			
@@ -139,33 +139,45 @@ public class ToolBox {
 
  	
  	// Push into Ecocyc
- 	public static void updateFrameSlot(String frameID, String slot, String value) {
+ 	public static void pushNewRegulationFile (String fileName) {
  		JavacycConnection conn = null;
+ 		
+ 		// Read in file.
+ 		// For each row, identify TF and Gene pair.
+ 		// Push new regulates info into the TF and the Gene
+ 		
 		try {
 			conn = new JavacycConnection(connectionString,port);
 			conn.selectOrganism(organismStringABC);
 			
-			Frame frame = Frame.load(conn, frameID);
+			updateFrameSlot("","","");
+			conn.saveKB();
+		} catch (PtoolsErrorException e) {
+			System.out.println("Save was unsuccessful : " + e);
+		}
+ 	}
+ 	
+ 	public static void updateFrameSlot(String frameID, String slot, String value) throws PtoolsErrorException {
+ 		JavacycConnection conn = null;
+ 		Frame frame = null;
+		try {
+			conn = new JavacycConnection(connectionString,port);
+			conn.selectOrganism(organismStringABC);
+			
+			frame = Frame.load(conn, frameID);
 			frame.putSlotValue(slot, value);
 			
-			try {
-				frame.commit();
-				conn.saveKB();
-			} catch (PtoolsErrorException e) {
-				System.out.println("Reverting");
-				conn.revertKB();
-			}
-
+			frame.commit();
 		} catch (PtoolsErrorException e) {
-			e.printStackTrace();
+			throw e;
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
-		finally
-		{
+		finally	{
 			conn.close();
 		}
  	}
+ 	
  	
  	//TODO Match up Al's new regulation information to ecocyc
  	public static void regulators() {
@@ -484,9 +496,9 @@ public class ToolBox {
  		// Get all Genes from EcoCyc
 		System.out.print("Reading Genes....");
 		ArrayList<Frame> allGenes = conn.getAllGFPInstances("|All-Genes|");
-		for(Frame f : conn.getAllGFPInstances("|Pseudo-Genes|")) allGenes.add(f);
-		for(Frame f : conn.getAllGFPInstances("Unclassified-Genes")) allGenes.add(f);
-		for(Frame f : conn.getAllGFPInstances("Unclassified-Genes")) allGenes.add(f);
+		//for(Frame f : conn.getAllGFPInstances("|Pseudo-Genes|")) allGenes.add(f);
+		//for(Frame f : conn.getAllGFPInstances("Unclassified-Genes")) allGenes.add(f);
+		//for(Frame f : conn.getAllGFPInstances("Unclassified-Genes")) allGenes.add(f);
 		System.out.println("done");
 		
 		// Create HashMaps to facilitate fast searching
@@ -516,6 +528,47 @@ public class ToolBox {
 		maps.add(synonymMap);
 		
 		return maps;
+ 	}
+ 	
+ 	
+ 	// Print all genes and locations for Erin
+ 	public static void printGeneInfo () {
+		JavacycConnection conn = null;
+		
+		try {
+			conn = new JavacycConnection(connectionString,port);
+			conn.selectOrganism(organismStringABC);
+			
+			// Get all Genes from EcoCyc
+			ArrayList<Frame> allGenes = conn.getAllGFPInstances("|All-Genes|");
+			
+			// Print Headers
+			System.out.println("ECOCYC-ID\tCOMMON-NAME\tCENTISOME-POSITION\tLEFT-END-POSITION\tRIGHT-END-POSITION\tTRANSCRIPTION-DIRECTION\tTYPE");
+			
+			for (Frame gene : allGenes) {
+				String id = gene.getLocalID();
+				String commonName = gene.getCommonName();
+				String cent = gene.getSlotValue("CENTISOME-POSITION");
+				String left = gene.getSlotValue("LEFT-END-POSITION");
+				String right = gene.getSlotValue("RIGHT-END-POSITION");
+				String dir = gene.getSlotValue("TRANSCRIPTION-DIRECTION");
+				String type = "";
+				if (Gene.isGFPClass(conn, gene.getLocalID(), "|Pseudo-Genes|")) type = "|Pseudo-Genes|";
+				else if (Gene.isGFPClass(conn, gene.getLocalID(), "|Phantom-Genes|")) type = "|Phantom-Genes|";
+				else if (Gene.isGFPClass(conn, gene.getLocalID(), "|Unclassified-Genes|")) type = "|Unclassified-Genes|";
+				else type = "|Genes|";
+				
+				System.out.println(id + "\t" + commonName + "\t" + cent + "\t" + left + "\t" + right + "\t" + dir + "\t" + type);
+			}
+			
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			conn.close();
+		}
  	}
  	
  	
@@ -573,11 +626,13 @@ public class ToolBox {
 //			System.exit(0);
 //		}
 		
+ 		// Print the list of enzymes that participate in each reaction
  		JavacycConnection conn = null;
-		try {
+ 		ArrayList<String> regulatorNames = new ArrayList<String>();
+ 		try {
 			conn = new JavacycConnection(connectionString,port);
 			conn.selectOrganism(organismStringABC);
-			
+
 			// Print Headers
 			System.out.println("Reactions" + "\tEnzymes");
 			
@@ -591,6 +646,7 @@ public class ToolBox {
 	 					for(Frame f : ((EnzymeReaction)rxn).getCatalysis()) {
 	 						Catalysis c = (Catalysis)f;
 	 						Protein p = c.getEnzyme();
+	 						regulatorNames.add(p.getLocalID());
 	 						
 	 						System.out.print("\t" + p.getLocalID());
 	 					}
@@ -601,6 +657,15 @@ public class ToolBox {
 	 				System.out.println();
 	 			}
 	 		}
+	 		
+	 		System.out.println();
+	 		System.out.println();
+	 		
+	 		ArrayList<String> slotsRequested = new ArrayList<String>();
+	 		slotsRequested.add(":CREATOR");
+	 		slotsRequested.add("COMMON-NAME");
+	 		slotsRequested.add("OVERVIEW-NODE-SHAPE");
+	 		printFrameSlotsTab(regulatorNames);
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		} catch(Exception e) {
@@ -652,6 +717,83 @@ public class ToolBox {
  	}
  	
  	
+ 	
+ 	// General print functions
+ 	public static void printFrameSlotsTab(ArrayList<String> frames) {
+ 		printFrameSlotsTab(frames, null);
+ 	}
+ 	
+ 	public static void printFrameSlotsTab(ArrayList<String> frames, ArrayList<String> slots) {
+ 		// Prints out all frames in tab delimited format.  Columns are printed in the order they appear in slots.
+ 		// If slots is null, then all slots are printed as the ordered union of the set of all slots of all frames
+ 		// If slots is empty, then no slots are printed
+ 		
+ 		String listSeparator = "::";
+ 		JavacycConnection conn = null;
+		
+		try {
+			conn = new JavacycConnection(connectionString,port);
+			conn.selectOrganism(organismStringABC);
+			
+	 		HashMap<String, HashMap<String, ArrayList<String>>> regulatorInfoMap = new HashMap<String, HashMap<String, ArrayList<String>>>();
+	 		TreeSet<String> slotNameSet = new TreeSet<String>();
+	 		
+	 		for (String frame : frames) {
+	 			Frame regulator = Frame.load(conn, frame);
+	 			HashMap<String, ArrayList<String>> infoMap = new HashMap<String, ArrayList<String>>();
+	 			
+	 			for (String slotName : regulator.getSlots().keySet()) {
+	 				ArrayList<String> info = new ArrayList<String>();
+	 				slotNameSet.add(slotName);
+	 				ArrayList slotValues = regulator.getSlotValues(slotName);
+	 				if (slotValues != null && slotValues.size() > 0) {
+	 					for (Object slotValue : regulator.getSlotValues(slotName)) info.add(slotValue.toString());
+	 				}
+	 				infoMap.put(slotName, info);
+	 			}
+	 			regulatorInfoMap.put(frame, infoMap);
+	 		}
+	 		
+	 		// If slots is not null, only print the requested slots.  Else, print all slots.
+	 		if (slots != null) {
+	 			slotNameSet.clear();
+	 			slotNameSet.addAll(slots);
+	 		}
+	 		
+	 		// Print Headers
+	 		System.out.print("ECOCYC-ID\t");
+	 		for (String slotName : slotNameSet) {
+	 			System.out.print(slotName);
+	 			if (slotName != slotNameSet.last()) System.out.print("\t");
+	 		}
+	 		System.out.println();
+	 		
+	 		// Print regulator info
+	 		for (String regulator : regulatorInfoMap.keySet()) {
+	 			System.out.print(regulator + "\t");
+	 			for (String slotName : slotNameSet) {
+	 				ArrayList<String> values = regulatorInfoMap.get(regulator).get(slotName);
+	 				if (values != null && values.size() > 0) {
+		 				for (int i = 0; i < values.size(); i++) {
+		 					if (i < values.size()-1) System.out.print(values.get(i) + listSeparator);
+		 					else System.out.print(values.get(i));
+		 				}
+	 				}
+	 				System.out.print("\t");
+	 			}
+	 			System.out.println();
+	 		}
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			conn.close();
+		}
+ 	}
+ 	
+ 	//TODO Rewrite print file commands as needed for my purposes, as distinct from the standard print provided by JavaCycO
  	// Print File
 	private static void printStructureTab(Network net) {
 //		PrintStream o = null;
