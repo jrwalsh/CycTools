@@ -2,6 +2,7 @@ package ecocycTool;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -59,12 +60,9 @@ public class ExportPathway extends javax.swing.JFrame {
 	* Auto-generated main method to display this JFrame
 	*/
 	public static void main(String[] args) {
+		test();
 		
-		// For testing purposes....
-		//ToolBox.createAffyProbeIDTranslationFile("/home/Jesse/Desktop/probeIDs.txt", "", true);
-		ToolBox.regulators();
-		
-//		// Run GUI
+		// Run GUI
 //		SwingUtilities.invokeLater(new Runnable() {
 //			public void run() {
 //				ExportPathway inst = new ExportPathway();
@@ -72,6 +70,92 @@ public class ExportPathway extends javax.swing.JFrame {
 //				inst.setVisible(true);
 //			}
 //		});
+	}
+	
+	public static void test() {
+		
+		// For testing purposes....
+//		JavacycConnection conn = null;
+//		try {
+//			conn = new JavacycConnection("ecoserver.vrac.iastate.edu",4444);
+//			
+//			//Pseudo-Gene
+////			System.out.println("Pseudo-Gene");
+////			conn.selectOrganism("ECOLI");
+////			Frame gene = Gene.load(conn, "G7556");//EG10702
+////			gene.print();
+////			
+////			//ORF
+////			System.out.println("ORF");
+////			conn.selectOrganism("ECOO157");
+////			Frame gene2 = Gene.load(conn, "Z0667");//EG10702
+////			gene2.print();
+//			
+//			//Phantom Gene
+//			System.out.println("Phantom");
+//			conn.selectOrganism("ECOLI");
+//			Frame gene2 = Gene.load(conn, "G6090");
+//			gene2.print();
+//			
+//			
+////			Frame gene = Gene.load(conn, "G7557");
+////			gene.getClassHierarchy().printStructureTab();
+////			for (Frame f : gene.getClassHierarchy()) {
+////				System.out.println(f);
+////			}
+//			ArrayList<Frame> allGenes = conn.getAllGFPInstances("|All-Genes|");
+//			for (Frame gene : allGenes) System.out.println(gene.getLocalID());
+//		} catch (PtoolsErrorException e) {
+//			e.printStackTrace();
+//		}
+		
+		//ToolBox.createAffyProbeIDTranslationFile("/home/Jesse/Desktop/probeIDs.txt", "", true);
+		//ToolBox.regulators();
+//		ToolBox.exportPathway("PWY-2821");
+		//String[] s = new String[1];
+		//s[0] = "TCA";
+//		s[0] = "PANTO-PWY";
+//		s[0] = "GLUTDEG-PWY";
+		//ToolBox.printFlux(s, "");
+		
+		//ToolBox.updateFrameSlot("EG10025", "Test", "HelloWorld");
+		
+		
+		
+		ToolBox tb = new ToolBox(ToolBox.connectionStringLocal, ToolBox.defaultPort, ToolBox.organismStringABC);
+//		
+//		String[] s = new String[1];
+//		s[0] = "TCA";
+//		tb.printFlux(s, "");
+
+//		ToolBox.printGeneInfo();
+//		ToolBox.exportAllPathways();
+//		tb.exportPathway("GLYCOLYSIS-TCA-GLYOX-BYPASS");
+		
+//		String[] s = new String[15];
+//		s[0] = "MONOMER-48";//"BirA";
+//		s[1] = "CPXR-MONOMER";//"CpxR";
+//		s[2] = "PC00040";//"CysB";
+//		s[3] = "PD00196";//"Fis";
+//		s[4] = "CPLX0-3930";//"FlhDC";
+//		s[5] = "PD00197";//"FNR";
+//		s[6] = "EG12243-MONOMER";//"GadX";
+//		s[7] = "PD00288";//"H-NS";
+//		s[8] = "PD00519";//"LeuO";
+//		s[9] = "PD00353";//"Lrp";
+//		s[10] = "PD00214";//"OxyR";
+//		s[11] = "PC00029";//"OmpR";
+//		s[12] = "PHOP-MONOMER";//"PhoP";
+//		s[13] = "PUTA-CPLX";//"PutA";
+//		s[14] = "PD00406";//"SoxS";
+//		tb.pathwaysOfRegulators(s);
+
+//		tb.writeGML();
+		
+//		tb.tester();
+		
+		tb.exportPathwaysByOntology("|Biosynthesis|");
+		
 	}
 	
 	public ExportPathway() {
@@ -310,9 +394,10 @@ public class ExportPathway extends javax.swing.JFrame {
 	// Custom Functions //
 	
 	private void initializeObjectValues() {
+		ToolBox tb = new ToolBox(ToolBox.connectionStringLocal, ToolBox.defaultPort, ToolBox.organismStringABC);
 		runModel = new DefaultListModel();
 		pathwaysModel = new DefaultListModel();
-		pathwayMap = ToolBox.getAllPathways();
+		pathwayMap = tb.getAllPathways();
 		
 		Object[] pathwayNames = pathwayMap.keySet().toArray();
 		java.util.Arrays.sort(pathwayNames);
@@ -446,7 +531,8 @@ public class ExportPathway extends javax.swing.JFrame {
  					}
  					//1) Get a single pway
  					else if (runModel.size() == 1) {
- 						ToolBox.exportPathway(pathwayMap.get(runModel.firstElement()));
+ 						ToolBox tb = new ToolBox(ToolBox.connectionStringLocal, ToolBox.defaultPort, ToolBox.organismStringABC);
+ 						tb.exportPathway(pathwayMap.get(runModel.firstElement()));
  					}
  					//2) Get multiple pways
  					else if (runModel.size() > 1) {
