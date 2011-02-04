@@ -4,19 +4,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.TreeSet;
-
-import javax.xml.soap.Node;
-
 import javacyco.*;
-import javacyco.Network.Edge;
 
 
 public class ToolBox {
@@ -58,31 +52,199 @@ public class ToolBox {
 	    }
 	}
 	
-	public void tester() {
+	public void tester() throws PtoolsErrorException {
+//		ArrayList<Reaction> rlist = Reaction.all(conn);
+//		for (Reaction r : rlist) {
+//			System.out.println(r.getSlotValue("REACTION-DIRECTION") + "\t" + r.getLocalID() + "\t" + conn.getInstanceDirectTypes(r.getLocalID()));
+//		}
+		
+//		System.out.println(conn.callFuncString("create-named-og 'newGroup (list 'PGLUCISOM-RXN))"));
+//		System.out.println(conn.callFuncString("get-og-by-name 'newGroup 'Jesse)"));
+		System.out.println(conn.callFuncArray("get-og-members :id '3)"));
+		
+		
+//		printString("/home/Jesse/Desktop/new.txt", "Hello World");
+//		printGeneInfo(false);
+//		chemicalSpeciesMatcher();
+	}
+	
+	public void chemicalSpeciesMatcher() {
+		//1: Load ecocyc list
+		//2: Create map from chemical formula to id, keeping duplicates
+		//2.5: Create map from id to name+formula
+		//3: Load Palsson list
+		//4: For each Palsson species, look its formula up in the map to get the matching EcoCyc ids
+		//5: For each match, print a line 'P_id', 'P_name', 'P_formula', 'E_id', 'E_name', 'E_formula'
+		
+		//TODO
+		/**
+		 * Redo process to be sure there are no bugs
+		 * Anything uniquely identified should be in one section
+		 * Anything not identified in another
+		 * EcoCyc compounds not in Palsson probably can't be identified as of yet
+		 * Find a way to trim out the compartment duplicates from the Palson model
+		 */
+		
+		File ecocycFile = new File("/home/Jesse/Desktop/CBiRC_FBA/Code/MatchingSpecies/EcoCyc_species_list");
+		File palssonFile = new File("/home/Jesse/Desktop/CBiRC_FBA/Code/MatchingSpecies/Palsson_species_list");
+		BufferedReader reader = null;
+		
+		HashMap<String, ArrayList<String>> formulaToIdMap = new HashMap<String, ArrayList<String>>();
+		HashMap<String, String[]> idToInfoMap = new HashMap<String, String[]>();
+		
+		String nonParseable = "";
+		String noFormulaMatches = "";
+		String noSynonymMatches = "";
+		String matches = "";
+		
 		try {
-			Frame f = Pathway.load(conn, "GLC-6-P");
-			f.print();
-		} catch (PtoolsErrorException e) {
+			reader = new BufferedReader(new FileReader(ecocycFile));
+			String text = null;
+			
+			// Read ecocyc file and generate maps from chemical formula to Id and from Id to formula and name
+			while ((text = reader.readLine()) != null) {
+				String[] line = text.split("\t");
+				
+				if (line.length == 3) {
+					idToInfoMap.put(line[0], new String[] {line[1],line[2]});
+					if (formulaToIdMap.containsKey(line[2])) {
+						formulaToIdMap.get(line[2]).add(line[0]);
+					} else {
+						ArrayList<String> id = new ArrayList<String>();
+						id.add(line[0]);
+						formulaToIdMap.put(line[2], id);
+					}
+				} else {
+					// Without expected information, we cannot automatically match, but right now we only care about finding
+					// EcoCyc correlates to the species in the Palsson model, not the other way around.
+				}
+			}
+			
+			// Read palsson file, attempt to match each compound in the palsson model to a frame in EcoCyc
+			reader = new BufferedReader(new FileReader(palssonFile));
+			text = "";
+			
+			while ((text = reader.readLine()) != null) {
+				String[] line = text.split("\t");
+				
+				if (line.length == 3) {
+					String synMatch = "";
+					String nonSynMatch = "";
+					
+					if (formulaToIdMap.containsKey(line[2])) {
+						for (String id : formulaToIdMap.get(line[2])) {
+							
+							// Formula Only Matching
+//							String[] info = idToInfoMap.get(id);
+//							String palssonInfo = line[0] + "\t" + line[1] + "\t" + line[2];
+//							String ecocycInfo = id + "\t" + info[0] + "\t" + info[1];
+//							System.out.println(palssonInfo + "\t" + ecocycInfo);
+							
+							
+							// SmartMatch heuristic matching
+
+							// Get all ecocyc synonyms for the proposed match
+							ArrayList<String> synonyms = null;
+							ArrayList<String> modSynonyms = null;
+							try {
+								Frame compound = Frame.load(conn, id);
+								synonyms = compound.getSynonyms();
+								synonyms.add(compound.getCommonName());
+								synonyms.add(compound.getLocalID());
+								modSynonyms = new ArrayList<String>();
+							} catch (PtoolsErrorException e) {
+								// If you can't load the frame, then treat this as a formula only match
+								System.out.println("Cannot look up : " + id);
+								String[] info = idToInfoMap.get(id);
+								String palssonInfo = line[0] + "\t" + line[1] + "\t" + line[2];
+								String ecocycInfo = id + "\t" + info[0] + "\t" + info[1];
+								nonSynMatch += palssonInfo + "\t" + ecocycInfo + "\n";
+								break;
+							}
+							
+							// Break each synonym into primary parts by spliting on [_-,() ] and concatenating pieces with a length > 2
+							for (String synonym : synonyms) {
+								String modSynonym = "";
+								String[] synonymParts = synonym.split("[_\\-\\,\\(\\) ]+");
+								for (String synonymPart : synonymParts) {
+									if (synonymPart.toLowerCase().replace("\"", "").length() > 2) modSynonym += synonymPart.toLowerCase().replace("\"", "");
+								}
+								
+								modSynonyms.add(modSynonym);
+							}
+							
+							// Break the palsson name into primary parts by spliting on [_-,() ] and concatenating pieces with a length > 2
+							String modPalssonName = "";
+							String[] palssonNameParts = line[1].split("[_\\-\\,\\(\\) ]+");
+							for (String palssonNamePart : palssonNameParts) {
+								if (palssonNamePart.length() > 2) modPalssonName += palssonNamePart;
+							}
+							
+							// If the modified palsson name exactly matches a modified synonym, call this a match
+							if (modSynonyms.contains(modPalssonName.toLowerCase())) {
+								String[] info = idToInfoMap.get(id);
+								String palssonInfo = line[0] + "\t" + line[1] + "\t" + line[2];
+								String ecocycInfo = id + "\t" + info[0] + "\t" + info[1];
+								synMatch += palssonInfo + "\t" + ecocycInfo + "\n";
+							} else {
+								String[] info = idToInfoMap.get(id);
+								String palssonInfo = line[0] + "\t" + line[1] + "\t" + line[2];
+								String ecocycInfo = id + "\t" + info[0] + "\t" + info[1];
+								nonSynMatch += palssonInfo + "\t" + ecocycInfo + "\n";
+							}
+						}
+					} else {
+						// No chemical formula match was found
+						String palssonInfo = line[0] + "\t" + line[1] + "\t" + line[2];
+						noFormulaMatches += palssonInfo + "\n";
+					}
+					
+					// If any proposed matches had matching synonyms, then keep all direct matches.
+					if (synMatch.length() > 0) {
+						matches += synMatch;
+					} else {
+						// If no proposed matches had exact matching synonyms, then keep all proposed matches.  These
+						// will probably need to be reviewed manually.
+						noSynonymMatches += nonSynMatch;
+					}
+				} else {
+					// Without expected information, we cannot automatically match
+					//TODO catch unmatched terms :: unmatchables += "";
+				}
+			}
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch(Exception e) {
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		finally {
+			try {
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				if (reader != null) {
+					reader.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		
+		// Print output
+		System.out.println("Direct Synonym Matches");
+		System.out.println(matches);
 		
-		// Get pathways from EcoCyc
-//		JavacycConnection conn2 = new JavacycConnection("ecoserver.vrac.iastate.edu",4444);
-//		conn2.selectOrganism("ECOTEST");
-//		
-//		try {
-//			Frame f = Frame.load(conn2, "GLC-6-P");
-//			f.print();
-//			
-//			
-//		} catch (PtoolsErrorException e) {
-//			e.printStackTrace();
-//		} catch(Exception e) {
-//			e.printStackTrace();
-//		}
+		System.out.println("Formula Only Matches");
+		System.out.println(noSynonymMatches);
+		
+		System.out.println("No Matches");
+		System.out.println(noFormulaMatches);
+		
+		System.out.println("Incomplete Palsson Species");
+		System.out.println(nonParseable);
 	}
 
 	
@@ -165,18 +327,18 @@ public class ToolBox {
  	}
  	
  	public void exportPathwaysByOntology(String ontology) {
+ 		//TODO Broken...
  		// Print all pathways
 		try {
-			Frame ontologyClass = Frame.load(conn, ontology);
-			if (!ontologyClass.isGFPClass("|Pathways|")) {
-				System.out.println("NOT A PATHWAY CLASS");
-				return;
-			}
+//			if (!conn.instanceAllInstanceOfP("|Pathways|", ontology)) {
+//				System.out.println("NOT A PATHWAY CLASS");
+//				return;
+//			}
 			
 			ArrayList<Frame> pathways = conn.getAllGFPInstances(ontology);
 			int i = 1;
 			for (Frame p : pathways) {
-				exportPathwayFlux(p.getLocalID());
+				exportPathwayFlux(p.getLocalID(), ontology);
 				System.out.println(i + "/" + pathways.size());i++;
 			}
 			
@@ -187,20 +349,22 @@ public class ToolBox {
 		}
  	}
  	
- 	public void exportPathwayFlux(String pathwayID) {
+ 	public void exportPathwayFlux(String pathwayID, String fileName) {
+ 		//TODO Broken...
  		//TODO Verify Pathway
  		
 		// Print single pathway
 		try {
 			Frame pway = Pathway.load(conn, pathwayID);
 			Network net = ((Pathway)pway).getNetwork();
-			printFluxTopology(net, pathwayID);
+			printFluxTopology(net, pathwayID, fileName);
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
  	}
+ 	
  	
  	// Push into Ecocyc
  	public void pushNewRegulationFile (String fileName) {
@@ -632,13 +796,20 @@ public class ToolBox {
  	
  	
  	// Print all genes and locations for Erin
- 	public void printGeneInfo () {
+ 	public void printGeneInfo (boolean getProteinSequenceFeatures) {
+ 		//TODO only get features if getProteinSequenceFeatures is true
+ 		//TODO print to file
 		try {
 			// Get all Genes from EcoCyc
 			ArrayList<Frame> allGenes = conn.getAllGFPInstances("|All-Genes|");
 			
+			// Get all protein features
+			HashMap<String, ArrayList<Frame>> proteinToFeatures = new HashMap<String, ArrayList<Frame>>();
+			if (getProteinSequenceFeatures) proteinToFeatures = proteinFeatures();
+
 			// Print Headers
-			System.out.println("ECOCYC-ID\tCOMMON-NAME\tCENTISOME-POSITION\tLEFT-END-POSITION\tRIGHT-END-POSITION\tTRANSCRIPTION-DIRECTION\tTYPE");
+			String headers = "ECOCYC-ID\tCOMMON-NAME\tCENTISOME-POSITION\tLEFT-END-POSITION\tRIGHT-END-POSITION\tTRANSCRIPTION-DIRECTION\tTYPE\tUNIFICATION-LINK\tDNA-SEQUENCE";
+			System.out.println(headers);
 			
 			for (Frame gene : allGenes) {
 				String id = gene.getLocalID();
@@ -653,7 +824,59 @@ public class ToolBox {
 				else if (Gene.isGFPClass(conn, gene.getLocalID(), "|Unclassified-Genes|")) type = "|Unclassified-Genes|";
 				else type = "|Genes|";
 				
-				System.out.println(id + "\t" + commonName + "\t" + cent + "\t" + left + "\t" + right + "\t" + dir + "\t" + type);
+				String outLine = id + "\t" + commonName + "\t" + cent + "\t" + left + "\t" + right + "\t" + dir + "\t" + type;
+				String outLineFeatures = "";
+				
+				// Parse unification links to requested databases
+				ArrayList products = conn.allProductsOfGene(gene.getLocalID());
+				if (products == null) products = new ArrayList();
+				String unificationLink = "";
+				for(Object product : products) {
+					try{
+						Frame productFrame = Frame.load(conn, product.toString());
+					
+						ArrayList dblinks = null;
+						if (productFrame.hasSlot("DBLINKS")) dblinks = productFrame.getSlotValues("DBLINKS");
+						for (Object dblink: dblinks) {
+							ArrayList<String> dbLinkArray = ((ArrayList<String>)dblink); 
+							if (dbLinkArray.get(0).contains("UNIPROT")) {
+								unificationLink += dbLinkArray.get(1).replace("\"", "") + ",";
+							}
+						}
+					} catch (PtoolsErrorException e) {
+						// If product does not resolve or does not have dblinks, simply ignore this product
+					}
+				}
+				if (unificationLink.length() > 0) outLine += "\t" + unificationLink.substring(0, unificationLink.length()-1);
+				else outLine += "\t";
+				
+				// Format proteinSequenceFeatures
+				if (getProteinSequenceFeatures) {
+					products = conn.allProductsOfGene(gene.getLocalID());
+					if (products == null) products = new ArrayList();
+					for(Object product : products) {
+//						if (products.size() > 1) System.err.println("Gene has more than 1 product: " + gene.getLocalID());
+						ArrayList<Frame> features = proteinToFeatures.get(product.toString());
+						if (features == null) features = new ArrayList();
+						for (Frame feature : features) {
+							outLineFeatures += "Product = " + product.toString() + "; Feature = " + conn.getInstanceDirectTypes(feature.getLocalID()) + "; ";
+							if (feature.hasSlot("RESIDUE-NUMBER")) {
+								outLineFeatures += "Residue = ";
+								for (Object residue : feature.getSlotValues("RESIDUE-NUMBER")) {
+									outLineFeatures += residue + ", ";
+								}
+								outLineFeatures = outLineFeatures.substring(0, outLineFeatures.length()-2) + "; ";
+							} else {
+								outLineFeatures += "Position = " + feature.getSlotValue("LEFT-END-POSITION") + "->" + feature.getSlotValue("RIGHT-END-POSITION") + "; ";
+							}
+							outLineFeatures += "Comment = " + feature.getComment() + "\n";
+						}
+					}
+				}
+				
+				outLine += "\t" + conn.getGeneSequence(gene.getLocalID());
+				System.out.println(outLine);
+				if (getProteinSequenceFeatures) System.out.print(outLineFeatures);
 			}
 			
 		} catch (PtoolsErrorException e) {
@@ -663,6 +886,147 @@ public class ToolBox {
 		}
  	}
  	
+ 	private HashMap<String, ArrayList<Frame>> proteinFeatures() {
+ 		HashMap<String, ArrayList<Frame>> proteinToFeatures = new HashMap<String, ArrayList<Frame>>();
+ 		try {
+ 			ArrayList<String> ids = conn.getClassAllInstances("|Protein-Features|");
+ 			for (String id : ids) {
+ 				Frame feature = Frame.load(conn, id);
+ 				String protein = feature.getSlotValue("FEATURE-OF");
+ 				if (proteinToFeatures.containsKey(protein)) {
+ 					proteinToFeatures.get(protein).add(feature);
+ 				} else {
+ 					ArrayList<Frame> features = new ArrayList<Frame>();
+ 					features.add(feature);
+ 					proteinToFeatures.put(protein, features);
+ 				}
+ 			}
+ 		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+ 		return proteinToFeatures;
+ 	}
+ 	
+ 	public void genomeStructureAtLocation (int point) {
+ 		genomeStructureAtLocation(new int[] {point});
+ 	}
+ 	
+ 	public void genomeStructureAtLocation (int[] pointList) {
+ 		ArrayList<GenomicStructure> genomicStructures = new ArrayList<GenomicStructure>();
+ 		try {
+			// Process genomic elements for location on genome
+ 			System.out.println("Loading ecocyc frames:");
+ 			ArrayList<Frame> genes = conn.getAllGFPInstances("|All-Genes|");
+ 			System.out.println("Genes: " + genes.size());
+ 			int count = 0;
+			for (Frame f : genes) {
+				try {
+					Gene gene = (Gene)f;
+					int leftEnd = Integer.parseInt(gene.getSlotValue("LEFT-END-POSITION"));
+					int rightEnd = Integer.parseInt(gene.getSlotValue("RIGHT-END-POSITION"));
+					if (leftEnd > rightEnd) System.out.println("Warning, leftend is greater than rightend");
+					genomicStructures.add(new GenomicStructure(f.getCommonName(), f.getLocalID(), leftEnd, rightEnd, gene));
+				} catch (Exception e){
+					// Ignore elements that do not have integer left and right end positions
+				}
+				count++;
+				if (count > genes.size()*.1) {
+					System.out.print(".");
+					count = 0;
+				}
+			}
+			System.out.println("done");
+			ArrayList<Frame> terminators = conn.getAllGFPInstances("|Rho-Independent-Terminators|");
+			System.out.println("Terminators: " + terminators.size());
+			for (Frame element : terminators) {
+				try {
+					int leftEnd = Integer.parseInt(element.getSlotValue("LEFT-END-POSITION"));
+					int rightEnd = Integer.parseInt(element.getSlotValue("RIGHT-END-POSITION"));
+					if (leftEnd > rightEnd) System.out.println("Warning, leftend is greater than rightend");
+					genomicStructures.add(new GenomicStructure(element.getCommonName(), element.getLocalID(), leftEnd, rightEnd, element));
+				} catch (Exception e){
+					// Ignore elements that do not have integer left and right end positions
+				}
+				count++;
+				if (count > terminators.size()*.1) {
+					System.out.print(".");
+					count = 0;
+				}
+			}
+			System.out.println("done");
+//			ArrayList<Frame> bindingSites = conn.getAllGFPInstances("|DNA-Binding-Sites|");
+//			for (Frame element : bindingSites) {
+//				try {
+//					int leftEnd = Integer.parseInt(element.getSlotValue("LEFT-END-POSITION"));
+//					int rightEnd = Integer.parseInt(element.getSlotValue("RIGHT-END-POSITION"));
+//					genomicStructures.add(new GenomicStructure(element.getCommonName(), element.getLocalID(), leftEnd, rightEnd, element));
+//				} catch (Exception e){
+//					// Ignore elements that do not have integer left and right end positions
+//				}
+//			}
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Print Headers
+		System.out.println("POINT\tCOMMON-NAME\tECOCYC-ID\tLEFT-END-POSITION\tRIGHT-END-POSITION");
+		
+		for (int point : pointList) {
+			System.out.print(point);
+			for (GenomicStructure genomicStructure : genomicStructures) {
+				if (genomicStructure.leftEnd <= point && point <= genomicStructure.rightEnd) {
+					System.out.println("\t" + genomicStructure.commonName + "\t" + genomicStructure.localID + "\t" + genomicStructure.leftEnd + "\t" + genomicStructure.rightEnd);
+				}
+			}
+			System.out.println();
+		}
+ 	}
+ 	
+ 	public void genomeStructureAtLocation (String fileName) {
+ 		File pointListFile = new File(fileName);
+		BufferedReader reader = null;
+		ArrayList<Integer> pointList = new ArrayList<Integer>();
+		
+		try {
+			reader = new BufferedReader(new FileReader(pointListFile));
+			String text = null;
+			
+			while ((text = reader.readLine()) != null) {
+				pointList.add(Integer.parseInt(text));
+			}
+			
+			int[] pointListArray = new int[pointList.size()];
+			for (int i = 0; i < pointList.size(); i++) {
+				pointListArray[i] = pointList.get(i);
+			}
+			
+			genomeStructureAtLocation(pointListArray);
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			try {
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				if (reader != null) {
+					reader.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+ 	}
  	
  	// Print a stoich matrix
  	public void printFlux(String[] pathwayIDs, String writePath) {
@@ -864,21 +1228,20 @@ public class ToolBox {
  	
  	//TODO Rewrite print file commands as needed for my purposes, as distinct from the standard print provided by JavaCycO
  	// Print File
-	public void printFluxTopology(Network net, String fileName)
-	{
-		PrintStream o = null;
+	public void printFluxTopology(Network net, String pathwayID, String fileName) {
+		//TODO Broken...
+		FileWriter file = null;
 		try	{
-			o = new PrintStream(new File(fileName + "_flux_topology.tab"));
+			file = new FileWriter(fileName, true);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		
-		//Print Headers
-		o.println("Reaction Name\tReactant 1\tReactant 2\tProduct 1\tProduct 2\tEnzyme\tGene");
-		
 		try {
+			//Print Header
+			//file.write("Pathway Name\tReaction Name\tReactant 1\tReactant 2\tProduct 1\tProduct 2\tEnzyme\tGene\n");
+
 			for(Frame node : net.getNodes()) {
 				if (node.inKB()) {
 					if (node.isGFPClass(Reaction.GFPtype)) {
@@ -928,7 +1291,7 @@ public class ToolBox {
 							product1 = products.get(0).getCommonName();
 						}
 						
-						o.println(name+"\t"+reactant1+"\t"+reactant2+"\t"+product1+"\t"+product2+"\t"+enzyme1);
+						file.write(pathwayID+"\t"+name+"\t"+reactant1+"\t"+reactant2+"\t"+product1+"\t"+product2+"\t"+enzyme1+"\n");
 						
 //						if (node.isGFPClass(EnzymeReaction.GFPtype)) {
 //							for (Protein enzyme : ((EnzymeReaction)node).getEnzymes()) {
@@ -944,6 +1307,7 @@ public class ToolBox {
 					}
 				}
 			}
+			file.close();
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -1100,6 +1464,39 @@ public class ToolBox {
 			e.printStackTrace();
 		}
  	}
+
+ 	
+ 	// Helper Functions
+ 	private void printString(String fileName, String printString) {
+		PrintStream o = null;
+		try {
+			o = new PrintStream(new File(fileName));
+			o.println(printString);
+			o.close();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+ 	}
+ 	
+ 	
+ 	// Internal Classes
+ 	public class GenomicStructure {
+		public String commonName;
+		public String localID;
+		public int leftEnd;
+		public int rightEnd;
+		private Frame f;
+		
+		public GenomicStructure(String commonName, String localID, int leftEnd, int rightEnd, Frame f) {
+			this.commonName = commonName;
+			this.localID = localID;
+			this.leftEnd = leftEnd;
+			this.rightEnd = rightEnd;
+			this.f = f;
+		}
+	}
 }
 
 //public static void main(String[] args)
@@ -1216,4 +1613,228 @@ public class ToolBox {
 //		conn.close();
 //	}
 //	
+//}
+
+//	public void genomeStructureAtLocation (int[] pointList) {
+//// 		Comparator geneComparator = new Comparator() {  
+////			public int compare (Object a, Object b) {
+////				try {
+////					int aLeft = Integer.parseInt(((Gene)a).getSlotValue("LEFT-END-POSITION"));
+////					int bLeft = Integer.parseInt(((Gene)b).getSlotValue("LEFT-END-POSITION"));
+////					return compare(aLeft, bLeft);
+////				} catch (Exception e) {
+////					System.out.println
+////				}
+////			}  
+////		};
+// 		
+// 		// Get structures that contain the left:right range
+// 		try {
+//			// Get all Genes from EcoCyc
+//			ArrayList<Frame> allGenes = conn.getAllGFPInstances("|All-Genes|");
+//			ArrayList<Frame> genes = new ArrayList<Frame>();
+////			TreeSet<Frame> genes = new TreeSet<Frame>(new Comparator() {
+////															public int compare (Object a, Object b) {
+////																try {
+////																	int aLeft = Integer.parseInt(((Gene)a).getSlotValue("LEFT-END-POSITION"));
+////																	int bLeft = Integer.parseInt(((Gene)b).getSlotValue("LEFT-END-POSITION"));
+////																	return compare(aLeft, bLeft);
+////																} catch (Exception e) {
+////																	throw new ClassCastException("");
+////																}
+////															}
+////														});
+//			
+//			for (Frame gene : allGenes) {
+//				try {
+//					// Check if the gene has a valid right and left position, will throw exception if it doesn't
+////					int geneLeft = Integer.parseInt(gene.getSlotValue("LEFT-END-POSITION"));
+////					int geneRight = Integer.parseInt(gene.getSlotValue("RIGHT-END-POSITION"));
+//					
+//					if (Integer.parseInt(gene.getSlotValue("LEFT-END-POSITION")) >= 0 && Integer.parseInt(gene.getSlotValue("RIGHT-END-POSITION")) >= 0) {
+//						genes.add(gene);
+//					}
+//					
+////					if ((geneLeft <= left && right <= geneRight)) {
+////						System.out.println("Winner!   " + gene.getCommonName() + " = " + geneLeft + ":" + geneRight);
+////					}
+////					if ((geneLeft <= left && right <= geneRight)) {
+////						//print
+////					}
+//				} catch (Exception e) {
+//					// Ignore gene if left or right do not contain int values.
+//				}
+//			}
+//			
+//			
+//			
+//		} catch (PtoolsErrorException e) {
+//			e.printStackTrace();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+// 	}
+
+
+
+
+//File file = new File("/home/Jesse/Desktop/file/all");
+//StringBuffer contents = new StringBuffer();
+//BufferedReader reader = null;
+//ArrayList<Integer> pointList = new ArrayList<Integer>();
+//try {
+//	reader = new BufferedReader(new FileReader(file));
+//	String text = null;
+//	while ((text = reader.readLine()) != null) {
+//		pointList.add(Integer.parseInt(text));
+//	}
+//} catch (Exception e) {
+//	System.out.println(e);
+//}
+//int[] points = new int[pointList.size()];
+//for (int i = 0; i < pointList.size(); i++) {
+//	points[i] = pointList.get(i);
+//}
+//
+//genomeStructureAtLocation(points);
+
+//
+//try {
+//	ArrayList<Frame> all1 = conn.getAllGFPInstances("|DNA-Binding-Sites|");
+////	ArrayList<Frame> all2 = conn.getAllGFPInstances("|Rho-Independent-Terminators|");
+////	ArrayList<Frame> all3 = conn.getAllGFPInstances("|Regulation|");
+////	
+//	all1.get(1).print();
+//	all1.get(100).print();
+//	all1.get(150).print();
+//	all1.get(200).print();
+////	Frame reg = Frame.load(conn, "TERM0-1057");
+////	Frame reg2 = Frame.load(conn, "REG0-9084");
+////	Frame reg3 = Frame.load(conn, "BS00102");
+////	Frame reg4 = Frame.load(conn, "Abs-Center-Pos");
+//////	System.out.println(all1.size());
+//////	System.out.println(all2.size());
+////	reg.print();
+////	reg2.print();
+////	reg3.print();
+////	reg4.print();
+//	
+////	all3.get(1).print();
+////	all3.get(2).print();
+////	all3.get(3).print();
+////	all3.get(4).print();
+//} catch (PtoolsErrorException e) {
+//	e.printStackTrace();
+//} catch(Exception e) {
+//	e.printStackTrace();
+//}
+
+
+// Get pathways from EcoCyc
+//JavacycConnection conn2 = new JavacycConnection("ecoserver.vrac.iastate.edu",4444);
+//conn2.selectOrganism("ECOTEST");
+//
+//try {
+//	Frame f = Frame.load(conn2, "GLC-6-P");
+//	f.print();
+//	
+//	
+//} catch (PtoolsErrorException e) {
+//	e.printStackTrace();
+//} catch(Exception e) {
+//	e.printStackTrace();
+//}
+
+//Frame newFrame = Frame.load(conn, "PC00061");
+//for (Gene g : ((Complex)newFrame).genesRegulatedByProtein()) System.out.println(g.getLocalID());
+
+//Frame test = Frame.load(conn, "CCO-PM-BAC-NEG");
+//test.print();
+
+//Frame newFrame2 = Frame.load(conn, "EG10699");
+//for (Frame g : ((Gene)newFrame2).getRegulatingGenes()) System.out.println(g.getLocalID());
+
+
+
+
+//String test = "(2S,3S)-2-methylcitrate";
+//for (String s : test.split("[_\\-\\,\\(\\)]+")) {
+//	System.out.println(s);
+//}
+
+//Frame bass = Gene.load(conn, "EG11614");
+//bass.print();
+//conn.getClassAllInstances("|Misc‑Features|");
+//Frame fff = Frame.load(conn, "|Misc‑Features|");
+//Frame f = Frame.load(conn, "|Promoters|");
+//f.print();
+//for (String s : conn.getKbClasses()) System.out.println(s);
+//conn.getClassAllInstances("|Promoters|");
+//conn.getAllGFPInstances("|Misc‑Features|");
+//for (Frame ff : conn.getAllGFPInstances("|Promoters|")) System.out.println(ff.getLocalID());
+//ArrayList<String> ids = conn.getClassAllInstances("OCELOT-GFP::FRAMES");
+//for (String s : ids) System.out.println(s);
+//for(String id : ids)
+//{
+//	ArrayList<String> directClasses = conn.getInstanceDirectTypes(id);
+//	for(String c : directClasses)
+//	{
+//		System.out.println(c);
+//	}
+//}
+//System.out.println(conn.getGeneSequence("EG11614"));
+//ArrayList<String> ids = conn.getClassAllInstances("|Transmembrane-Regions|");
+//for (String s : ids) {
+////	System.out.println(s);
+//	Frame f = Frame.load(conn, s);
+//	f.print();
+////	System.out.println(f.getSlotValue("FEATURE-OF"));
+//	if (f.getSlotValue("FEATURE-OF").startsWith("BASS")) f.print();
+//}
+//Frame f = Frame.load(conn, "G0-10506");
+//f.print();
+//Network n = conn.getClassHierarchy(true);
+//for (Frame node : n.getNodes()) node.print();
+//n.printNodeAttributesTab();
+
+//TreeSet<String> set = new TreeSet<String>();
+////ArrayList<String> ids = conn.getClassAllInstances("|Protein-Segments|");
+////ArrayList<String> ids = conn.getClassAllInstances("|Phosphorylation-Modifications|");
+//ArrayList<String> ids = conn.getClassAllInstances("|Protein-Features|");
+//for (String s : ids) {
+//	int i = 0;
+//	for(Object t : conn.getInstanceDirectTypes(s)) {
+//		set.add(t.toString());
+////		System.out.println("\t"+(String)t);
+//	}
+//	Frame.load(conn, s).print();
+//}
+//for (String s : set) System.out.println(s);
+
+
+//ArrayList<String> ids = new ArrayList<String>();
+//for (Object o : conn.getClassAllInstances("|Active-Peptides|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Ca-Binding-Regions|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Catalytic-Domains|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Chains|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Conserved-Regions|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|DNA-Binding-Regions|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Extrinsic-Sequence-Variants|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Intrinsic-Sequence-Variants|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Mutagenesis-Variants|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Nucleotide-Phosphate-Binding-Regions|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Propeptides|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Protein-Binding-Regions|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Repeats|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Sequence-Conflicts|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Signal-Sequences|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Transmembrane-Regions|")) ids.add(o.toString());
+//for (Object o : conn.getClassAllInstances("|Zn-Finger-Regions|")) ids.add(o.toString());
+
+//Frame f = Frame.load(conn, "EG11063");
+//ArrayList products = conn.allProductsOfGene(f.getLocalID());
+//if (products == null) products = new ArrayList();
+//for(Object product : products) {
+//	Frame p = Frame.load(conn, product.toString());
+//	p.print();
 //}
