@@ -29,6 +29,7 @@ public class ToolBox {
 	static public String organismString0157 =  "ECOO157"; //0157:H7 EDL933 strain
 	static public String organismStringCFT073 =  "ECOL199310"; //CRT073 strain
 	static public String organismStringARA =  "ARA"; //Aracyc model
+	static public String organismStringCBIRC =  "CBIRC"; //CBiRC E. coli model
 	static public int defaultPort =  4444;
 	
 	
@@ -58,6 +59,38 @@ public class ToolBox {
 	}
 	
 	public void tester() throws PtoolsErrorException {
+//		genesToReactionProducts();
+//		regulatorsOfTFs();
+//		Frame ff = new Frame(conn, "EG12116-MONOMER");
+//		for (Object o : conn.callFuncArray("all-forms-of-protein '" + ff.getLocalID())) {
+//			System.out.println(o.toString());
+//			for (Object act : conn.directActivators(o.toString())) {
+//				System.out.print("Act=" + act.toString());
+//			}
+//			for (Object inhib : conn.directInhibitors(o.toString())) {
+//				System.out.print("Act=" + inhib.toString());
+//			}
+//		}
+//		geneSynonyms();
+//		
+//		ArrayList regs = conn.getClassAllInstances("|Regulation|");
+//		for (Object reg : regs) {
+//			Frame f = new Frame(conn, reg.toString());
+//			if (f.getSlotValue("REGULATED-ENTITY") != null && !conn.getInstanceAllTypes(f.getSlotValue("REGULATED-ENTITY")).contains("|Enzymatic-Reactions|")) {
+//				
+//				System.out.println(f.getSlotValue("REGULATOR") + " : " + f.getSlotValue("REGULATED-ENTITY"));
+//				
+////				Frame d = Frame.load(conn, f.getSlotValue("REGULATED-ENTITY"));
+////				for (Object s : conn.getInstanceAllTypes(d.getLocalID())) {
+////					System.out.
+////				}
+////				for (Frame d : (Frame.load(conn, f.getSlotValue("REGULATED-ENTITY"))).getClass()) {
+////					System.out.println(d.getLocalID());
+////				}
+//			}
+//		}
+		
+		
 //		ArrayList<Reaction> rlist = Reaction.all(conn);
 //		for (Reaction r : rlist) {
 //			System.out.println(r.getSlotValue("REACTION-DIRECTION") + "\t" + r.getLocalID() + "\t" + conn.getInstanceDirectTypes(r.getLocalID()));
@@ -81,16 +114,21 @@ public class ToolBox {
 //		for (Object r : ((Reaction)f).getSlotValues("LEFT")) {
 //			System.out.println((Frame.load(conn, r.toString()).annotations.get("COMPARTMENT")));
 //		}
-		Frame f2 = Frame.load(conn, "ABC-8-RXN");
+//		Frame f2 = Frame.load(conn, "ABC-8-RXN");
 //		f2.print();
-		for (Object p : ((Reaction)f2).getSlotValues("LEFT")) {
+//		for (Object p : ((Reaction)f2).getSlotValues("LEFT")) {
 //			System.out.println((Frame.load(conn, p.toString()).annotations.get()));
-			System.out.println(conn.getValueAnnot("ABC-8-RXN", "LEFT", (String)p, "COMPARTMENT"));
-		}
+//			System.out.println(conn.getValueAnnot("ABC-8-RXN", "LEFT", (String)p, "COMPARTMENT"));
+//		}
 //		System.out.println(conn.callFuncArray("compartments-of-reaction 'RXN0-5195)"));
 //		System.out.println(conn.callFuncArray("compartments-of-reaction 'ABC-8-RXN)"));
 		
 //		printGeneInfoCircos();
+		
+		
+		
+		
+		
 		
 		// Dry run of model read / modify code
 //		sbmlInteralFunctionTests(10);
@@ -108,7 +146,48 @@ public class ToolBox {
 //		sbmlInteralFunctionTests(60);
 		// Check behavior of the listCombinations function
 //		sbmlInteralFunctionTests(70);
-
+		// Look for conditions in comments
+//		sbmlInteralFunctionTests(80);
+		
+		
+//		System.out.println(isGeneralized("ACETOIN"));
+//		Frame f = Frame.load(conn, "ACETOIN");
+//		Frame f = loadFrame("Acceptor");
+//		System.out.println(conn.frameExists("Acceptors"));
+//		System.out.println(f.getSlots().keySet().size());
+//		for (String s : f.getSlots().keySet()) System.out.println(s);
+//		f.print();
+//		System.out.println(f.getInChi());
+//		for (Object o : f.getSlotValues("CHEMICAL-FORMULA")) System.out.println(o.toString());
+		
+//		if (f == null) System.out.println("LOL");
+//		isGeneralized("blah");
+//		System.out.println(f.getLocalID());
+//		System.out.println(f.getCommonName());
+//		System.out.println(f.getInChi());
+//		System.out.println(conn.callFuncString("coerce-to-frame 'ACETOIN"));
+//		System.out.println(conn.callFuncString("get-slot-value 'ACETOIN 'INCHI"));
+//		String formula = conn.callFuncString("get-slot-value 'ACETOIN 'INCHI");
+		//System.out.println(formula);
+		
+		
+		
+//		reactionGeneRule("SUCCCOASYN-RXN");
+//		reactionGeneRule("FUMHYDR-RXN");
+//		// Reactions of gene
+//		ArrayList<Frame> genes = Gene.allFrames(conn);
+//		for (Frame gene : genes) {
+//			for (Object reaction : conn.reactionsOfGene(gene.getLocalID())) {
+//				System.out.println(gene.getLocalID() + " : " + reaction.toString());	
+//			}
+//		}
+		
+//		Frame f = new Frame(conn, "NADH-P-OR-NOP");
+//		System.out.println(f.getLocalID());
+//		f.print();
+//		conn.getInstanceAllTypes("NADH-P-OR-NOP");
+		
+		writeGML();
 	}
 	
 	
@@ -130,10 +209,16 @@ public class ToolBox {
 			case 30: {
 				// Check behavior of the instantiateGeneralizedReaction function
 				SBMLReader reader = new SBMLReader();
-				SBMLDocument doc  = reader.readSBML("/home/Jesse/Desktop/glyc_test.xml");
+				SBMLDocument doc  = reader.readSBML("/home/Jesse/Desktop/allReactions_with_directions.xml");
 				
 				Model model = doc.getModel();
-				org.sbml.libsbml.Reaction origReaction = model.getReaction("SUCCINATE__45__DEHYDROGENASE__45__UBIQUINONE__45__RXN");
+				org.sbml.libsbml.Reaction origReaction = model.getReaction("ABC__45__56__45__RXN");
+//				org.sbml.libsbml.Reaction origReaction = model.getReaction("RXN__45__11319");
+//				org.sbml.libsbml.Reaction origReaction = model.getReaction("RXN0__45__1842");
+//				org.sbml.libsbml.Reaction origReaction = model.getReaction("RXN0__45__3381");
+//				org.sbml.libsbml.Reaction origReaction = model.getReaction("RXN0__45__4261");
+//				org.sbml.libsbml.Reaction origReaction = model.getReaction("RXN0__45__4581");
+//				org.sbml.libsbml.Reaction origReaction = model.getReaction("RXN0__45__5128");
 				ArrayList<org.sbml.libsbml.Reaction> list = instantiateGeneralizedReaction(origReaction);
 //				System.out.println(list.size());
 				for (org.sbml.libsbml.Reaction newReaction : list) {
@@ -167,7 +252,7 @@ public class ToolBox {
 				System.out.println(isReactionBalanced(reacs, prods));
 			} break;
 			case 50: {
-				// Check behavior of the createInstantiatedReaction function
+				// Check behavior of the generateInstantiatedReactions function
 				SBMLReader reader = new SBMLReader();
 				SBMLDocument doc  = reader.readSBML("/home/Jesse/Desktop/glyc_test.xml");
 				
@@ -179,7 +264,7 @@ public class ToolBox {
 				
 				SpeciesReference sr1 = new SpeciesReference(2, 1);
 				sr1.setSpecies("SUC_CCO__45__CYTOSOL");
-				sr1.setStoichiometry(1);
+				sr1.setStoichiometry(5);
 				SpeciesReference sr2 = new SpeciesReference(2, 1);
 				sr2.setSpecies("CPD0__45__1464");
 				sr2.setStoichiometry(1);
@@ -195,7 +280,7 @@ public class ToolBox {
 				products.add(sr3);
 				products.add(sr4);
 				
-				org.sbml.libsbml.Reaction newReaction = createInstantiatedReaction(origReaction, reactants, products, "renamed");
+				org.sbml.libsbml.Reaction newReaction = copyReaction(origReaction, origReaction.getId() + "_" + "renamed", origReaction.getName() + "_" + "renamed", reactants, products);
 				
 				ListOfSpeciesReferences losr = newReaction.getListOfReactants();
 				for (int i = 0; i < losr.size(); i ++) {
@@ -213,6 +298,9 @@ public class ToolBox {
 				for (int i = 0; i < lor.size(); i ++) {
 					System.out.println(lor.get(i).getName());
 				}
+				// Write revised model.
+				SBMLWriter writer = new SBMLWriter();
+				writer.writeSBML(doc, "/home/Jesse/Desktop/written_SBML.xml");
 			} break;
 			case 60: {
 				// Check if a pathway contains a general term
@@ -241,10 +329,32 @@ public class ToolBox {
 				ArrayList<ArrayList<String>> result = listCombinations(map);
 				System.out.println(result.size());
 			} break;
+			case 80: {
+				// Look for conditions in comments
+				try {
+					ArrayList<Reaction> allRxns = Reaction.all(conn);
+					for (Reaction r : allRxns) {
+						if (r.getComment() != null && r.getComment().toLowerCase().contains("aerobic")) {
+							System.out.println(r.getLocalID());
+							System.out.println(r.getComment());
+						}
+					}
+				} catch (PtoolsErrorException e) {
+					e.printStackTrace();
+				}
+			} break;
 		}
 	}
 	
 	public void sbml(String fileName) {
+		// Currently, we are removing all trna reactions and all reactions in which a protein is a reactant or substrate.
+		// Notably, Palsson includes tRNA synthesis, thioredoxin (protein), and linked disacharide murein units.
+		ArrayList<String> classToFilter = new ArrayList<String>();
+		classToFilter.add("|Polynucleotide-Reactions|");
+		classToFilter.add("|Protein-Reactions|");
+		
+		ArrayList<String> reactionsToFilter = new ArrayList<String>();
+		
 		SBMLReader reader = new SBMLReader();
 		SBMLDocument doc  = reader.readSBML(fileName);
 
@@ -255,41 +365,40 @@ public class ToolBox {
 		}
 		
 		Model model = doc.getModel();
-		reactionFilter(model, null, null); //TODO revisit filter
 		
-		ArrayList<org.sbml.libsbml.Reaction> newReactions = new ArrayList<org.sbml.libsbml.Reaction>();
-		ListOfReactions lor = model.getListOfReactions();
-		for (int i = 0; i < lor.size(); i ++) {
-			if (isGeneralized(lor.get(i).getName())) {
-				for (org.sbml.libsbml.Reaction newReaction : instantiateGeneralizedReaction(lor.get(i))) {
-					newReactions.add(newReaction);
-				}
-			}
-		}
+		// Remove reactions that are not useful to this model
+		reactionFilter(model, classToFilter, reactionsToFilter);
 		
+		// Remove generic reactions. Include instantiated versions of the generic reactions if possible.
+		ArrayList<org.sbml.libsbml.Reaction> newReactions = removeAndInstantiateGenericReactions(model);
 		for (org.sbml.libsbml.Reaction newReaction : newReactions) {
 			model.addReaction(newReaction);
 		}
 		
+		// Write revised model.
 		SBMLWriter writer = new SBMLWriter();
 		writer.writeSBML(doc, "/home/Jesse/Desktop/written_SBML.xml");
 	}
 	
 	public ArrayList<org.sbml.libsbml.Reaction> reactionFilter(Model model, ArrayList<String> classToFilter, ArrayList<String> reactionsToFilter) {
 		// The purpose of this function is to remove unwanted or unusable reactions from the model.
-		// Currently, we are removing all trna reactions and all reactions in which a protein is a
-		// reactant or substrate.
-		// Notably, Palsson includes tRNA synthesis, thioredoxin (protein), and linked disacharide murein units.
+		// Filter removes reactions by matching on the SMBL model reaction names. These names must be ecocyc frame IDs for this method to function properly.
 		// Returns reactions that were removed.
 		
-		// Remove all instances of Polynucleotide-Reactions and Protein-Reactions
 		ArrayList<String> filter = new ArrayList<String>();
 		ArrayList<String> sidsToRemove = new ArrayList<String>();
 		ArrayList<org.sbml.libsbml.Reaction> removedReactions = new ArrayList<org.sbml.libsbml.Reaction>();
 		
 		try {
-			for (Object reaction : conn.getClassAllInstances("|Polynucleotide-Reactions|")) filter.add(reaction.toString());
-			for (Object reaction : conn.getClassAllInstances("|Protein-Reactions|")) filter.add(reaction.toString());
+			if (classToFilter != null) {
+				for (String reactionClass : classToFilter) {
+					for (Object reaction : conn.getClassAllInstances(reactionClass)) filter.add(reaction.toString());
+				}
+			}
+			
+			if (reactionsToFilter != null) {
+				for (String reaction : reactionsToFilter) filter.add(reaction);
+			}
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		}
@@ -303,7 +412,28 @@ public class ToolBox {
 		return removedReactions;
 	}
 	
-	public ArrayList<org.sbml.libsbml.Reaction> instantiateGeneralizedReaction(org.sbml.libsbml.Reaction origReaction) {
+	public ArrayList<org.sbml.libsbml.Reaction> removeAndInstantiateGenericReactions(Model model) {
+		ArrayList<org.sbml.libsbml.Reaction> instantiatedReactions = new ArrayList<org.sbml.libsbml.Reaction>();
+		ArrayList<String> reactionsToFilter = new ArrayList<String>();
+		
+		ListOfReactions lor = model.getListOfReactions();
+		for (int i = 0; i < lor.size(); i ++) {
+			org.sbml.libsbml.Reaction currentReaction = lor.get(i);
+			if (isGeneralized(currentReaction.getName())) {
+				for (org.sbml.libsbml.Reaction newReaction : instantiateGeneralizedReaction(currentReaction)) instantiatedReactions.add(newReaction);
+				reactionsToFilter.add(currentReaction.getName());
+			}
+		}
+		
+		reactionFilter(model, null, reactionsToFilter).size();
+		
+//		System.out.println(reactionFilter(model, null, reactionsToFilter).size());
+//		System.out.println(instantiatedReactions.size());
+		
+		return instantiatedReactions;
+	}
+	
+	private ArrayList<org.sbml.libsbml.Reaction> instantiateGeneralizedReaction(org.sbml.libsbml.Reaction origReaction) {
 		// This function makes sure that the reaction has a possibility of being instantiated.  It then calls 
 		// createInstantiatedReactions to do the bulk of the work.
 		
@@ -322,6 +452,7 @@ public class ToolBox {
 			// If reaction has specific forms, then assume those forms are already in the model
 			if (conn.callFuncArray("specific-forms-of-rxn '" + origReaction.getName()).size() > 0) {
 				//TODO return these and check they are in the model, in case whole ecoli model was not the starting point
+//				System.out.println("Specific Form Found");
 				return instantiatedReactions;
 			}
 			
@@ -353,116 +484,42 @@ public class ToolBox {
 				return instantiatedReactions;
 			}
 			
-			ArrayList<org.sbml.libsbml.Reaction> newReactions = createInstantiatedReactions(origReaction, reactants, products, generalizedReactants, generalizedProducts);
+			ArrayList<org.sbml.libsbml.Reaction> newReactions = generateInstantiatedReactions(origReaction, reactants, products, generalizedReactants, generalizedProducts);
+			
+//			if (newReactions.size() == 0) System.err.println("Could not instantiate reaction : " + origReaction.getName());
+			
 			for (org.sbml.libsbml.Reaction newReaction : newReactions) instantiatedReactions.add(newReaction);
-			
-			
-//			// Molecule Transport-Only Case
-//			if (generalizedReactants.containsAll(generalizedProducts) && generalizedProducts.containsAll(generalizedReactants)) {
-//				// If the molecule is not being transported, then it is being modified in some way.  This is probably a chain formation
-//				// or degradation, so it is not possible to automatically determine the valid instantiations of this reaction.
-//				if (conn.callFuncArray("compartments-of-reaction '" + reaction.getLocalID()).size() <= 1) {
-//					return instantiatedReactions;
-//				}
-//				
-//				// Since an unmodified molecule is moving across compartments, the generalized molecules must be the same on both sides.
-//				//TODO handle more than one molecule transport
-////				for (Object reactantInstance : conn.getClassAllInstances(generalizedReactants.get(0))) {
-//////					ArrayList<String> lvalues = (ArrayList<String>)reactants.clone();
-//////					lvalues.add(reactantInstance.toString());
-//////					
-//////					ArrayList<String> rvalues = (ArrayList<String>)products.clone();
-//////					rvalues.add(reactantInstance.toString()); //reactantInstance is used instead of productInstance since they necessarily the same in this case
-////
-////					org.sbml.libsbml.Reaction newReaction = createInstantiatedReaction(origReaction, (ArrayList<String>)reactants.clone(), (ArrayList<String>)products.clone(), (ArrayList<String>)generalizedReactants.clone(), (ArrayList<String>)generalizedProducts.clone());
-////					instantiatedReactions.add(newReaction);
-////				}
-//			}
-			
-			
-			
-//			if (generalizedReactants.size() > 1 || generalizedProducts.size() > 1) {
-//				//TODO
-////				System.out.println("Warning, unhandled instantiation");
-////				System.out.println(origReaction.getName() + "\tCASE 1" + " : " + generalizedReactants.size() + " " + generalizedProducts.size());
-//
-//			} else if (generalizedReactants.size() == 1 && generalizedProducts.size() == 1) {
-//				if (generalizedReactants.get(0).equalsIgnoreCase(generalizedProducts.get(0))) {
-//					//TODO
-//					// One general product and one general reactant.  Product and reactant are same. (eg a transport reaction)
-////					System.out.println(origReaction.getName() + "\tCASE 2.1");
-//				} else {
-//					// One general product and one general reactant.  Product and reactant are different.
-//					int i = 1;
-//					for (Object reactantInstance : conn.getClassAllInstances(generalizedReactants.get(0))) {
-//						for (Object productInstance : conn.getClassAllInstances(generalizedProducts.get(0))) {
-//							ArrayList<String> lvalues = (ArrayList<String>)reactants.clone();
-//							lvalues.add(reactantInstance.toString());
-//							
-//							ArrayList<String> rvalues = (ArrayList<String>)products.clone();
-//							rvalues.add(productInstance.toString());
-//							
-//							org.sbml.libsbml.Reaction newReaction = new org.sbml.libsbml.Reaction(origReaction);
-//							newReaction.setId(origReaction.getId() + "_" + i);
-//							newReaction.setName(origReaction.getName() + "_" + i);
-//							for (String generalizedReactant : generalizedReactants) newReaction.removeReactant(generalizedReactant);
-//							for (String generalizedProduct : generalizedProducts) newReaction.removeProduct(generalizedProduct);
-//							//newReaction.addReactant(sr);
-//							//newReaction.addProduct(sr);
-//							
-////							Reaction newReaction = (Reaction)Reaction.load(conn, reaction.getLocalID());
-////							Reaction newReaction2 = Reaction.create(c, type, id);
-////							newReaction.setLocalID(reaction.getLocalID() + "_" + i);
-////							newReaction.setCommonName(reaction.getCommonName() + "_" + i);
-////							newReaction.putSlotValues("LEFT", lvalues);
-////							newReaction.putSlotValues("RIGHT", rvalues);
-//							
-//							instantiatedReactions.add(newReaction);
-//							i++;
-//						}
-//					}
-////					System.out.println(origReaction.getName() + "\tCASE 2.2");
-//				}
-//			} else if (generalizedReactants.size() > 0) {
-//				//TODO
-////				for (String reactant : generalizedReactants) {
-////					for (Object r : conn.getClassAllInstances(reactant)) {
-////						System.out.println(reactant + " " + r.toString());
-//////						Frame f = Frame.load(conn, r.toString());
-////					}
-////				}
-////				System.out.println(origReaction.getName() + "\tCASE 3" + " : " + generalizedReactants.size());
-//			} else if (generalizedProducts.size() > 0) {
-//				//TODO
-////				for (String product : generalizedProducts) {
-////					for (Object r : conn.getClassAllInstances(product)) {
-////						System.out.println(product + " " + r.toString());
-//////						Frame f = Frame.load(conn, r.toString());
-////					}
-////				}
-////				System.out.println(origReaction.getName() + "\tCASE 4" + " : " + generalizedProducts.size());
-//			}
-//			
-////			for (String reactant : reactants) {
-////				conn.getClassAllInstances(reactant);
-////			}
-////			for (String product : products) {
-////				conn.getClassAllInstances(product);
-////			}
-			
 		} catch (PtoolsErrorException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		
 		return instantiatedReactions;
 	}
 	
-	private ArrayList<org.sbml.libsbml.Reaction> createInstantiatedReactions(org.sbml.libsbml.Reaction origReaction, ArrayList<String> reactants, ArrayList<String> products, ArrayList<String> generalizedReactants, ArrayList<String> generalizedProducts) {
+	private ArrayList<org.sbml.libsbml.Reaction> generateInstantiatedReactions(org.sbml.libsbml.Reaction origReaction, ArrayList<String> reactants, ArrayList<String> products, ArrayList<String> generalizedReactants, ArrayList<String> generalizedProducts) {
 		ArrayList<org.sbml.libsbml.Reaction> newReactions = new ArrayList<org.sbml.libsbml.Reaction>();
-
+		String defaultCompartment = "CCO-CYTOSOL";
+		
 		try {
+			
+			//TODO find a better way to guarantee correct reactant/product
+			Reaction reaction = (Reaction)Reaction.load(conn, origReaction.getName());
+			String reactantSlot = "";
+			String productSlot = "";
+			if (reaction.getSlotValue("REACTION-DIRECTION") == null || !reaction.getSlotValue("REACTION-DIRECTION").equalsIgnoreCase("RIGHT-TO-LEFT")) {
+				reactantSlot = "LEFT";
+				productSlot = "RIGHT";
+			} else {
+				productSlot = "LEFT";
+				reactantSlot = "RIGHT";
+			}
+			
+			//Possible compartment annotations
+			//CCO-PERI-BAC
+			//CCO-EXTRACELLULAR
+			//CCO-CYTOSOL
+			
 			// Collect unique set of general terms
 			ArrayList<String> generalizedTerms = new ArrayList<String>();
 			for (String term : generalizedReactants) {
@@ -478,6 +535,13 @@ public class ToolBox {
 			for (String term : generalizedTerms) {
 				ArrayList<String> instancesOfGeneralTerm = new ArrayList<String>();
 				for (Object instance : conn.getClassAllInstances(term)) instancesOfGeneralTerm.add(instance.toString());
+				
+				if (instancesOfGeneralTerm.size() == 0) {
+					instancesOfGeneralTerm.add(term);
+//					System.err.println("No instances of class : " + term);
+//					return new ArrayList<org.sbml.libsbml.Reaction>();
+				}
+				
 				listOfTermLists.add(instancesOfGeneralTerm);
 			}
 			
@@ -494,84 +558,141 @@ public class ToolBox {
 				for (String reactant : reactants) {
 					// New reactant ref
 					SpeciesReference oldReactant = new SpeciesReference(2, 1);
-					oldReactant.setSpecies(reactant);
-					oldReactant.setStoichiometry(1);
+					
+					String species = convertToSBMLSafe(reactant);
+					String compartment = conn.getValueAnnot(reaction.getLocalID(), reactantSlot, reactant, "COMPARTMENT");
+					if (compartment.equalsIgnoreCase("NIL")) species += "_" + convertToSBMLSafe(defaultCompartment);
+					else species += "_" + convertToSBMLSafe(compartment);
+					
+//					System.out.println("Reaction=" + reaction.getLocalID() + " Species=" + species);
+					oldReactant.setSpecies(species);
+					
+					int coeficient = 1;
+					try {
+						coeficient = Integer.parseInt(conn.getValueAnnot(reaction.getLocalID(), reactantSlot, reactant, "COEFFICIENT"));
+					} catch (Exception e) {
+						coeficient = 1;
+					}
+					
+					oldReactant.setStoichiometry(coeficient);
 					reactantReferences.add(oldReactant);
-					reactantBalance.add(reactant);
+					
+					while (coeficient > 0) {
+						reactantBalance.add(reactant);
+						coeficient--;
+					}
 				}
 				for (String product :products) {
 					// New product ref
 					SpeciesReference oldProduct = new SpeciesReference(2, 1);
-					oldProduct.setSpecies(product);
-					oldProduct.setStoichiometry(1);
+					
+					String species = convertToSBMLSafe(product);
+					String compartment = conn.getValueAnnot(reaction.getLocalID(), productSlot, product, "COMPARTMENT");
+					if (compartment.equalsIgnoreCase("NIL")) species += "_" + convertToSBMLSafe(defaultCompartment);
+					else species += "_" + convertToSBMLSafe(compartment);
+					
+//					System.out.println("Reaction=" + reaction.getLocalID() + " Species=" + species);
+					oldProduct.setSpecies(species);
+					
+					int coeficient = 1;
+					try {
+						coeficient = Integer.parseInt(conn.getValueAnnot(reaction.getLocalID(), reactantSlot, product, "COEFFICIENT"));
+					} catch (Exception e) {
+						coeficient = 1;
+					}
+					
+					oldProduct.setStoichiometry(coeficient);
 					productReferences.add(oldProduct);
-					productBalance.add(product);
+					
+					while (coeficient > 0) {
+						productBalance.add(product);
+						coeficient--;
+					}
 				}
 				for (String term : generalizedReactants) {
 					// New reactant ref
 					SpeciesReference newReactant = new SpeciesReference(2, 1);
-					newReactant.setSpecies(convertToSBMLSafe(combinationSet.get(generalizedTerms.indexOf(term))));
-					newReactant.setStoichiometry(1);
+					
+					String species = convertToSBMLSafe(combinationSet.get(generalizedTerms.indexOf(term)));
+					String compartment = conn.getValueAnnot(reaction.getLocalID(), reactantSlot, term, "COMPARTMENT");
+					if (compartment.equalsIgnoreCase("NIL")) species += "_" + convertToSBMLSafe(defaultCompartment);
+					else species += "_" + convertToSBMLSafe(compartment);
+					
+//					System.out.println("Reaction=" + reaction.getLocalID() + " Species=" + species);
+					newReactant.setSpecies(species);
+					
+					int coeficient = 1;
+					try {
+						coeficient = Integer.parseInt(conn.getValueAnnot(reaction.getLocalID(), reactantSlot, term, "COEFFICIENT"));
+					} catch (Exception e) {
+						coeficient = 1;
+					}
+					
+					newReactant.setStoichiometry(coeficient);
 					reactantReferences.add(newReactant);
-					reactantBalance.add(combinationSet.get(generalizedTerms.indexOf(term)));
+					
+					while (coeficient > 0) {
+						reactantBalance.add(combinationSet.get(generalizedTerms.indexOf(term)));
+						coeficient--;
+					}
 				}
 				for (String term :generalizedProducts) {
 					// New product ref
 					SpeciesReference newProduct = new SpeciesReference(2, 1);
-					newProduct.setSpecies(convertToSBMLSafe(combinationSet.get(generalizedTerms.indexOf(term))));
-					newProduct.setStoichiometry(1);
+					
+					String species = convertToSBMLSafe(combinationSet.get(generalizedTerms.indexOf(term)));
+					String compartment = conn.getValueAnnot(reaction.getLocalID(), productSlot, term, "COMPARTMENT");
+					if (compartment.equalsIgnoreCase("NIL")) species += "_" + convertToSBMLSafe(defaultCompartment);
+					else species += "_" + convertToSBMLSafe(compartment);
+					
+//					System.out.println("Reaction=" + reaction.getLocalID() + " Species=" + species);
+					newProduct.setSpecies(species);
+					
+					int coeficient = 1;
+					try {
+						coeficient = Integer.parseInt(conn.getValueAnnot(reaction.getLocalID(), reactantSlot, term, "COEFFICIENT"));
+					} catch (Exception e) {
+						coeficient = 1;
+					}
+					
+					newProduct.setStoichiometry(coeficient);
 					productReferences.add(newProduct);
-					productBalance.add(combinationSet.get(generalizedTerms.indexOf(term)));
+					
+					while (coeficient > 0) {
+						productBalance.add(combinationSet.get(generalizedTerms.indexOf(term)));
+						coeficient--;
+					}
 				}
 				
+				if (origReaction.getName().equals("THTOREDUCT-RXN")){
+//					System.out.println("Halt");
+				}
 				
 				String nameModifier = "";
 				for (String term : combinationSet) nameModifier += term + "_";
 				if (nameModifier.endsWith("_")) nameModifier = nameModifier.substring(0, nameModifier.length()-1);
-				if (isReactionBalanced(reactantBalance, productBalance)) newReactions.add(createInstantiatedReaction(origReaction, reactantReferences, productReferences, nameModifier));
+				
+				String newID = origReaction.getId() + "_" + convertToSBMLSafe(nameModifier);
+				String newName = origReaction.getName() + "_" + nameModifier;
+				if (isReactionBalanced(reactantBalance, productBalance)) newReactions.add(copyReaction(origReaction, newID, newName, reactantReferences, productReferences));
 			}
 			
-			
-			
-			
-			//Case 1: Exact same molecule - (Transport across membrane)
-//			if (generalizedReactants.size() == 1 && generalizedReactants.equals(generalizedProducts)) {
-//				
-//			}
-			
-			
-			//Case 2: Very similar molecules, same molecule but different forms - (Donor/Acceptor)
-			//Case 3: Chain molecules - (A{4} <--> A{3} + B)
-			//Case 4: Different molecules - (everything else)
-			
-			///////////////////////////////////////////
-			///////////////////////////////////////////
-			///////////////////////////////////////////
-			///////////////////////////////////////////
-			///////////////////////////////////////////
-			
-			// Maybe a better way to sort is by 
+			// TODO Special reaction types
 			// Case 1: Change of compartments occurs
-//			if ((conn.callFuncArray("compartments-of-reaction '" + origReaction.getName())).size() <= 1) {
-//				
-//			}
-			
 			// Case 2: Change in (n) annotation occurs
-			
-			
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		}
 		return newReactions;
 	}
 	
-	private org.sbml.libsbml.Reaction createInstantiatedReaction(org.sbml.libsbml.Reaction origReaction, ArrayList<SpeciesReference> reactants, ArrayList<SpeciesReference> products, String nameModifier) {
+	private org.sbml.libsbml.Reaction copyReaction(org.sbml.libsbml.Reaction origReaction, String newID, String newName, ArrayList<SpeciesReference> reactants, ArrayList<SpeciesReference> products) {
 		org.sbml.libsbml.Reaction newReaction = new org.sbml.libsbml.Reaction(origReaction);
-		newReaction.setId(origReaction.getId() + "_" + convertToSBMLSafe(nameModifier));
-		newReaction.setName(origReaction.getName() + "_" + nameModifier);
+		newReaction.setId(newID);
+		newReaction.setName(newName);
 		newReaction.getListOfReactants().clear();
 		newReaction.getListOfProducts().clear();
-
+		
 		for (SpeciesReference reactant : reactants) {
 			if (newReaction.addReactant(reactant) != 0) {
 				System.err.println("Failed to add reactant to reaction.  Reaction=" + origReaction.getName() + ", Reactant=" + reactant.getSpecies());
@@ -617,12 +738,12 @@ public class ToolBox {
 		return generalToInstancesArray;
 	}
 	
-	public boolean isGeneralized(String reactionName) {
+	private boolean isGeneralized(String reactionName) {
 		boolean result = false;
 		try {
-			Frame reaction = Reaction.load(conn, reactionName);
-			ArrayList<String> reactants = ((Reaction)reaction).getSlotValues("LEFT");
-			ArrayList<String> products = ((Reaction)reaction).getSlotValues("RIGHT");
+			Reaction reaction = loadReaction(reactionName);
+			ArrayList<String> reactants = reaction.getSlotValues("LEFT");
+			ArrayList<String> products = reaction.getSlotValues("RIGHT");
 			
 			for (String reactant : reactants) {
 				if (conn.getFrameType(reactant).toUpperCase().equals(":CLASS")) return true;
@@ -642,32 +763,47 @@ public class ToolBox {
 		// This method does not interpret chemical shorthand (eg R-groups, etc).
 		// Returns true if successful, false if not.  Any errors or unreadable/missing formulas return false.
 		
-		Pattern matchElement = Pattern.compile("\\A[A-Z][a-z]?");
-		Pattern matchQuantity = Pattern.compile("\\A\\d+");
 		HashMap<String, Integer> reactantElements = new HashMap<String, Integer>();
 		HashMap<String, Integer> productElements = new HashMap<String, Integer>();
 		try {
 			for (String reactant : reactantIDs) {
-				String formula = ((Compound)Frame.load(conn, reactant)).getInChi().split("/")[1];
-				if (formula == null || formula.length() == 0) return false;
+				// Special Case
+				int specialCases = 0;
+				if (reactant.equalsIgnoreCase("|Acceptor|")) specialCases = 1;
+				else if (reactant.equalsIgnoreCase("|Donor-H2|")) specialCases = 2;
+				switch (specialCases) {
+					case 1: {
+						if (reactantElements.containsKey("A")) {
+							reactantElements.put("A", reactantElements.get("A") + 1);
+						} else {
+							reactantElements.put("A", 1);
+						}
+					} break;
+					case 2: {
+						if (reactantElements.containsKey("A")) {
+							reactantElements.put("A", reactantElements.get("A") + 1);
+						} else {
+							reactantElements.put("A", 1);
+						}
+						if (reactantElements.containsKey("H")) {
+							reactantElements.put("H", reactantElements.get("H") + 2);
+						} else {
+							reactantElements.put("H", 2);
+						}
+					} break;
+				}
+				if (specialCases != 0) {
+//					System.out.println("Special Case handled");
+					continue;
+				}
 				
-				while (formula.length() > 0) {
-					Matcher m = matchElement.matcher(formula);
-					String element = "";
-					Integer quantity = 1;
-					
-					//Get element
-					if (m.find()) {
-						element = formula.substring(0, m.end());
-						formula = formula.substring(m.end());
-					} else return false;
-					
-					//Get quantity
-					m = matchQuantity.matcher(formula);
-					if (m.find()) {
-						quantity = Integer.parseInt(formula.substring(0, m.end()));
-						formula = formula.substring(m.end());
-					} else quantity = 1;
+				// Regular Case
+				Compound reactantFrame = loadCompound(reactant);
+				
+				for (Object o : reactantFrame.getSlotValues("CHEMICAL-FORMULA")) {
+					String chemicalFormulaElement = o.toString().substring(1, o.toString().length()-1).replace(" ", "");
+					String element = chemicalFormulaElement.split(",")[0];
+					Integer quantity = Integer.parseInt(chemicalFormulaElement.split(",")[1]);
 					
 					//Add to map
 					if (reactantElements.containsKey(element)) {
@@ -675,30 +811,46 @@ public class ToolBox {
 					} else {
 						reactantElements.put(element, quantity);
 					}
-//					System.out.println(element + " : " + quantity + " <==> " + element + " : " + reactantElements.get(element));
 				}
 			}
 			for (String product : productIDs) {
-				String formula = ((Compound)Frame.load(conn, product)).getInChi().split("/")[1];
-				if (formula == null || formula.length() == 0) return false;
+				// Special Case
+				int specialCases = 0;
+				if (product.equalsIgnoreCase("|Acceptor|")) specialCases = 1;
+				else if (product.equalsIgnoreCase("|Donor-H2|")) specialCases = 2;
+				switch (specialCases) {
+					case 1: {
+						if (productElements.containsKey("A")) {
+							productElements.put("A", productElements.get("A") + 1);
+						} else {
+							productElements.put("A", 1);
+						}
+					} break;
+					case 2: {
+						if (productElements.containsKey("A")) {
+							productElements.put("A", productElements.get("A") + 1);
+						} else {
+							productElements.put("A", 1);
+						}
+						if (productElements.containsKey("H")) {
+							productElements.put("H", productElements.get("H") + 2);
+						} else {
+							productElements.put("H", 2);
+						}
+					} break;
+				}
+				if (specialCases != 0) {
+//					System.out.println("Special Case handled");
+					continue;
+				}
 				
-				while (formula.length() > 0) {
-					Matcher m = matchElement.matcher(formula);
-					String element = "";
-					Integer quantity = 1;
-					
-					//Get element
-					if (m.find()) {
-						element = formula.substring(0, m.end());
-						formula = formula.substring(m.end());
-					} else return false;
-					
-					//Get quantity
-					m = matchQuantity.matcher(formula);
-					if (m.find()) {
-						quantity = Integer.parseInt(formula.substring(0, m.end()));
-						formula = formula.substring(m.end());
-					} else quantity = 1;
+				// Regular Case
+				Compound productFrame = loadCompound(product);
+				
+				for (Object o : productFrame.getSlotValues("CHEMICAL-FORMULA")) {
+					String chemicalFormulaElement = o.toString().substring(1, o.toString().length()-1).replace(" ", "");
+					String element = chemicalFormulaElement.split(",")[0];
+					Integer quantity = Integer.parseInt(chemicalFormulaElement.split(",")[1]);
 					
 					//Add to map
 					if (productElements.containsKey(element)) {
@@ -706,7 +858,6 @@ public class ToolBox {
 					} else {
 						productElements.put(element, quantity);
 					}
-//					System.out.println(element + " : " + quantity + " <==> " + element + " : " + productElements.get(element));
 				}
 			}
 		} catch (PtoolsErrorException e) {
@@ -718,6 +869,11 @@ public class ToolBox {
 		
 		if (!reactantElements.keySet().containsAll(productElements.keySet()) || !productElements.keySet().containsAll(reactantElements.keySet())) return false;
 		for (String key : reactantElements.keySet()) {
+//			if (key.equalsIgnoreCase("H")) {
+//				if (reactantElements.get(key) - productElements.get(key) == 1 || reactantElements.get(key) - productElements.get(key) == -1) {
+//					System.out.println("Save reaction with a proton.");
+//				}
+//			}
 			if (reactantElements.get(key) != productElements.get(key)) return false;
 		}
 		
@@ -728,6 +884,13 @@ public class ToolBox {
 		String output = input;
 		output = output.replace("-", "__45__");
 		output = output.replace("+", "__43__");
+		output = output.replace("|", "");
+		try {
+			Integer.parseInt(output.substring(0,1));
+			output = "_" + output;
+		} catch(NumberFormatException nfe) {
+			// Do nothing
+		}
 //		output = output + "_CCO__45__CYTOSOL";
 		return output;
 	}
@@ -740,9 +903,39 @@ public class ToolBox {
 		return output;
 	}
 	
+	private Frame loadFrame(String id) throws PtoolsErrorException {
+		Frame f = new Frame(conn, id);
+		if (f.inKB()) return f;
+		else return null;
+	}
 	
+	private Compound loadCompound(String id) throws PtoolsErrorException {
+		Compound f = new Compound(conn, id);
+		if (f.inKB()) return f;
+		else return null;
+	}
 	
+	private Reaction loadReaction(String id) throws PtoolsErrorException {
+		Reaction f = new Reaction(conn, id);
+		if (f.inKB()) return f;
+		else return null;
+	}
 	
+	public String reactionGeneRule(String reactionID) throws PtoolsErrorException {
+		String orRule = "";
+		for (Object enzyme : conn.enzymesOfReaction(reactionID)) {
+			String andRule = "";
+			for (Object gene : conn.genesOfProtein(enzyme.toString())) {
+				andRule += gene.toString() + " and ";
+			}
+			if (andRule.length() > 0) {
+				andRule = "(" + andRule.substring(0, andRule.length()-5) + ")";
+				orRule += andRule + " or ";
+			}
+		}
+		if (orRule.length() > 0) orRule = orRule.substring(0, orRule.length()-4);
+		return orRule;
+	}
 	
 	
 	
@@ -1289,6 +1482,82 @@ public class ToolBox {
 	 		}
  		} catch (PtoolsErrorException e) {
  			e.printStackTrace();
+		}
+ 	}
+ 	
+ 	public void genesToReactionProducts() {
+ 		// Note that the getProducts() function ignores class objects
+ 		String output = "";
+		try {
+			ArrayList<Reaction> rxns = Reaction.all(conn);
+		
+			for (Reaction rxn : rxns) {
+				output += reactionGeneRule(rxn.getLocalID()) + "\t";
+				output += rxn.getLocalID() + "\t";
+				String productString = "";
+				for (Frame product : rxn.getProducts()) {
+					productString += product.getLocalID() + ",";
+				}
+				if (productString.length() > 0) output += productString.substring(0, productString.length()-1);
+				output += "\n";
+			}
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		}
+		printString("/home/Jesse/Desktop/al_gene_to_metabolite", output);
+ 	}
+ 	
+ 	public void regulatorsOfTFs() {
+ 		try {
+			for (Object tf : conn.allTranscriptionFactors()) {
+				System.out.print(tf.toString() + " : ");
+				for (Object act : conn.directActivators(tf.toString())) {
+					System.out.print("Act=" + act.toString());
+				}
+				for (Object inhib : conn.directInhibitors(tf.toString())) {
+					System.out.print("Act=" + inhib.toString());
+				}
+				System.out.println();
+			}
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		}
+ 	}
+ 	
+ 	public void geneSynonyms() {
+ 		// Print out gene ID and all synonyms
+ 		try {
+			// Get all Genes from EcoCyc
+ 		// Get all Genes from EcoCyc
+			ArrayList<Frame> allGenes = conn.getAllGFPInstances("|All-Genes|");
+			
+			// Print Headers
+			String headers = "ECOCYC-ID\tCOMMON-NAME\tACCESSION-1\tACCESSION-1\tSYNONYMS";
+			System.out.println(headers);
+			
+			for (Frame gene : allGenes) {
+				String id = gene.getLocalID();
+				String commonName = gene.getCommonName();
+				String geneAccession1 = "";
+				if (gene.hasSlot("Accession-1")) geneAccession1 = gene.getSlotValue("Accession-1");
+				if (geneAccession1 != null) geneAccession1 = geneAccession1.replace("\"", "").trim();
+				String geneAccession2 = "";
+				if (gene.hasSlot("Accession-2")) geneAccession2 = gene.getSlotValue("Accession-2");
+				if (geneAccession2 != null) geneAccession2 = geneAccession2.replace("\"", "").trim();
+				
+				String synonyms = "";
+				for (String synonym : gene.getSynonyms()) synonyms += synonym + ",";
+				if (synonyms.length() > 0) {
+					synonyms = "(" + synonyms.substring(0, synonyms.length() - 1) + ")";
+					synonyms = synonyms.replace("\"", "").trim();
+				}
+				
+				System.out.println(id + "\t" + commonName + "\t" + geneAccession1 + "\t" + geneAccession2 + "\t" + synonyms);
+			}
+ 		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
  	}
  	
@@ -2186,12 +2455,18 @@ public class ToolBox {
  	public void writeGML() {
  		PrintStream stream = null;
  		try {
- 			stream = new PrintStream(new File("GML_GLY_TCA_GLYOX_BYPASS.gml"));
+// 			stream = new PrintStream(new File("GML_GLY_TCA_GLYOX_BYPASS.gml"));
+// 			
+// 			Frame pway = Pathway.load(conn, "GLYCOLYSIS-TCA-GLYOX-BYPASS");
+// 			Network net = ((Pathway)pway).getNetwork();
+// 			
+// 			((Pathway) pway).getNetwork().writeGML(stream);//, true, false, false);
  			
- 			Frame pway = Pathway.load(conn, "GLYCOLYSIS-TCA-GLYOX-BYPASS");
- 			Network net = ((Pathway)pway).getNetwork();
+ 			stream = new PrintStream(new File("ecocyc_v14.6.gml"));
+ 			Network net = conn.getNetwork();
  			
- 			((Pathway) pway).getNetwork().writeGML(stream);//, true, false, false);
+ 			net.writeGML(stream, true, true, true, true);//, true, false, false);
+ 			
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -2610,4 +2885,124 @@ public class ToolBox {
 //
 //
 //return new ArrayList<HashMap<String, String>>();
+//}
+
+
+
+
+
+
+
+
+
+
+//private boolean isReactionBalanced(ArrayList<String> reactantIDs, ArrayList<String> productIDs) {
+//	// If a reactant or product has a stoichiometry greater than |1|, then it should appear in the list as many times as its stoich value
+//	// This method does not interpret chemical shorthand (eg R-groups, etc).
+//	// Returns true if successful, false if not.  Any errors or unreadable/missing formulas return false.
+//	
+//	Pattern matchElement = Pattern.compile("\\A[A-Z][a-z]?");
+//	Pattern matchQuantity = Pattern.compile("\\A\\d+");
+//	HashMap<String, Integer> reactantElements = new HashMap<String, Integer>();
+//	HashMap<String, Integer> productElements = new HashMap<String, Integer>();
+//	try {
+//		for (String reactant : reactantIDs) {
+//			// Special cases
+//			if (reactant.equalsIgnoreCase("PROTON")) {
+//				if (reactantElements.containsKey("H")) {
+//					reactantElements.put("H", reactantElements.get("H") + 1);
+//				} else {
+//					reactantElements.put("H", 1);
+//				}
+//				continue;
+//			}
+//			
+//			Compound reactantFrame = loadCompound(reactant);
+//			String formula = reactantFrame.getInChi().split("/")[1];
+//			
+//			if (formula == null || formula.length() == 0) return false;
+//			
+//			while (formula.length() > 0) {
+//				Matcher m = matchElement.matcher(formula);
+//				String element = "";
+//				Integer quantity = 1;
+//				
+//				//Get element
+//				if (m.find()) {
+//					element = formula.substring(0, m.end());
+//					formula = formula.substring(m.end());
+//				} else return false;
+//				
+//				//Get quantity
+//				m = matchQuantity.matcher(formula);
+//				if (m.find()) {
+//					quantity = Integer.parseInt(formula.substring(0, m.end()));
+//					formula = formula.substring(m.end());
+//				} else quantity = 1;
+//				
+//				//Add to map
+//				if (reactantElements.containsKey(element)) {
+//					reactantElements.put(element, reactantElements.get(element) + quantity);
+//				} else {
+//					reactantElements.put(element, quantity);
+//				}
+////				System.out.println(element + " : " + quantity + " <==> " + element + " : " + reactantElements.get(element));
+//			}
+//		}
+//		for (String product : productIDs) {
+//			// Special cases
+//			if (product.equalsIgnoreCase("PROTON")) {
+//				if (productElements.containsKey("H")) {
+//					productElements.put("H", productElements.get("H") + 1);
+//				} else {
+//					productElements.put("H", 1);
+//				}
+//				continue;
+//			}
+//			
+//			Compound productFrame = loadCompound(product);
+//			String formula = productFrame.getInChi().split("/")[1];
+//			
+//			if (formula == null || formula.length() == 0) return false;
+//			
+//			while (formula.length() > 0) {
+//				Matcher m = matchElement.matcher(formula);
+//				String element = "";
+//				Integer quantity = 1;
+//				
+//				//Get element
+//				if (m.find()) {
+//					element = formula.substring(0, m.end());
+//					formula = formula.substring(m.end());
+//				} else return false;
+//				
+//				//Get quantity
+//				m = matchQuantity.matcher(formula);
+//				if (m.find()) {
+//					quantity = Integer.parseInt(formula.substring(0, m.end()));
+//					formula = formula.substring(m.end());
+//				} else quantity = 1;
+//				
+//				//Add to map
+//				if (productElements.containsKey(element)) {
+//					productElements.put(element, productElements.get(element) + quantity);
+//				} else {
+//					productElements.put(element, quantity);
+//				}
+////				System.out.println(element + " : " + quantity + " <==> " + element + " : " + productElements.get(element));
+//			}
+//		}
+//	} catch (PtoolsErrorException e) {
+//		e.printStackTrace();
+//		return false;
+//	} catch (Exception e) {
+//		return false;
+//	}
+//	
+//	if (!reactantElements.keySet().containsAll(productElements.keySet()) || !productElements.keySet().containsAll(reactantElements.keySet())) return false;
+//	for (String key : reactantElements.keySet()) {
+//		if (reactantElements.get(key) != productElements.get(key)) return false;
+//	}
+//	
+//	return true;
 //}

@@ -10,6 +10,10 @@ import javacyco.*;
 
 import javax.swing.*;
 
+import org.sbml.libsbml.SBMLDocument;
+import org.sbml.libsbml.SBMLReader;
+import org.sbml.libsbml.libsbmlConstants;
+
 /**
 * This code was edited or generated using CloudGarden's Jigloo
 * SWT/Swing GUI Builder, which is free for non-commercial
@@ -72,6 +76,57 @@ public class ExportPathway extends javax.swing.JFrame {
 //		});
 	}
 	
+	static {
+		/**
+	     * The following static block is needed in order to load the
+	     * the libSBML Java module when the application starts.
+	     */
+	    String varname;
+	    String shlibname;
+	
+	    if (System.getProperty("mrj.version") != null) {
+	      varname = "DYLD_LIBRARY_PATH";    // We're on a Mac.
+	      shlibname = "libsbmlj.jnilib and/or libsbml.dylib";
+	    }
+	    else {
+	      varname = "LD_LIBRARY_PATH";      // We're not on a Mac.
+	      shlibname = "libsbmlj.so and/or libsbml.so";
+	    }
+	
+	    try {
+	      System.loadLibrary("sbmlj");
+	      // For extra safety, check that the jar file is in the classpath.
+	      Class.forName("org.sbml.libsbml.libsbml");
+	    }
+	    catch (UnsatisfiedLinkError e) {
+	      System.err.println("Error encountered while attempting to load libSBML:");
+	      e.printStackTrace();
+	      System.err.println("Please check the value of your " + varname +
+				 " environment variable and/or" +
+	                         " your 'java.library.path' system property" +
+	                         " (depending on which one you are using) to" +
+	                         " make sure it lists all the directories needed to" +
+	                         " find the " + shlibname + " library file and the" +
+	                         " libraries it depends upon (e.g., the XML parser).");
+	      System.exit(1);
+	    }
+	    catch (ClassNotFoundException e) {
+	      e.printStackTrace();
+	      System.err.println("Error: unable to load the file libsbmlj.jar." +
+	                         " It is likely your -classpath option and/or" +
+	                         " CLASSPATH environment variable do not" +
+	                         " include the path to the file libsbmlj.jar.");
+	      System.exit(1);
+	    }
+	    catch (SecurityException e) {
+	      System.err.println("Error encountered while attempting to load libSBML:");
+	      e.printStackTrace();
+	      System.err.println("Could not load the libSBML library files due to a"+
+	                         " security exception.\n");
+	      System.exit(1);
+	    }
+	}
+	
 	public static void test() {
 		
 		// For testing purposes....
@@ -121,8 +176,7 @@ public class ExportPathway extends javax.swing.JFrame {
 		//ToolBox.updateFrameSlot("EG10025", "Test", "HelloWorld");
 		
 		
-		
-		ToolBox tb = new ToolBox(ToolBox.connectionStringLocal, ToolBox.defaultPort, ToolBox.organismStringABC);
+		ToolBox tb = new ToolBox(ToolBox.connectionStringLocal, ToolBox.defaultPort, ToolBox.organismStringCBIRC);
 //		
 //		String[] s = new String[1];
 //		s[0] = "TCA";
@@ -152,9 +206,18 @@ public class ExportPathway extends javax.swing.JFrame {
 
 //		tb.writeGML();
 		
-//		tb.tester();
+		try {
+			tb.tester();
+		} catch (PtoolsErrorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		tb.exportPathwaysByOntology("|Biosynthesis|");
+		//tb.exportPathwaysByOntology("|Biosynthesis|");
+		
+//		int[] pointList = {3500, 7653, 11000, 14001, 15670, 25009};
+//		tb.genomeStructureAtLocation(pointList);
+//		tb.genomeStructureAtLocation("/home/Jesse/Desktop/file2/all");
 		
 	}
 	
