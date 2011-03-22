@@ -2,12 +2,12 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/JavaCycO"/>
 	<classpathentry kind="lib" path="/usr/local/share/java/libsbmlj.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="file:/home/Jesse/workspace/java-api/"/>
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/usr/local/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/PathwayAccess"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
