@@ -5,7 +5,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javacyco.*;
+import edu.iastate.javacyco.*;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
