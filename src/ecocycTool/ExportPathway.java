@@ -6,7 +6,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javacyco.*;
+import edu.iastate.javacyco.*;
 
 import javax.swing.*;
 
