@@ -167,6 +167,20 @@ public class ToolBox {
 //		writeGML();
 		
 		
+		
+//		ArrayList<Frame> fs = conn.getAllGFPInstances(CellComponent.GFPtype);
+//		for (Frame f : fs) f.print();
+//		Frame frame = Frame.load(conn, GOCellularComponent.GFPtype);
+//		GOTerm go = (GOTerm)frame;
+//		ArrayList<OntologyTerm> fs = go.getChildren();
+//		for (Frame f : fs) f.print();
+//		Frame f = Frame.load(conn, "CPD-763");
+//		f.print();
+		
+		
+		
+		
+		
 //		CycModeler modeler = new CycModeler(conn);
 		// Dry run of model read / modify code
 //		modeler.sbmlInteralFunctionTests(10);
@@ -187,9 +201,21 @@ public class ToolBox {
 		// Look for conditions in comments
 //		modeler.sbmlInteralFunctionTests(80);
 		
+		
+		
+		
+		
+		
 		CycModeler modeler = new CycModeler(conn);
 		// Dry run of model read / modify code
-		modeler.sbmlInteralFunctionTests(200);
+		modeler.sbmlInteralFunctionTests(250);
+		
+//		pushNewRegulationFile();
+		
+		
+//		genomeStructureAtLocation("/home/Jesse/Desktop/177data/L75", "/home/Jesse/Desktop/L75Results");
+//		genomeStructureAtLocation("/home/Jesse/Desktop/177data/U167", "/home/Jesse/Desktop/U167Results");
+		
 	}
 
 	public String reactionGeneRule(String reactionID) throws PtoolsErrorException {
@@ -510,14 +536,16 @@ public class ToolBox {
  	
  	
  	// Push into Ecocyc
- 	public void pushNewRegulationFile(String fileName) {
+ 	public void pushNewRegulationFile() {
  		// Read in file.
  		// For each row, identify TF and Gene pair.
  		// Push new regulates info into the TF and the Gene
- 		
 		try {
-			updateFrameSlot("","","");
-			conn.saveKB();
+			Frame glc = Frame.load(conn, "GLC");
+	 		glc.print();
+	 		
+//			updateFrameSlot("GLC","COMMON-NAME","");
+//			conn.saveKB();
 		} catch (PtoolsErrorException e) {
 			System.out.println("Save was unsuccessful : " + e);
 		}
@@ -1169,10 +1197,17 @@ public class ToolBox {
  	}
  	
  	public void genomeStructureAtLocation(int point) {
- 		genomeStructureAtLocation(new int[] {point});
+ 		genomeStructureAtLocation("", new int[] {point});
  	}
  	
- 	public void genomeStructureAtLocation(int[] pointList) {
+ 	public void genomeStructureAtLocation(String fileName, int[] pointList) {
+ 		PrintStream stream = null;
+ 		try {
+			stream = new PrintStream(new File(fileName));
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+ 		
  		ArrayList<GenomicStructure> genomicStructures = new ArrayList<GenomicStructure>();
  		try {
 			// Process genomic elements for location on genome
@@ -1197,6 +1232,8 @@ public class ToolBox {
 				}
 			}
 			System.out.println("done");
+			
+			count = 0;
 			ArrayList<Frame> terminators = conn.getAllGFPInstances("|Rho-Independent-Terminators|");
 			System.out.println("Terminators: " + terminators.size());
 			for (Frame element : terminators) {
@@ -1232,21 +1269,39 @@ public class ToolBox {
 		}
 
 		// Print Headers
-		System.out.println("POINT\tCOMMON-NAME\tECOCYC-ID\tLEFT-END-POSITION\tRIGHT-END-POSITION");
+		System.out.println("Processing points: " + pointList.length);
+//		String output = "POINT\tCOMMON-NAME\tECOCYC-ID\tLEFT-END-POSITION\tRIGHT-END-POSITION\n";
+//		System.out.println("POINT\tCOMMON-NAME\tECOCYC-ID\tLEFT-END-POSITION\tRIGHT-END-POSITION");
+		stream.println("POINT\tCOMMON-NAME\tECOCYC-ID\tLEFT-END-POSITION\tRIGHT-END-POSITION");
 		
+		int count = 0;
 		for (int point : pointList) {
-			System.out.print(point);
+//			output += point;
+//			System.out.print(point);
+			stream.print(point);
 			for (GenomicStructure genomicStructure : genomicStructures) {
 				if (genomicStructure.leftEnd <= point && point <= genomicStructure.rightEnd) {
-					System.out.println("\t" + genomicStructure.commonName + "\t" + genomicStructure.localID + "\t" + genomicStructure.leftEnd + "\t" + genomicStructure.rightEnd);
+//					output += "\t" + genomicStructure.commonName + "\t" + genomicStructure.localID + "\t" + genomicStructure.leftEnd + "\t" + genomicStructure.rightEnd + "\n";
+//					System.out.println("\t" + genomicStructure.commonName + "\t" + genomicStructure.localID + "\t" + genomicStructure.leftEnd + "\t" + genomicStructure.rightEnd);
+					stream.println("\t" + genomicStructure.commonName + "\t" + genomicStructure.localID + "\t" + genomicStructure.leftEnd + "\t" + genomicStructure.rightEnd);
 				}
 			}
-			System.out.println();
+//			output += "\n";
+//			System.out.println();
+			stream.println();
+			count++;
+			if (count > pointList.length*.1) {
+				System.out.print(".");
+				count = 0;
+			}
 		}
+		System.out.println("done");
+//		if (fileName == null || fileName.length() == 0) System.out.println(output);
+//		else printString(fileName, output);
  	}
  	
- 	public void genomeStructureAtLocation(String fileName) {
- 		File pointListFile = new File(fileName);
+ 	public void genomeStructureAtLocation(String inFileName, String outFileName) {
+ 		File pointListFile = new File(inFileName);
 		BufferedReader reader = null;
 		ArrayList<Integer> pointList = new ArrayList<Integer>();
 		
@@ -1255,7 +1310,7 @@ public class ToolBox {
 			String text = null;
 			
 			while ((text = reader.readLine()) != null) {
-				pointList.add(Integer.parseInt(text));
+				pointList.add(Integer.parseInt(text.split("\t")[0].trim()));
 			}
 			
 			int[] pointListArray = new int[pointList.size()];
@@ -1263,7 +1318,7 @@ public class ToolBox {
 				pointListArray[i] = pointList.get(i);
 			}
 			
-			genomeStructureAtLocation(pointListArray);
+			genomeStructureAtLocation(outFileName, pointListArray);
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
