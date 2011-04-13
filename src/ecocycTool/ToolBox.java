@@ -206,9 +206,9 @@ public class ToolBox {
 		
 		
 		
-		CycModeler modeler = new CycModeler(conn);
-		// Dry run of model read / modify code
-		modeler.sbmlInteralFunctionTests(250);
+//		CycModeler modeler = new CycModeler(conn);
+//		// Dry run of model read / modify code
+//		modeler.sbmlInteralFunctionTests(250);
 		
 //		pushNewRegulationFile();
 		
