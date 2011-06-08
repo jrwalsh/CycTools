@@ -16,11 +16,9 @@ import java.util.HashMap;
 import java.util.TreeSet;
 
 import edu.iastate.javacyco.Frame;
-import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 import edu.iastate.javacyco.Regulation;
-import edu.iastate.javacyco.TranscriptionUnit;
 
 /**
  * PGDBUpdater is a class that is designed to be used to modify the structure of a General Frame Protocol (GFP) complient
@@ -29,17 +27,12 @@ import edu.iastate.javacyco.TranscriptionUnit;
  * @author Jesse Walsh
  */
 public class PGDBUpdater {
-	// SQL static vars
-//	static private String connectionURL = "jdbc:mysql://ecoserver.vrac.iastate.edu:3306/CBiRC";
-//	static private String user = "changeLogUser";
-//	static private String pass = "clPass";
-	static private String connectionURL = "jdbc:mysql://localhost:3306/test";
-	static private String user = "Jesse";
-	static private String pass = "firebird";
-	
 	// Global Vars
-	ToolBox tb = null;
 	private Connection sqlConn = null;
+	private JavacycConnection conn = null;
+	private String CurrentConnectionString = "";
+	private int CurrentPort = 0;
+	private String CurrentOrganism = "";
 	
 	static {
 		try {
@@ -51,15 +44,51 @@ public class PGDBUpdater {
 	
 	// Constructor
 	/**
-	 * Constructor which initializes a ToolBox object and a SQL connection object. 
+	 * Constructor which initializes a JavaCycO connection object and a SQL connection object.
 	 */
 	public PGDBUpdater() {
-		tb = new ToolBox(ToolBox.connectionStringLocal, ToolBox.defaultPort, ToolBox.organismStringCBIRC);
+		String connectionURL = "jdbc:mysql://localhost:3306/test";
+		String user = "Jesse";
+		String pass = "firebird";
 		try {
 			sqlConn = DriverManager.getConnection(connectionURL, user, pass);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		CurrentConnectionString = ToolBox.connectionStringLocal;
+		CurrentPort = ToolBox.defaultPort;
+		CurrentOrganism = ToolBox.organismStringCBIRC;
+		conn = new JavacycConnection(CurrentConnectionString, CurrentPort);
+		conn.selectOrganism(CurrentOrganism);
+	}
+	
+	/**
+	 * Constructor which initializes a JavaCycO connection object and a SQL connection object.
+	 * 
+	 * @param connectionString Server running the JavaCycO socket listener
+	 * @param port Port JavaCycO socket listener is listening on
+	 * @param organism Pathway Tools organism ID
+	 */
+	public PGDBUpdater(String connectionString, int port, String organism) {
+//		String connectionURL = "jdbc:mysql://ecoserver.vrac.iastate.edu:3306/CBiRC";
+//		String user = "changeLogUser";
+//		String pass = "clPass";
+		String connectionURL = "jdbc:mysql://localhost:3306/test";
+		String user = "Jesse";
+		String pass = "firebird";
+		
+		try {
+			sqlConn = DriverManager.getConnection(connectionURL, user, pass);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		CurrentConnectionString = connectionString;
+		CurrentPort = port;
+		CurrentOrganism = organism;
+		conn = new JavacycConnection(CurrentConnectionString, CurrentPort);
+		conn.selectOrganism(CurrentOrganism);
 	}
 	
 	protected void finalize() throws Throwable {
@@ -72,9 +101,26 @@ public class PGDBUpdater {
 	
 	
 	// Testing
-	public void tester() throws PtoolsErrorException {
+	public void test() throws PtoolsErrorException {
 		updateFrameSlot("EG11025","NEWSLOT","HELLOWORLD");
-		tb.getConn().saveKB();
+		conn.saveKB();
+		
+		getTFSynonymToFrameMap();
+	}
+	
+	public void tester() throws PtoolsErrorException {
+//		ArrayList<Frame> all = conn.getAllGFPInstances("|Regulation|");
+//		for (Frame f : all) {
+//			if (f.getLocalID().startsWith("PR_")) {
+//				System.out.println(f.getLocalID());
+//				System.out.println("\t"+f.getSlotValue("REGULATOR"));
+//				System.out.println("\t"+f.getSlotValue("REGULATED-ENTITY"));
+//				System.out.println("\t"+f.getSlotValue("MECHANISM"));
+//				System.out.println("\t"+f.getSlotValue("MODE"));
+//			}
+//		}
+		
+		pushNewRegulationFile("");
 	}
 	
 	
@@ -89,17 +135,15 @@ public class PGDBUpdater {
 	 * Saves changes made to pgdb and updates sql database with information on the changes made to the pgdb.
 	 * 
 	 * Note: EcoCyc expects that transcription factors regulate promoter objects. Since this information is not given in our
-	 * lab's regulation prediction analysis, we instead add a slot to the gene object which points to the gene of the transcription
-	 * factor which regulates it.
+	 * lab's regulation prediction analysis, we instead create a regulatory object which points directly to a gene object
+	 * as the regulatee and another gene object as the regulator.
 	 * 
 	 * @param fileName File which contains the columns transcriptionFactor, regulatedGene, regulationType
 	 */
  	public void pushNewRegulationFile(String fileName) {
- 		// Read in file.
- 		// For each row, identify TF and Gene pair.
- 		// Push new regulates info into the TF and the Gene
+ 		String regulationMechanism = ":OTHER";
+ 		fileName = "/home/Jesse/Desktop/Push_Regulation_to_EcoCyc/New_Links_May_17_2011/NewLinks.txt";
  		
-		String regulationMechanism = ":OTHER";
 		File tfLinks = new File(fileName);
 		BufferedReader reader = null;
 		TreeSet<String> geneSet = new TreeSet<String>();
@@ -107,85 +151,48 @@ public class PGDBUpdater {
 		ArrayList<NewRegulationLink> newLinks = new ArrayList<NewRegulationLink>();
 		
 		HashMap<String, Frame> geneSynonymToFrameMap = getGeneSynonymToFrameMap();
-		HashMap<String, Frame> tfSynonymToFrameMap = getTFSynonymToFrameMap();
 		
 		try {
 			reader = new BufferedReader(new FileReader(tfLinks));
 			String text = null;
 			
-			// Headers
+			// Ignore Headers
 			reader.readLine();
 			
 			while ((text = reader.readLine()) != null) {
 				String[] line = text.split("\t");
-				String TF = line[0];
-				String gene = line[1];
-//				String mode = line[2];
+				String TF = line[0].toLowerCase();
+				String gene = line[1].toLowerCase();
+				String mode = (line.length > 2) ? line[2] : "";
 				
 				tfSet.add(TF);
 				geneSet.add(gene);
 				
-				if (tfSynonymToFrameMap.containsKey(TF) && geneSynonymToFrameMap.containsKey(gene)) {
-					// link to gene --> newLinks.add(new NewRegulationLink("", tfSynonymToFrameMap.get(TF), geneSynonymToFrameMap.get(gene), "", null));
-					
-					ArrayList<TranscriptionUnit> tus = ((Gene)geneSynonymToFrameMap.get(gene)).getTranscriptionUnits();
-					for (TranscriptionUnit tu : tus) {
-						if (tu.getPromoter() != null) {
-							//TODO naming convention
-							//TODO duplicate removal
-							newLinks.add(new NewRegulationLink("", tfSynonymToFrameMap.get(TF), tu.getPromoter(), regulationMechanism, null));
-//							System.out.println("" + " " + tfSynonymToFrameMap.get(TF).getLocalID() + " " + tu.getPromoter().getLocalID() + " " + regulationMechanism + " " + null);
-						}
-					}
+				if (geneSynonymToFrameMap.containsKey(TF) && geneSynonymToFrameMap.containsKey(gene)) {
+					newLinks.add(new NewRegulationLink("PR_"+TF+"-"+gene, geneSynonymToFrameMap.get(TF), geneSynonymToFrameMap.get(gene), regulationMechanism, mode));
+				} else {
+					System.out.println("Gene or TF not found on line : " + text);
 				}
 			}
 			
-//			for (String key : geneSynonymToFrameMap.keySet()) System.out.println(key);
-//			for (String key : tfSynonymToFrameMap.keySet()) System.out.println(key);
+			//TODO * Check if this regulation already exists in original ecocyc *
 			
-//			for (String gene : genes) {
-//				if (geneSynonymToFrameMap.containsKey(gene)) {
-//					System.out.println(gene + "\t" + geneSynonymToFrameMap.get(gene).getLocalID());
-//					Gene geneFrame = (Gene)Gene.load(conn, geneSynonymToFrameMap.get(gene).getLocalID());
-//					ArrayList<TranscriptionUnit> tus = geneFrame.getTranscriptionUnits();
-//					for (TranscriptionUnit tu : tus) {
-//						if (tu.getPromoter() != null) System.out.print(tu.getPromoter().getLocalID() + " ");
-//					}
-//					System.out.println();
-//				}
-//				else System.out.println(gene + "\t");
-//			}
-//			for (String tf : tfs) {
-//				if (tfSynonymToFrameMap.containsKey(tf)) System.out.println(tf + "\t" + tfSynonymToFrameMap.get(tf).getLocalID());
-//				else System.out.println(tf + "\t");
-//			}
-			
-//			for (String tf : tfs) {
-//				if (tfSynonymToFrameMap.containsKey(tf)) {
-//					Gene geneFrame = (Gene)Gene.load(conn, geneSynonymToFrameMap.get(gene).getLocalID());
-//					ArrayList<TranscriptionUnit> tus = geneFrame.getTranscriptionUnits();
-//					for (TranscriptionUnit tu : tus) {
-//						if (tu.getPromoter() != null) System.out.print(tu.getPromoter().getLocalID() + " ");
-//					}
-//				}
-//			}
-			
-			//TODO * Check if this regulation already exists in original ecocyc*
-			sqlConn = DriverManager.getConnection(connectionURL, user, pass);
 			sqlConn.setAutoCommit(false);
 			Savepoint save = sqlConn.setSavepoint();
 			boolean error = false;
 			for (NewRegulationLink link : newLinks) {
-				createRegulationFrame(link.frameID, link.regulator, link.regulatee, link.mechanism, link.mode);
-				//TODO * Add commentary somewhere? such as on the gene being regulated? * updateFrameSlot(frameID, slot, value);
-				// if () error = true;
+				try {
+					createRegulationFrame(link.frameID, link.regulator, link.regulatee, link.mechanism, link.mode);
+				} catch (Exception e) {
+					error = true;
+				}
 			}
 			if (!error) {
 				sqlConn.commit();
-				tb.getConn().saveKB();
+				conn.saveKB();
 			} else {
 				sqlConn.rollback(save);
-				tb.getConn().revertKB();
+				conn.revertKB();
 			}
 			sqlConn.close();
 			
@@ -212,7 +219,8 @@ public class PGDBUpdater {
  	}
  	
  	/**
- 	 * Create a new regulation frame in the pgdb. Does not save updates to pgdb.
+ 	 * Create a new regulation frame in the pgdb and updates the SQL change log to reflect the new regulation objects.
+ 	 * Does not save updates to pgdb or commit changes to SQL change log.
  	 * 
  	 * @param frameID Must be a unique frame ID
  	 * @param regulator Entity which performs the regulation
@@ -222,13 +230,13 @@ public class PGDBUpdater {
  	 * @throws PtoolsErrorException
  	 */
  	public void createRegulationFrame(String frameID, Frame regulator, Frame regulatee, String mechanism, String mode) throws PtoolsErrorException {
- 		if (tb.getConn().frameExists(frameID)) {
+ 		if (conn.frameExists(frameID)) {
  			System.err.println("Cannot create frame " + frameID + ". Frame already exists.");
  			return;
  		}
  		
- 		Regulation reg = new Regulation(tb.getConn(), frameID);
- 		int primaryKey = changeLogFrame(tb.getCurrentConnectionString(), tb.getCurrentOrganism(), frameID, true);
+ 		Regulation reg = new Regulation(conn, frameID);
+ 		int primaryKey = changeLogFrame(CurrentConnectionString, CurrentOrganism, frameID, true);
  		
  		if (primaryKey < 0) {
  			System.err.println("Cannot create frame " + frameID + ". SQL change log could not be updated.");
@@ -338,7 +346,7 @@ public class PGDBUpdater {
  		//TODO update changelog
  		Frame frame = null;
 		try {
-			frame = Frame.load(tb.getConn(), frameID);
+			frame = Frame.load(conn, frameID);
 			frame.putSlotValue(slot, value);
 			
 			frame.commit();
@@ -361,16 +369,16 @@ public class PGDBUpdater {
 		try {
 			// Get all genes from EcoCyc
 			System.out.print("Reading Genes... ");
-			ArrayList<Frame> allGenes = tb.getConn().getAllGFPInstances("|All-Genes|");
+			ArrayList<Frame> allGenes = conn.getAllGFPInstances("|All-Genes|");
  			System.out.print(allGenes.size() + " found... ");
  			
  			for (Frame geneFrame : allGenes) {
- 				if (geneFrame.getCommonName() != null && geneFrame.getCommonName().length() > 0) geneSynonymMap.put(geneFrame.getCommonName(), geneFrame);
+ 				if (geneFrame.getCommonName() != null && geneFrame.getCommonName().length() > 0) geneSynonymMap.put(geneFrame.getCommonName().toLowerCase(), geneFrame);
  				if (geneFrame.hasSlot("Synonyms")) {
-					for (String synonym : geneFrame.getSynonyms()) geneSynonymMap.put(synonym.replace("\"", ""), geneFrame);
+					for (String synonym : geneFrame.getSynonyms()) geneSynonymMap.put(synonym.replace("\"", "").toLowerCase(), geneFrame);
 				}
- 				if (geneFrame.hasSlot("Accession-1") && geneFrame.getSlotValue("Accession-1") != null && geneFrame.getSlotValue("Accession-1").length() > 0) geneSynonymMap.put(geneFrame.getSlotValue("Accession-1").replace("\"", ""), geneFrame);
- 				if (geneFrame.hasSlot("Accession-2") && geneFrame.getSlotValue("Accession-2") != null && geneFrame.getSlotValue("Accession-2").length() > 0) geneSynonymMap.put(geneFrame.getSlotValue("Accession-2").replace("\"", ""), geneFrame);
+ 				if (geneFrame.hasSlot("Accession-1") && geneFrame.getSlotValue("Accession-1") != null && geneFrame.getSlotValue("Accession-1").length() > 0) geneSynonymMap.put(geneFrame.getSlotValue("Accession-1").replace("\"", "").toLowerCase(), geneFrame);
+ 				if (geneFrame.hasSlot("Accession-2") && geneFrame.getSlotValue("Accession-2") != null && geneFrame.getSlotValue("Accession-2").length() > 0) geneSynonymMap.put(geneFrame.getSlotValue("Accession-2").replace("\"", "").toLowerCase(), geneFrame);
  			}
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
@@ -393,7 +401,7 @@ public class PGDBUpdater {
 		try {
 			// Get all transcription factors from EcoCyc
 			System.out.print("Reading Proteins... ");
-			ArrayList<Frame> allTFs = tb.getConn().getAllGFPInstances("|Proteins|");
+			ArrayList<Frame> allTFs = conn.getAllGFPInstances("|Proteins|");
  			System.out.print(allTFs.size() + " found... ");
  			
  			for (Frame tfFrame : allTFs) {
