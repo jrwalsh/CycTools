@@ -32,6 +32,7 @@ public class Main {
 //		ToolBox tb = new ToolBox(ToolBox.connectionStringLocal, ToolBox.defaultPort, ToolBox.organismStringCBIRC);
 		ToolBox tb = new ToolBox(ToolBox.connectionStringLocal, ToolBox.defaultPort, ToolBox.organismStringK12);
 //		ToolBox tb = new ToolBox(ToolBox.connectionStringEcoServer, ToolBox.defaultPort, ToolBox.organismStringCBIRC);
+//		ToolBox tb = new ToolBox(ToolBox.connectionStringEcoServer, ToolBox.defaultPort, ToolBox.organismStringARA);
 
 		try {
 			tb.tester();
