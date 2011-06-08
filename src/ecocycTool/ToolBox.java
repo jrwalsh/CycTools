@@ -29,16 +29,6 @@ public class ToolBox {
 	static public String organismStringCBIRC =  "CBIRC"; //CBiRC E. coli model
 	static public int defaultPort =  4444;
 	
-	
-	// SQL static vars
-//	static private String connectionURL = "jdbc:mysql://ecoserver.vrac.iastate.edu:3306/CBiRC";
-//	static private String user = "changeLogUser";
-//	static private String pass = "clPass";
-	static private String connectionURL = "jdbc:mysql://localhost:3306/test";
-	static private String user = "Jesse";
-	static private String pass = "firebird";
-	
-	
 	// Global Vars
 	private JavacycConnection conn = null;
 	private String CurrentConnectionString = connectionStringLocal;
@@ -114,7 +104,11 @@ public class ToolBox {
 		
 		
 		
-		for (OrgStruct o : conn.allOrgs()) System.out.println(o.getLocalID());
+//		for (OrgStruct o : conn.allOrgs()) System.out.println(o.getLocalID());
+		
+		
+		
+		
 		
 //		pathwaysOfGenes();
 //		pathwayCommonNames();
@@ -125,6 +119,10 @@ public class ToolBox {
 //		Frame.load(conn, "G6276-MONOMER").print();
 //		Frame.load(conn, "BS0-6381").print();
 //		ArrayList<Frame> allGenes = conn.getAllGFPInstances("|Transcription-Factors|");
+		
+		
+		
+		printAllPathwaysXGMML("/home/Jesse/Desktop/xgmml");
 	}
 
 	public void run(String[] args) {
@@ -1766,6 +1764,23 @@ public class ToolBox {
 		}
  	}
  	
+ 	public void printAllPathwaysXGMML(String path) {
+ 		try {
+			ArrayList<String> allPathways = conn.allPathways();
+			for (String pathwayID :allPathways) {
+				PrintStream o = null;
+				try {
+					o = new PrintStream(new File(path + "/" + pathwayID + ".xgmml"));
+				}
+				catch(Exception e) {
+					e.printStackTrace();
+				}
+				((Pathway)Pathway.load(conn, pathwayID)).getNetwork().writeXGMML(o, true, false, true, true, false, false);
+			}
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		}
+ 	}
  	
  	// Helper Functions
  	private void printString(String fileName, String printString) {
