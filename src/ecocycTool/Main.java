@@ -17,7 +17,8 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		Long start = System.currentTimeMillis();
-		testToolBox();
+		sandBox();
+//		testToolBox();
 //		testPGDBUpdater();
 //		run(args);
 		Long stop = System.currentTimeMillis();
@@ -49,6 +50,20 @@ public class Main {
 
 		try {
 			updater.tester();
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * This method initializes a SandBox object and calls its methods.  Currently used for testing.
+	 */
+	public static void sandBox() {
+		System.out.println("Testing SandBox Now");
+		SandBox sbox = new SandBox(SandBox.connectionStringEcoServer, SandBox.defaultPort, SandBox.organismStringARA);
+
+		try {
+			sbox.tester();
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		}

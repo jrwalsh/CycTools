@@ -22,6 +22,7 @@ public class SandBox {
 	static public String connectionStringVitis =  "vitis.student.iastate.edu";
 	static public String organismStringK12 =  "ECOLI"; //Built-in K12 model
 	static public String organismStringCBIRC =  "CBIRC"; //CBiRC E. coli model
+	static public String organismStringARA =  "ARA"; //Aracyc model
 	static public int defaultPort =  4444;
 	
 	// Global Vars
@@ -42,6 +43,10 @@ public class SandBox {
 	}
 	
 	public void tester() throws PtoolsErrorException {
+		for (Frame gene : conn.getAllGFPInstances("|All-Genes|")) {
+			gene.print();
+		}
+		
 //		genesToReactionProducts();
 //		regulatorsOfTFs();
 //		Frame ff = new Frame(conn, "EG12116-MONOMER");
