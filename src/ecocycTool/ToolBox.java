@@ -20,6 +20,7 @@ public class ToolBox {
 	static public String connectionStringLocal =  "jrwalsh.student.iastate.edu";
 	static public String connectionStringEcoServer =  "ecoserver.vrac.iastate.edu";
 	static public String connectionStringVitis =  "vitis.student.iastate.edu";
+	static public String connectionStringTHT =  "tht.vrac.iastate.edu";
 	static public String organismStringK12 =  "ECOLI"; //Built-in K12 model
 	static public String organismStringABC =  "ABC"; //Edit-able copy of built-in K12 model on local machine
 	static public String organismStringCBiRC =  "ECOTEST"; //Edit-able copy of built-in K12 model
