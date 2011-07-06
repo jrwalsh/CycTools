@@ -60,7 +60,8 @@ public class Main {
 	 */
 	public static void sandBox() {
 		System.out.println("Testing SandBox Now");
-		SandBox sbox = new SandBox(SandBox.connectionStringEcoServer, SandBox.defaultPort, SandBox.organismStringARA);
+//		SandBox sbox = new SandBox(SandBox.connectionStringEcoServer, SandBox.defaultPort, SandBox.organismStringARA);
+		SandBox sbox = new SandBox("tht.vrac.iastate.edu", SandBox.defaultPort, SandBox.organismStringK12);
 
 		try {
 			sbox.tester();
@@ -73,7 +74,7 @@ public class Main {
 	 * This method initializes a ToolBox object and calls its methods.  Currently used for testing.
 	 */
 	public static void run(String[] args) {
-		String connectionString = ToolBox.connectionStringLocal;
+		String connectionString = ToolBox.connectionStringTHT;
 		String organism = ToolBox.organismStringCBIRC;
 		System.out.println("Connecting to " + connectionString + ". Using organism " + organism + ".");
 		ToolBox tb = new ToolBox(connectionString, ToolBox.defaultPort, organism);
