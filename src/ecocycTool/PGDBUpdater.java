@@ -11,9 +11,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
+import java.util.Date;
 
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
@@ -21,18 +23,19 @@ import edu.iastate.javacyco.PtoolsErrorException;
 import edu.iastate.javacyco.Regulation;
 
 /**
- * PGDBUpdater is a class that is designed to be used to modify the structure of a General Frame Protocol (GFP) complient
+ * PGDBUpdater is a class that is designed to be used to modify the structure of a Generic Frame Protocol (GFP) complient
  * Pathway Genome Database (PGDB) and update the content within. Changes made to the PGDB are logged to a sql database. 
  * 
  * @author Jesse Walsh
  */
 public class PGDBUpdater {
 	// Global Vars
-	private Connection sqlConn = null;
-	private JavacycConnection conn = null;
-	private String CurrentConnectionString = "";
-	private int CurrentPort = 0;
-	private String CurrentOrganism = "";
+	private static Connection sqlConn = null;
+	private static JavacycConnection conn = null;
+	private static String connectionURL = "";
+	private static String org = "";
+	private static String ptoolsVersion = "";
+	private static int port = -1;
 	
 	static {
 		try {
@@ -42,87 +45,51 @@ public class PGDBUpdater {
 		}
 	}
 	
-	// Constructor
+	// Main
 	/**
-	 * Constructor which initializes a JavaCycO connection object and a SQL connection object.
-	 */
-	public PGDBUpdater() {
-		String connectionURL = "jdbc:mysql://localhost:3306/test";
-		String user = "Jesse";
-		String pass = "firebird";
-		try {
-			sqlConn = DriverManager.getConnection(connectionURL, user, pass);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		CurrentConnectionString = ToolBox.connectionStringLocal;
-		CurrentPort = ToolBox.defaultPort;
-		CurrentOrganism = ToolBox.organismStringCBIRC;
-		conn = new JavacycConnection(CurrentConnectionString, CurrentPort);
-		conn.selectOrganism(CurrentOrganism);
-	}
-	
-	/**
-	 * Constructor which initializes a JavaCycO connection object and a SQL connection object.
+	 * Main method: initializes a JavaCycO connection object and a SQL connection object.
 	 * 
-	 * @param connectionString Server running the JavaCycO socket listener
-	 * @param port Port JavaCycO socket listener is listening on
-	 * @param organism Pathway Tools organism ID
+	 * @param args FileName of new regulatory links
 	 */
-	public PGDBUpdater(String connectionString, int port, String organism) {
-//		String connectionURL = "jdbc:mysql://ecoserver.vrac.iastate.edu:3306/CBiRC";
-//		String user = "changeLogUser";
-//		String pass = "clPass";
-		String connectionURL = "jdbc:mysql://localhost:3306/test";
-		String user = "Jesse";
-		String pass = "firebird";
+	public static void main(String[] args) {
+		// Args
+		if(args.length < 1) {
+			System.out.println("Usage: PGDBUpdater FILENAME");
+			System.exit(0);
+		}
+		String fileName = args[0];
 		
+		// Non-arg options
+//		String sqlConnectionURL = "jdbc:mysql://ecoserver.vrac.iastate.edu:3306/CBiRC";
+		String sqlConnectionURL = "jdbc:mysql://localhost:3306/CBiRC";
+		String sqlUser = "cbircUser";
+		String sqlPass = "cbircUserPass";
+		connectionURL = ToolBox.connectionStringTHT;
+		port = ToolBox.defaultPort;
+		org = ToolBox.organismStringTEST;
+		ptoolsVersion = "15.0";
+		
+		// Get SQL connection object
 		try {
-			sqlConn = DriverManager.getConnection(connectionURL, user, pass);
+			sqlConn = DriverManager.getConnection(sqlConnectionURL, sqlUser, sqlPass);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
-		CurrentConnectionString = connectionString;
-		CurrentPort = port;
-		CurrentOrganism = organism;
-		conn = new JavacycConnection(CurrentConnectionString, CurrentPort);
-		conn.selectOrganism(CurrentOrganism);
-	}
-	
-	protected void finalize() throws Throwable {
-	    try {
-	    	if (sqlConn != null) sqlConn.close();
+		// Get JavaCycO connection object
+		conn = new JavacycConnection(connectionURL, port);
+		conn.selectOrganism(org);
+		try {
+			pushNewRegulationFile(fileName);
 	    } finally {
-	        super.finalize();
+	    	try {
+	    		if (sqlConn != null && !sqlConn.isClosed()) sqlConn.close();
+	    	} catch (Exception e) {
+	    		System.err.println(e.getStackTrace());
+	    	}
 	    }
 	}
-	
-	
-	// Testing
-	public void test() throws PtoolsErrorException {
-		updateFrameSlot("EG11025","NEWSLOT","HELLOWORLD");
-		conn.saveKB();
-		
-		getTFSynonymToFrameMap();
-	}
-	
-	public void tester() throws PtoolsErrorException {
-//		ArrayList<Frame> all = conn.getAllGFPInstances("|Regulation|");
-//		for (Frame f : all) {
-//			if (f.getLocalID().startsWith("PR_")) {
-//				System.out.println(f.getLocalID());
-//				System.out.println("\t"+f.getSlotValue("REGULATOR"));
-//				System.out.println("\t"+f.getSlotValue("REGULATED-ENTITY"));
-//				System.out.println("\t"+f.getSlotValue("MECHANISM"));
-//				System.out.println("\t"+f.getSlotValue("MODE"));
-//			}
-//		}
-		
-		pushNewRegulationFile("");
-	}
-	
+
 	
 	// Push into Ecocyc
 	/**
@@ -138,12 +105,16 @@ public class PGDBUpdater {
 	 * lab's regulation prediction analysis, we instead create a regulatory object which points directly to a gene object
 	 * as the regulatee and another gene object as the regulator.
 	 * 
-	 * @param fileName File which contains the columns transcriptionFactor, regulatedGene, regulationType
+	 * @param fileName Tab-delim file which contains the columns transcriptionFactor, regulatedGene, regulationType in this order. Header line is removed.
+	 * @param connectionURL
+	 * @param org
+	 * @param ptoolsVersion
 	 */
- 	public void pushNewRegulationFile(String fileName) {
+ 	public static void pushNewRegulationFile(String fileName) {
+ 		// Options
  		String regulationMechanism = ":OTHER";
- 		fileName = "/home/Jesse/Desktop/Push_Regulation_to_EcoCyc/New_Links_May_17_2011/NewLinks.txt";
  		
+ 		// Declare Variables
 		File tfLinks = new File(fileName);
 		BufferedReader reader = null;
 		TreeSet<String> geneSet = new TreeSet<String>();
@@ -175,18 +146,36 @@ public class PGDBUpdater {
 				}
 			}
 			
-			//TODO * Check if this regulation already exists in original ecocyc *
+			//TODO ***Check if this regulation already exists in original ecocyc***
 			
+			// Update PGDB and SQL databases
 			sqlConn.setAutoCommit(false);
 			Savepoint save = sqlConn.setSavepoint();
 			boolean error = false;
+			int pgdbKey = -1;
+			try {
+				//TODO if pgdb exists, get pgdbKey of existing entry
+				pgdbKey = changeLogPGDBCreate(org, connectionURL, ptoolsVersion);
+				if (pgdbKey < 0) throw new Exception("Could not find or create a pgdb entry in the sql database for this host/organism/version. PGDB key found is: " + pgdbKey);
+			} catch (Exception e) {
+				sqlConn.rollback(save);
+				conn.revertKB();
+				sqlConn.close();
+				
+				System.err.println(e.getMessage());
+				System.err.println(e.getStackTrace());
+				System.exit(-1);
+			}
+			
+			// Insert all frames into pgdb and sql statements into the sql change log, but don't commit unless there are no errors
 			for (NewRegulationLink link : newLinks) {
 				try {
-					createRegulationFrame(link.frameID, link.regulator, link.regulatee, link.mechanism, link.mode);
+					createRegulationFrame(pgdbKey, link.frameID, link.regulator, link.regulatee, link.mechanism, link.mode);
 				} catch (Exception e) {
 					error = true;
 				}
 			}
+			
 			if (!error) {
 				sqlConn.commit();
 				conn.saveKB();
@@ -216,8 +205,11 @@ public class PGDBUpdater {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Success!");
  	}
  	
+ 	
+ 	// PGDB
  	/**
  	 * Create a new regulation frame in the pgdb and updates the SQL change log to reflect the new regulation objects.
  	 * Does not save updates to pgdb or commit changes to SQL change log.
@@ -229,14 +221,14 @@ public class PGDBUpdater {
  	 * @param mode Regulation mode expects either + or -
  	 * @throws PtoolsErrorException
  	 */
- 	public void createRegulationFrame(String frameID, Frame regulator, Frame regulatee, String mechanism, String mode) throws PtoolsErrorException {
+ 	public static void createRegulationFrame(int pgdbKey, String frameID, Frame regulator, Frame regulatee, String mechanism, String mode) throws PtoolsErrorException {
  		if (conn.frameExists(frameID)) {
  			System.err.println("Cannot create frame " + frameID + ". Frame already exists.");
  			return;
  		}
  		
  		Regulation reg = new Regulation(conn, frameID);
- 		int primaryKey = changeLogFrame(CurrentConnectionString, CurrentOrganism, frameID, true);
+ 		int primaryKey = changeLogFrameCreate(pgdbKey, frameID);
  		
  		if (primaryKey < 0) {
  			System.err.println("Cannot create frame " + frameID + ". SQL change log could not be updated.");
@@ -246,92 +238,24 @@ public class PGDBUpdater {
  		reg.commit();
  		
  		reg.setRegulator(regulator);
- 		changeLogSlot(primaryKey, "REGULATOR", regulator.getLocalID(), false);
+ 		changeLogSlotUpdate(primaryKey, "REGULATOR", regulator.getLocalID());
  		
  		reg.setRegulatee(regulatee);
- 		changeLogSlot(primaryKey, "REGULATED-ENTITY", regulatee.getLocalID(), false);
+ 		changeLogSlotUpdate(primaryKey, "REGULATED-ENTITY", regulatee.getLocalID());
  		
  		reg.setMechanism(mechanism);
- 		changeLogSlot(primaryKey, "MECHANISM", mechanism, false);
+ 		changeLogSlotUpdate(primaryKey, "MECHANISM", mechanism);
  		
  		if (mode.equals("+")) {
  			reg.setMode(true);
- 			changeLogSlot(primaryKey, "MODE", mode, false);
+ 			changeLogSlotUpdate(primaryKey, "MODE", mode);
  		}
  		else if (mode.equals("-")) {
  			reg.setMode(false);
- 			changeLogSlot(primaryKey, "MODE", mode, false);
+ 			changeLogSlotUpdate(primaryKey, "MODE", mode);
  		}
  		
  		reg.commit();
- 	}
- 	
- 	/**
- 	 * Update the sql changelog to reflect changes to a pgdb frame.
- 	 * 
- 	 * @param pgdbName Name of pgdb (i.e., organism id of pgdb)
- 	 * @param pgdbServer Host of the pgdb server
- 	 * @param frameID Frame ID
- 	 * @param isNewFrame Frame did not previously exist in this pgdb
- 	 * @return
- 	 */
- 	private int changeLogFrame(String pgdbName, String pgdbServer, String frameID, boolean isNewFrame) {
- 		int primaryKeyOfInsert = -1;
- 		String createdNew = "0";
- 		if (isNewFrame) createdNew = "1";
- 		try {
-            Statement stmt = sqlConn.createStatement();
-            
-            String query = "INSERT INTO frame (pgdbName,pgdbServer,frame,isNew) VALUES ";
-            query += "('"+pgdbName+"','"+pgdbServer+"','"+frameID+"',"+createdNew+")";
-            
-            if (stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS) == 0) System.err.println("Row did not insert for query : " + query);
-            else {
-            	ResultSet rs = stmt.getGeneratedKeys();
-            	rs.next();
-            	primaryKeyOfInsert = rs.getInt(1);
-            }
-
-            stmt.close();
-        } 
- 		catch (Exception ex) {
- 			System.err.println(ex.getMessage());
-        }
- 		return primaryKeyOfInsert;
- 	}
- 	
- 	/**
- 	 * Update the sql changelog to reflect changes to a pgdb frame's slot.
- 	 * 
- 	 * @param frameKey Primary key of the frame object that was modified
- 	 * @param slotName Name of slot
- 	 * @param value New value placed in this slot
- 	 * @param isNewSlot Slot did not previously exist for this frame
- 	 * @return
- 	 */
- 	private int changeLogSlot(int frameKey, String slotName, String value, boolean isNewSlot) {
- 		int primaryKeyOfInsert = -1;
- 		String createdNew = "0";
- 		if (isNewSlot) createdNew = "1";
- 		try {
-            Statement stmt = sqlConn.createStatement();
-            
-            String query = "INSERT INTO slot (frame_id,slot,value,isNew) VALUES ";
-            query += "('"+frameKey+"','"+slotName+"','"+value+"',"+createdNew+")";
-
-            if (stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS) == 0) System.err.println("Row did not insert for query : " + query);
-            else {
-            	ResultSet rs = stmt.getGeneratedKeys();
-            	rs.next();
-            	primaryKeyOfInsert = rs.getInt(1);
-            }
-
-            stmt.close();
-        } 
- 		catch (Exception ex) {
- 			System.err.println(ex.getMessage());
-        }
- 		return primaryKeyOfInsert;
  	}
  	
  	/**
@@ -357,13 +281,119 @@ public class PGDBUpdater {
 		}
  	}
  	
+ 	//TODO
+ 	private void deleteFrame() {}
+ 	private void deleteSlot() {}
+ 	private void createSlot() {}
+ 	
+ 	
+ 	// SQL
+ 	/**
+ 	 * Update the sql changelog to reflect changes to a pgdb frame.
+ 	 * 
+ 	 * @param organismID Name of pgdb (i.e., organism id of pgdb)
+ 	 * @param host Host of the pgdb server
+ 	 * @param ptoolsVersion version of ptools running when this update was made
+ 	 * @return primary key of insert
+ 	 */
+ 	private static int changeLogPGDBCreate(String organismID, String host, String ptoolsVersion) {
+ 		int primaryKeyOfInsert = -1;
+ 		try {
+            Statement stmt = sqlConn.createStatement();
+            
+            String query = "INSERT INTO pgdb (organismID,host,ptoolsVersion) VALUES ";
+            query += "('"+organismID+"','"+host+"',"+ptoolsVersion+")";
+            
+            if (stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS) == 0) System.err.println("Row did not insert for query : " + query);
+            else {
+            	ResultSet rs = stmt.getGeneratedKeys();
+            	rs.next();
+            	primaryKeyOfInsert = rs.getInt(1);
+            }
+
+            stmt.close();
+        } 
+ 		catch (Exception ex) {
+ 			System.err.println(ex.getMessage());
+        }
+ 		return primaryKeyOfInsert;
+ 	}
+ 	
+ 	/**
+ 	 * Update the sql changelog to reflect changes to a pgdb frame.
+ 	 * 
+ 	 * @param pgdbID Primary key of pgdb (i.e., organism id of pgdb)
+ 	 * @param frameID Frame ID
+ 	 * @return primary key of insert
+ 	 */
+ 	private static int changeLogFrameCreate(int pgdbKey, String frameID) {
+ 		int primaryKeyOfInsert = -1;
+ 		String createdNew = "1";
+ 		try {
+            Statement stmt = sqlConn.createStatement();
+            String query = "INSERT INTO frame (pgdb_id,frameID,createdNew,dateCreated) VALUES ";
+            query += "('"+pgdbKey+"','"+frameID+"',"+createdNew+",'"+now()+"')";
+            
+            if (stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS) == 0) System.err.println("Row did not insert for query : " + query);
+            else {
+            	ResultSet rs = stmt.getGeneratedKeys();
+            	rs.next();
+            	primaryKeyOfInsert = rs.getInt(1);
+            }
+
+            stmt.close();
+        } 
+ 		catch (Exception ex) {
+ 			System.err.println(ex.getMessage());
+        }
+ 		return primaryKeyOfInsert;
+ 	}
+ 	
+ 	/**
+ 	 * Update the sql changelog to reflect changes to a pgdb frame's slot.
+ 	 * 
+ 	 * @param frameKey Primary key of the frame object that was modified
+ 	 * @param slotName Name of slot
+ 	 * @param value New value placed in this slot
+ 	 * @return returns primary key of inserted
+ 	 */
+ 	private static int changeLogSlotUpdate(int frameKey, String slotName, String value) {
+ 		int primaryKeyOfInsert = -1;
+ 		try {
+            Statement stmt = sqlConn.createStatement();
+            
+            String query = "INSERT INTO slot (frame_id,slotName,value) VALUES ";
+            query += "('"+frameKey+"','"+slotName+"','"+value+"')";
+
+            if (stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS) == 0) System.err.println("Row did not insert for query : " + query);
+            else {
+            	ResultSet rs = stmt.getGeneratedKeys();
+            	rs.next();
+            	primaryKeyOfInsert = rs.getInt(1);
+            }
+
+            stmt.close();
+        } 
+ 		catch (Exception ex) {
+ 			System.err.println(ex.getMessage());
+        }
+ 		return primaryKeyOfInsert;
+ 	}
+ 	
+ 	//TODO
+ 	private void changeLogDeleteFrame() {}
+ 	private void changeLogDeleteSlot() {}
+ 	private void changeLogCreateSlot() {}
+ 	private void changeLogGetPGDB() {}
+ 	
+ 	// Helper Functions
  	/**
  	 * Create a hashmap in which each synonym of a gene points to a frame object for that gene. This helps
  	 * when reading in files of gene b#'s or short names and trying to match them up to their frame object.
  	 * 
  	 * @return A hashmap in which each synonym of a gene points to a frame object for that gene
  	 */
- 	private HashMap<String, Frame> getGeneSynonymToFrameMap() {
+ 	private static HashMap<String, Frame> getGeneSynonymToFrameMap() {
 		HashMap<String, Frame> geneSynonymMap = new HashMap<String, Frame>();
 		
 		try {
@@ -395,7 +425,7 @@ public class PGDBUpdater {
  	 * 
  	 * @return A hashmap in which each synonym of a protein points to a frame object for that protein
  	 */
- 	private HashMap<String, Frame> getTFSynonymToFrameMap() {
+ 	private HashMap<String, Frame> getProteinSynonymToFrameMap() {
  		HashMap<String, Frame> tfSynonymMap = new HashMap<String, Frame>();
  		
 		try {
@@ -420,12 +450,17 @@ public class PGDBUpdater {
 		return tfSynonymMap;
 	}
  	
+ 	private static String now() {
+ 		Date today = new Date();
+        Timestamp now = new Timestamp(today.getTime());
+        return now.toString();
+ 	}
  	
  	// Internal Classes
  	/**
  	 * Internal class which holds all the information needed to create a new regulation object in a pgdb.
  	 */
- 	public class NewRegulationLink {
+ 	public static class NewRegulationLink {
  		public String frameID;
 		public Frame regulator;
 		public Frame regulatee;
