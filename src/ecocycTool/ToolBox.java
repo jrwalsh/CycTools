@@ -21,13 +21,15 @@ public class ToolBox {
 	static public String connectionStringEcoServer =  "ecoserver.vrac.iastate.edu";
 	static public String connectionStringVitis =  "vitis.student.iastate.edu";
 	static public String connectionStringTHT =  "tht.vrac.iastate.edu";
+	
 	static public String organismStringK12 =  "ECOLI"; //Built-in K12 model
 	static public String organismStringABC =  "ABC"; //Edit-able copy of built-in K12 model on local machine
-	static public String organismStringCBiRC =  "ECOTEST"; //Edit-able copy of built-in K12 model
+	static public String organismStringTEST =  "TEST"; //Edit-able copy of built-in K12 model for testing
 	static public String organismString0157 =  "ECOO157"; //0157:H7 EDL933 strain
 	static public String organismStringCFT073 =  "ECOL199310"; //CRT073 strain
 	static public String organismStringARA =  "ARA"; //Aracyc model
 	static public String organismStringCBIRC =  "CBIRC"; //CBiRC E. coli model
+	
 	static public int defaultPort =  4444;
 	
 	// Global Vars
@@ -1829,6 +1831,9 @@ public class ToolBox {
 		}
 	}
  	
+ 	/**
+ 	 * Internal class which holds all the information needed to create a new regulation object in a pgdb.
+ 	 */
  	public class NewRegulationLink {
  		public String frameID;
 		public Frame regulator;
