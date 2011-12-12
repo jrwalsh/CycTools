@@ -11,9 +11,12 @@ import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;
+import edu.iastate.javacyco.Promoter;
 import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
 import edu.iastate.javacyco.Reaction;
+import edu.iastate.javacyco.Regulation;
+import edu.iastate.javacyco.TranscriptionUnit;
 
 public class SandBox {
 	// JavaCycO static vars
@@ -43,9 +46,53 @@ public class SandBox {
 	}
 	
 	public void tester() throws PtoolsErrorException {
-		for (Frame gene : conn.getAllGFPInstances("|All-Genes|")) {
-			gene.print();
-		}
+		ArrayList<Frame> terminators = conn.getAllGFPInstances("|Rho-Independent-Terminators|");
+		for (Frame f : terminators) f.print();
+//		Network test = conn.getClassHierarchy(false);
+//		test.printStructureTab();
+//		int unknown = 0;
+//		for (Frame gene : conn.getAllGFPInstances("|Genes|")) {
+//			if (gene.getCommonName().startsWith("y")) unknown++;
+//			System.out.println(gene.getComment());
+//		}
+//		
+//		System.out.println("All-Genes : " + conn.getAllGFPInstances("|All-Genes|").size());
+//		System.out.println("Genes : " + conn.getAllGFPInstances("|Genes|").size());
+//		System.out.println("Pseudo-Genes : " + conn.getAllGFPInstances("|Pseudo-Genes|").size());
+//		System.out.println("Phantom-Genes : " + conn.getAllGFPInstances("|Phantom-Genes|").size());
+//		System.out.println("Unclassified-Genes : " + conn.getAllGFPInstances("|Unclassified-Genes|").size());
+//		System.out.println("Unknown : " + unknown);
+			
+//		for (Frame regulator : conn.getAllGFPInstances("|Regulation-of-Transcription|")) {
+//			regulator.print();
+//		}
+		
+		
+		
+//		for (String geneID : list) {
+//			for (Frame regulatorFrame : conn.getAllGFPInstances("|Regulation|")) {
+//				Regulation regulator = (Regulation) regulatorFrame;
+//				System.out.println(regulator.getSlotValue("REGULATED-ENTITY"));
+//				if (regulator.getRegulatee() != null && regulator.getRegulator() != null) {
+//					if (list.contains(regulator.getRegulatee().getLocalID())) {
+//						//System.out.println(regulator.getRegulatee().getCommonName() + "\t" + regulator.getRegulatee().getLocalID() + "\t" + regulator.getRegulator().getCommonName() + "\t" + regulator.getRegulator().getLocalID() + "\t" + regulator.getMode());
+//					}
+//				}
+//			}
+			
+//			Gene gene = (Gene) Gene.load(conn, geneID);
+//			TranscriptionUnit tu = gene;
+//			conn.callFuncArray("transcription-unit-regulation-frames '" + tu.getLocalID());
+//			reg = tu.getRegulations();
+////			for (Frame f : gene.getRegulatingGenes()) {
+////				System.out.println(gene.getCommonName() + "\t" + g + "\t" + f.getCommonName() + "\t" + f.getLocalID() + "\t" + f.getSlotValue(""));
+////			}
+//		}
+		
+		
+//		for (Frame gene : conn.getAllGFPInstances("|All-Genes|")) {
+//			gene.print();
+//		}
 		
 //		genesToReactionProducts();
 //		regulatorsOfTFs();
@@ -175,6 +222,61 @@ public class SandBox {
 //		genomeStructureAtLocation("/home/Jesse/Desktop/177data/U167", "/home/Jesse/Desktop/U167Results");
 	}
 
+	public void regulatorsOfGene() throws PtoolsErrorException {
+		ArrayList<String> list = new ArrayList<String>();
+		list.add("EG10274");
+		list.add("EG12606");
+		list.add("EG11318");
+		list.add("EG10273");
+		list.add("EG11284");
+		list.add("EG11528");
+		list.add("EG50003");
+		list.add("EG11317");
+		list.add("G6105");
+		list.add("G7212");
+		list.add("EG10279");
+		list.add("EG10024");
+		list.add("EG10543");
+		list.add("EG10025");
+		list.add("EG50010");
+		list.add("EG10031");
+		list.add("G6775");
+		list.add("EG10027");
+		list.add("EG11172");
+		list.add("EG11809");
+		list.add("EG20173");
+		list.add("G7288");
+		list.add("EG10356");
+		list.add("EG10358");
+		list.add("EG10357");
+		list.add("EG10756");
+		
+		System.out.println("Gene\tGeneID\tTF\tTFID\tTFGenes\tMode");
+		
+		for (String geneID : list) {
+			Gene gene = (Gene) Gene.load(conn, geneID);
+			for (TranscriptionUnit tu : gene.getTranscriptionUnits()) {
+				try {
+					for (Frame regulation : tu.getPromoter().getRegulations()) {
+						Regulation regulator = (Regulation) regulation;
+						String mode = regulator.getMode() ? "+" : "-";
+						String geneNames = "";
+						for (Frame regulatorGene : ((Protein)regulator.getRegulator()).getGenes()) {
+							geneNames += regulatorGene.getCommonName() + ",";
+						}
+						if (geneNames.length() > 0) geneNames = geneNames.substring(0, geneNames.length()-1); 
+						System.out.println(gene.getCommonName() + "\t" + gene.getLocalID() + "\t" + regulator.getRegulator().getCommonName() + "\t" + regulator.getRegulator().getLocalID() + "\t" + geneNames + "\t" + mode);
+					}
+				} catch (Exception e) {
+					if (tu == null || tu.getPromoter() == null || tu.getPromoter().getRegulations().size() == 0) {
+						// Do nothing
+					} else {
+						System.err.println("Unhandled exception while getting regulators of gene " + geneID);
+					}
+				}
+			}
+		}
+	}
 	
  	//TODO Rewrite print file commands as needed for my purposes, as distinct from the standard print provided by JavaCycO
  	// Print File

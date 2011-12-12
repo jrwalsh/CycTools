@@ -19,7 +19,6 @@ public class Main {
 		Long start = System.currentTimeMillis();
 		sandBox();
 //		testToolBox();
-//		testPGDBUpdater();
 //		run(args);
 		Long stop = System.currentTimeMillis();
 		Long runtime = (stop - start) / 1000;
@@ -37,19 +36,6 @@ public class Main {
 
 		try {
 			tb.tester();
-		} catch (PtoolsErrorException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * This method initializes a PGDBUpdater object and calls its methods.  Currently used for testing.
-	 */
-	public static void testPGDBUpdater() {
-		PGDBUpdater updater = new PGDBUpdater();
-
-		try {
-			updater.tester();
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		}
