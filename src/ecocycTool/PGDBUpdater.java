@@ -23,8 +23,8 @@ import edu.iastate.javacyco.PtoolsErrorException;
 import edu.iastate.javacyco.Regulation;
 
 /**
- * PGDBUpdater is a class that is designed to be used to modify the structure of a Generic Frame Protocol (GFP) complient
- * Pathway Genome Database (PGDB) and update the content within. Changes made to the PGDB are logged to a sql database. 
+ * PGDBUpdater is a class that is designed to be used to modify the structure of a Generic Frame Protocol (GFP) compliant
+ * Pathway Genome Database (PGDB) and update the content within. Changes made to the PGDB are logged to a SQL database. 
  * 
  * @author Jesse Walsh
  */
