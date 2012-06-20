@@ -1,0 +1,76 @@
+?: How do we store curation credits?
+A: Check frame 6PFK-2-CPX (|Protein-Complexes|)
+:CREATOR (1)
+	|mriley|
+:CREATION-DATE (1)
+	2945290601
+CREDITS (2)
+	SRI
+		--LAST-CURATED	3502046106
+	|keseler|
+		--LAST-CURATED	3502046106
+
+A: Check frame EG10700 (|MultiFun|)
+LAST-UPDATE (1)
+	3502047540
+
+
+?: How are go terms stored?
+A: Check frame 6PFK-2-MONOMER (|Polypeptides|)
+GO-TERMS (11)
+	|GO:0000287|
+		--CITATIONS	"16866375:EV-EXP-IDA:3501264281:keseler"
+	|GO:0006096|
+		--CITATIONS	"GO_REF-0000004:EV-COMP:3503635200:UNIPROTKB::SP_KW\\:KW-0324"
+	|GO:0005524|
+		--CITATIONS	"GO_REF-0000004:EV-COMP:3503635200:UNIPROTKB::SP_KW\\:KW-0067"
+	|GO:0000166|
+		--CITATIONS	"GO_REF-0000004:EV-COMP:3503635200:UNIPROTKB::SP_KW\\:KW-0547"
+	|GO:0005975|
+		--CITATIONS	"GO_REF-0000002:EV-COMP:3488943600:INTERPRO::InterPro\\:IPR017583"
+	|GO:0016773|
+		--CITATIONS	"GO_REF-0000002:EV-COMP:3488943600:INTERPRO::InterPro\\:IPR017583"
+	|GO:0016740|
+		--CITATIONS	"GO_REF-0000004:EV-COMP:3488943600:UNIPROTKB::SP_KW\\:KW-0808"
+	|GO:0016301|
+		--CITATIONS	"GO_REF-0000004:EV-COMP:3488943600:UNIPROTKB::SP_KW\\:KW-0418"
+	|GO:0009024|
+		--CITATIONS	"149128:EV-EXP-IDA-PURIFIED-PROTEIN:3501259540:keseler"
+	|GO:0005737|
+	|GO:0003872|
+		--CITATIONS	"149128:EV-EXP-IDA-PURIFIED-PROTEIN:3501264746:keseler"
+
+
+Slot: CREDITS
+"This slot attributes credit to various contributors
+which can be individual people or organizations
+or both. The type of contribution is indicated by several 
+types of annotation labels that are attached to the slot values
+each of them bearing numerical time-stamps as the values
+in Common Lisp universal time format
+that indicate the approximate times of the contributions. The 
+code dealing with author-crediting sets and shows the timestamps 
+with a precision of one day. The legal slot values are frames of the
+|People| or |Organizations| classes in any combination or order. 
+Each such contributor frame is assumed to occur only once in 
+the slot. As of Oct. 2005 the legal annotation labels are: 
+CREATED REVIEWED REVISED LAST-CURATED . 
+For the annotation labels CREATED and LAST-CURATED
+it only makes sense to store one timestamp but for the other 
+labels in general arbitrarily many timestamps can be recorded. 
+An association between authors and organizations is assumed 
+if they share the same credit event in terms of the same 
+combination of annotation label and timestamp."
+
+Slot: LAST-UPDATE
+"This slot stores the date on which some significant curation last 
+occurred for this gene. Because that information must be computed 
+from the RDBMS logs which takes a long time this slot is populated 
+in a batch off-line mode such as at PGDB release time. Currently 
+it is populated for EcoCyc only. Its value is computed using function 
+gene-last-update-date. See that function for documentation on exactly 
+what is meant by some significant curation."
+
+Slot: GO-TERMS
+"This slot contains all GO terms to which this object is annotated. 
+Its values should be annotated with citations including evidence codes."
