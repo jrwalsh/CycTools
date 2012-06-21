@@ -209,6 +209,10 @@ public class QueryEngine {
 				Frame frame = Frame.load(conn, row[0]);
 				for (int i=1; i < row.length; i++) {
 					frame.putSlotValue(headings[i], row[i]);
+					if (headings[i].equalsIgnoreCase("GO-TERMS")) {
+						//TODO remember, this is probably going to be an array of values, not a single
+						conn.callFuncString("import-go-terms '" + row[i]);
+					}
 				}
 				frame.commit();
 			}
