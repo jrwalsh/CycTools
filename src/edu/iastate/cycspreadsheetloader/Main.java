@@ -2,7 +2,6 @@ package edu.iastate.cycspreadsheetloader;
 
 import edu.iastate.cycspreadsheetloader.controller.DefaultController;
 import edu.iastate.cycspreadsheetloader.dal.DataAccess;
-import edu.iastate.cycspreadsheetloader.model.ConnectionModel;
 import edu.iastate.cycspreadsheetloader.model.DocumentModel;
 import edu.iastate.cycspreadsheetloader.view.ConnectionViewPanel;
 import edu.iastate.cycspreadsheetloader.view.ControlViewPanel;
@@ -27,7 +26,6 @@ public class Main {
 		
 		// Models
 		DocumentModel document = new DocumentModel();
-		ConnectionModel connection = new ConnectionModel();
 		
 		// Controllers
 		DefaultController controller = new DefaultController();
@@ -41,7 +39,6 @@ public class Main {
 		document.addPropertyChangeListener(controller);
 		
 		document.initDefault();
-		connection.initDefault();
 		
         JFrame displayFrame = new JFrame("BioCyc SpreadSheet Uploader");
         GroupLayout groupLayout = new GroupLayout(displayFrame.getContentPane());

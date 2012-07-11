@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package edu.iastate.cycspreadsheetloader.model;
+package edu.iastate.biocyctool.util.model;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -21,7 +21,6 @@ import java.beans.PropertyChangeSupport;
  */
 public abstract class AbstractModel
 {
-    
     /**
      * Convenience class that allow others to observe changes to the model properties
      */
@@ -61,4 +60,3 @@ public abstract class AbstractModel
         propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
     }
 }
-    

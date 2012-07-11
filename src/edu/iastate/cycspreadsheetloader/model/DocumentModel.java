@@ -1,5 +1,6 @@
 package edu.iastate.cycspreadsheetloader.model;
 
+import edu.iastate.biocyctool.util.model.AbstractModel;
 import edu.iastate.cycspreadsheetloader.controller.DefaultController;
 import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
@@ -15,8 +16,8 @@ import javax.swing.table.TableModel;
 public class DocumentModel extends AbstractModel {
     private File file;
     private TableModel tableModel;
-    private boolean saved;
-    //TODO add file delimiter property
+    private boolean saved; //TODO remove this???
+    private String delimiter = ","; //TODO add file delimiter property set/get
     
     public DocumentModel() {   
     }
@@ -65,7 +66,6 @@ public class DocumentModel extends AbstractModel {
     private void readFile() {
     	if (file == null) return;
     	
-    	String delimiter = ",";
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(file));
