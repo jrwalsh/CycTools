@@ -53,4 +53,13 @@ public class SlotUpdate extends AbstractFrameUpdate {
 		
 		return false;
 	}
+	
+	public String getSlotLabel() {
+		return slotLabel;
+	}
+	
+	@Override
+	public ArrayList<String> getValues() {
+		return slotValues;
+	}
 }

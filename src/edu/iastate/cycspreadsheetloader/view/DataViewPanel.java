@@ -1,6 +1,8 @@
 package edu.iastate.cycspreadsheetloader.view;
 
 import edu.iastate.cycspreadsheetloader.controller.DefaultController;
+import edu.iastate.cycspreadsheetloader.util.SimpleInterpreter;
+
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -144,7 +146,7 @@ public class DataViewPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Submit data table to database");
 		}
 		public void actionPerformed(ActionEvent e) {
-			controller.loadByTableHeader();
+			controller.submitTable(new SimpleInterpreter());
 		}
 	}
 	

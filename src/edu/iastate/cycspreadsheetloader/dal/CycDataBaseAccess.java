@@ -2,21 +2,21 @@ package edu.iastate.cycspreadsheetloader.dal;
 
 import java.util.ArrayList;
 
-import edu.iastate.cycspreadsheetloader.util.FrameUpdate;
+import edu.iastate.cycspreadsheetloader.model.AbstractFrameUpdate;
+import edu.iastate.cycspreadsheetloader.model.SlotUpdate;
 import edu.iastate.cycspreadsheetloader.util.Report;
-import edu.iastate.cycspreadsheetloader.util.SlotUpdate;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.OrgStruct;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class DataAccess {
+public class CycDataBaseAccess {
 	private static JavacycConnection conn;
 	private static String host = "localhost";
 	private static int port = 4444;
 	private static String organism = "CORN";
 	
-	public DataAccess() {
+	public CycDataBaseAccess() {
 	}
 	
 	public void initDefault() {
@@ -154,31 +154,34 @@ public class DataAccess {
 	// Assumes one change per slot.... no slots can be changed to list values
 	// Assumes one slot changes per frame... could be optimized to make all changes to a frame at once
 	// Catches all "special" cases, such as GO-TERMS and PUBMED citations
-	public void loadFrameUpdates(ArrayList<FrameUpdate> frameUpdates) throws PtoolsErrorException {
-		for (FrameUpdate frameUpdate : frameUpdates) {
-			Frame frame = Frame.load(conn, frameUpdate.getFrameID());
+	public void loadFrameUpdates(ArrayList<AbstractFrameUpdate> frameUpdates) throws PtoolsErrorException {
+		for (AbstractFrameUpdate frameUpdate : frameUpdates) {
+			Frame frame = frameUpdate.getFrame(conn);
 			
-			for (SlotUpdate slotUpdate : frameUpdate.getSlotUpdates()) {
+			if (frameUpdate.getClass() == edu.iastate.cycspreadsheetloader.model.SlotUpdate.class) {
+				SlotUpdate slotUpdate = (SlotUpdate) frameUpdate;
 				if (slotUpdate.getSlotLabel().equalsIgnoreCase("GO-TERMS")) {
-					conn.callFuncString("import-go-terms '" + slotUpdate.getSlotValue());
+					conn.callFuncString("import-go-terms '" + slotUpdate.getValuesAsLispArray());
 				}
-				frame.putSlotValue(slotUpdate.getSlotLabel(), slotUpdate.getSlotValue());
+				frame.putSlotValue(slotUpdate.getSlotLabel(), slotUpdate.getValuesAsLispArray());
 				frame.commit();
+			} else {
+				
 			}
 		}
 	}
 	
-	public void compareFrameUpdates(ArrayList<FrameUpdate> frameUpdates, Report report) throws PtoolsErrorException {
-		for (FrameUpdate frameUpdate : frameUpdates) {
-			Frame frame = Frame.load(conn, frameUpdate.getFrameID());
-			
-			for (SlotUpdate slotUpdate : frameUpdate.getSlotUpdates()) {
-				if (slotUpdate.getSlotLabel().equalsIgnoreCase("GO-TERMS")) {
-					conn.callFuncString("import-go-terms '" + slotUpdate.getSlotValue());
-				}
-				frame.putSlotValue(slotUpdate.getSlotLabel(), slotUpdate.getSlotValue());
-				frame.commit();
-			}
-		}
-	}
+//	public void compareFrameUpdates(ArrayList<AbstractFrameUpdate> frameUpdates, Report report) throws PtoolsErrorException {
+//		for (AbstractFrameUpdate frameUpdate : frameUpdates) {
+//			Frame frame = Frame.load(conn, frameUpdate.getFrameID());
+//			
+//			for (SlotUpdate slotUpdate : frameUpdate.getSlotUpdates()) {
+//				if (slotUpdate.getSlotLabel().equalsIgnoreCase("GO-TERMS")) {
+//					conn.callFuncString("import-go-terms '" + slotUpdate.getSlotValue());
+//				}
+//				frame.putSlotValue(slotUpdate.getSlotLabel(), slotUpdate.getSlotValue());
+//				frame.commit();
+//			}
+//		}
+//	}
 }

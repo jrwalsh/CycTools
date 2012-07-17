@@ -18,6 +18,7 @@ public class DocumentModel extends AbstractModel {
     private TableModel tableModel;
     private boolean saved; //TODO remove this???
     private String delimiter = ","; //TODO add file delimiter property set/get
+    private ArrayList<AbstractFrameUpdate> frameUpdates;  //TODO the document represents the updates that we ultimately want in the database, so this class makes sense as a place to store those update objects
     
     public DocumentModel() {   
     }

@@ -5,14 +5,15 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 
-import edu.iastate.cycspreadsheetloader.dal.DataAccess;
+import edu.iastate.cycspreadsheetloader.dal.CycDataBaseAccess;
+import edu.iastate.cycspreadsheetloader.model.AbstractFrameUpdate;
 import edu.iastate.cycspreadsheetloader.model.DocumentModel;
-import edu.iastate.cycspreadsheetloader.util.FrameUpdate;
+import edu.iastate.cycspreadsheetloader.util.Interpretable;
 import edu.iastate.cycspreadsheetloader.view.AbstractViewPanel;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 public class DefaultController implements PropertyChangeListener {
-	private DataAccess dataAccess;
+	private CycDataBaseAccess dataAccess;
 	private ArrayList<AbstractViewPanel> registeredViews;
 	private DocumentModel documentModel;
 	
@@ -23,7 +24,7 @@ public class DefaultController implements PropertyChangeListener {
     public DefaultController() {
     	registeredViews = new ArrayList<AbstractViewPanel>();
     	documentModel = new DocumentModel();
-    	dataAccess = new DataAccess();
+    	dataAccess = new CycDataBaseAccess();
     }
     
     public void addView(AbstractViewPanel view) {
@@ -46,8 +47,8 @@ public class DefaultController implements PropertyChangeListener {
     	documentModel.setSaved(isSaved);
     }
     
-    public void loadByTableHeader() {
-    	ArrayList<FrameUpdate> frameUpdates = FrameUpdate.tableToFrameUpdates(documentModel.getTableModel());
+    public void submitTable(Interpretable interpreter) {
+    	ArrayList<AbstractFrameUpdate> frameUpdates = interpreter.tableToFrameUpdates(documentModel.getTableModel());//FrameUpdate.tableToFrameUpdates(documentModel.getTableModel());
 		try {
 			dataAccess.loadFrameUpdates(frameUpdates);
 		} catch (PtoolsErrorException e) {

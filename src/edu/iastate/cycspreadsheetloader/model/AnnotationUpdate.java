@@ -57,4 +57,21 @@ public class AnnotationUpdate extends AbstractFrameUpdate {
 		
 		return false;
 	}
+	
+	protected String getSlotLabel() {
+		return slotLabel;
+	}
+	
+	protected String getSlotValue() {
+		return slotValue;
+	}
+
+	protected String getAnnotationLabel() {
+		return annotationLabel;
+	}
+
+	@Override
+	protected ArrayList<String> getValues() {
+		return annotationValues;
+	}
 }

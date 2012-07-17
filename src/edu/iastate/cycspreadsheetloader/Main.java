@@ -1,7 +1,7 @@
 package edu.iastate.cycspreadsheetloader;
 
 import edu.iastate.cycspreadsheetloader.controller.DefaultController;
-import edu.iastate.cycspreadsheetloader.dal.DataAccess;
+import edu.iastate.cycspreadsheetloader.dal.CycDataBaseAccess;
 import edu.iastate.cycspreadsheetloader.model.DocumentModel;
 import edu.iastate.cycspreadsheetloader.view.ConnectionViewPanel;
 import edu.iastate.cycspreadsheetloader.view.ControlViewPanel;
@@ -21,7 +21,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		// DataAccess
-		DataAccess da = new DataAccess();
+		CycDataBaseAccess da = new CycDataBaseAccess();
 		da.initDefault();
 		
 		// Models
