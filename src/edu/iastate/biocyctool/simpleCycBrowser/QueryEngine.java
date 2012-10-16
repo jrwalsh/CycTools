@@ -211,7 +211,9 @@ public class QueryEngine {
 					frame.putSlotValue(headings[i], row[i]);
 					if (headings[i].equalsIgnoreCase("GO-TERMS")) {
 						//TODO remember, this is probably going to be an array of values, not a single
-						conn.callFuncString("import-go-terms '" + row[i]);
+						ArrayList<String> goTerms = new ArrayList<String>();
+						goTerms.add(row[i]);
+						conn.importGOTerms(goTerms);//conn.callFuncString("import-go-terms '" + row[i]);
 					}
 				}
 				frame.commit();

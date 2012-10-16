@@ -79,7 +79,7 @@ public class CycDataBaseAccess {
 	
 	// Change selected organism
 	private void selectOrganism(String organism) {
-		if (isConnected()) conn.selectOrganism(organism);
+		if (getAvailableOrganisms().contains(organism)) conn.selectOrganism(organism);
 	}
 	
 	// Get all organisms available at the current connection
@@ -148,7 +148,7 @@ public class CycDataBaseAccess {
 	}
 
 	
-	// Queries that change the database
+	// Save/revert/commit
 	public void saveDataBase() {
 		try {
 			conn.saveKB();

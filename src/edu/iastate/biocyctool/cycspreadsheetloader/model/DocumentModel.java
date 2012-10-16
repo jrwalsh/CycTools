@@ -18,7 +18,7 @@ public class DocumentModel extends AbstractModel {
     private TableModel tableModel;
     private String delimiter = ","; //TODO add file delimiter property set/get
     
-    public DocumentModel() {   
+    public DocumentModel() {
     }
     
     public void initDefault() {

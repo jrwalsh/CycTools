@@ -39,7 +39,8 @@ GO-TERMS (11)
 	|GO:0005737|
 	|GO:0003872|
 		--CITATIONS	"149128:EV-EXP-IDA-PURIFIED-PROTEIN:3501264746:keseler"
-
+A: Also note that the long, strange and seemingly meaningless number is a universal time stamp in list.  See here (http://cl-cookbook.sourceforge.net/dates_and_times.html)
+Use lisp command: (get-universal-time)
 
 Slot: CREDITS
 "This slot attributes credit to various contributors

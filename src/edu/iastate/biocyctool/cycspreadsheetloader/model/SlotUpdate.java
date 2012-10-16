@@ -10,6 +10,14 @@ public class SlotUpdate extends AbstractFrameUpdate {
 	private String slotLabel;
 	private ArrayList<String> slotValues;
 	
+	public SlotUpdate(String frameID, String slotLabel, String slotValue) {
+		ArrayList<String> slotValues = new ArrayList<String>();
+		slotValues.add(slotValue);
+		this.frameID = frameID;
+		this.slotLabel = slotLabel;
+		this.slotValues = slotValues;
+	}
+	
 	public SlotUpdate(String frameID, String slotLabel, ArrayList<String> slotValues) {
 		this.frameID = frameID;
 		this.slotLabel = slotLabel;
@@ -26,7 +34,7 @@ public class SlotUpdate extends AbstractFrameUpdate {
 		Frame frame = this.getFrame(conn);
 		
 		if (slotLabel.equalsIgnoreCase("GO-TERMS")) {
-			conn.callFuncString("import-go-terms '" + this.getValuesAsLispArray());
+			conn.importGOTerms(getValues());//("import-go-terms '" + this.getValuesAsLispArray());
 		}
 		frame.putSlotValues(slotLabel, slotValues);
 		frame.commit();
