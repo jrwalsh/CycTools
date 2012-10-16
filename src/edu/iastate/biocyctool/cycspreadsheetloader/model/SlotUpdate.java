@@ -36,7 +36,13 @@ public class SlotUpdate extends AbstractFrameUpdate {
 		if (slotLabel.equalsIgnoreCase("GO-TERMS")) {
 			conn.importGOTerms(getValues());//("import-go-terms '" + this.getValuesAsLispArray());
 		}
-		frame.putSlotValues(slotLabel, slotValues);
+		
+		//TODO only if set to append
+		ArrayList<String> values = new ArrayList<String>();
+		values.addAll(frame.getSlotValues(slotLabel));
+		values.addAll(slotValues);
+		
+		frame.putSlotValues(slotLabel, values);
 		frame.commit();
 	}
 

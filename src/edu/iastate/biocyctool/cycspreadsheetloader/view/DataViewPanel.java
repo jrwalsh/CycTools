@@ -1,6 +1,7 @@
 package edu.iastate.biocyctool.cycspreadsheetloader.view;
 
 import edu.iastate.biocyctool.cycspreadsheetloader.controller.DefaultController;
+import edu.iastate.biocyctool.cycspreadsheetloader.util.CustomInterpreter;
 import edu.iastate.biocyctool.cycspreadsheetloader.util.SimpleInterpreter;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 
@@ -24,14 +25,13 @@ import javax.swing.table.DefaultTableModel;
 public class DataViewPanel extends AbstractViewPanel {
     // Controller used by this view
 	private DefaultController controller;
-
-	// Swing objects
-    private JTextField txtFilepath;
     private JTable tableSpreadSheet;
     
     // Actions
     private final Action actionBrowse = new ActionBrowse();
     private final Action actionSubmit = new ActionSubmit();
+    private final Action actionSave = new ActionSave();
+    private final Action actionRevert = new ActionRevert();
     
     public DataViewPanel(DefaultController controller) {
         this.controller = controller;
@@ -44,10 +44,6 @@ public class DataViewPanel extends AbstractViewPanel {
     
     private void initComponents() {
     	JPanel fileOpenPanel = new JPanel();
-        
-        txtFilepath = new JTextField();
-        txtFilepath.setText("filePath");
-        txtFilepath.setColumns(10);
         
         JButton btnBrowse = new JButton("Browse");
         btnBrowse.setAction(actionBrowse);
@@ -78,26 +74,35 @@ public class DataViewPanel extends AbstractViewPanel {
         
         tableSpreadSheet = new JTable();
         SpreadsheetScrollPane.setViewportView(tableSpreadSheet);
+        
+        JButton btnRevert = new JButton("Revert");
+        btnRevert.setAction(actionRevert);
+        
+        JButton btnSave = new JButton("Save");
+        btnSave.setAction(actionSave);
         GroupLayout gl_fileOpenPanel = new GroupLayout(fileOpenPanel);
         gl_fileOpenPanel.setHorizontalGroup(
         	gl_fileOpenPanel.createParallelGroup(Alignment.LEADING)
         		.addGroup(gl_fileOpenPanel.createSequentialGroup()
         			.addContainerGap()
-        			.addComponent(txtFilepath, GroupLayout.PREFERRED_SIZE, 231, GroupLayout.PREFERRED_SIZE)
-        			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(btnBrowse)
-        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(btnSubmit)
-        			.addContainerGap())
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addComponent(btnRevert)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addComponent(btnSave)
+        			.addGap(6))
         );
         gl_fileOpenPanel.setVerticalGroup(
         	gl_fileOpenPanel.createParallelGroup(Alignment.LEADING)
         		.addGroup(gl_fileOpenPanel.createSequentialGroup()
         			.addGap(5)
         			.addGroup(gl_fileOpenPanel.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(btnSubmit)
         				.addComponent(btnBrowse)
-        				.addComponent(txtFilepath, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+        				.addComponent(btnSubmit)
+        				.addComponent(btnRevert)
+        				.addComponent(btnSave)))
         );
         fileOpenPanel.setLayout(gl_fileOpenPanel);
         setLayout(groupLayout);
@@ -132,7 +137,7 @@ public class DataViewPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Submit data table to database");
 		}
 		public void actionPerformed(ActionEvent e) {
-			controller.submitTable(new SimpleInterpreter());
+			controller.submitTable(new CustomInterpreter());//TODO How to make this select the right interpreter? Just hardcode it? Dropdown menu option?
 		}
 	}
 	

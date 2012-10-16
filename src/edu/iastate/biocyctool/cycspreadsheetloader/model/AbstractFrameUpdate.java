@@ -56,7 +56,7 @@ public abstract class AbstractFrameUpdate {
 			return false;
 	}
 	
-	public abstract void commit(JavacycConnection conn) throws PtoolsErrorException;
+	public abstract void commit(JavacycConnection conn) throws PtoolsErrorException;//TODO add overwrite/append and allowDuplicate flags
 	protected abstract ArrayList<String> getValues();
 	protected abstract ArrayList<String> getRemoteValues(JavacycConnection conn) throws PtoolsErrorException;
 }

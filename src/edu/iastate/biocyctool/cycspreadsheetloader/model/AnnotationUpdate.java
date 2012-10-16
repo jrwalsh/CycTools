@@ -37,7 +37,12 @@ public class AnnotationUpdate extends AbstractFrameUpdate {
 	public void commit(JavacycConnection conn) throws PtoolsErrorException {
 		Frame frame = this.getFrame(conn);
 		
-		frame.putLocalSlotValueAnnotations(slotLabel, slotValue, annotationLabel, annotationValues);
+		//TODO only if set to append
+		ArrayList<String> values = new ArrayList<String>();
+		values.addAll(frame.getAnnotations(slotLabel, slotValue, annotationLabel));
+		values.addAll(annotationValues);
+		
+		frame.putLocalSlotValueAnnotations(slotLabel, slotValue, annotationLabel, values);
 		frame.commit();
 	}
 	

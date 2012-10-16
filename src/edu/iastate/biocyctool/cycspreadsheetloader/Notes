@@ -75,3 +75,10 @@ what is meant by some significant curation."
 Slot: GO-TERMS
 "This slot contains all GO terms to which this object is annotated. 
 Its values should be annotated with citations including evidence codes."
+
+
+
+
+
+
+(format nil "~{~A~#[~:;:~]~}" '(1 2 3))
