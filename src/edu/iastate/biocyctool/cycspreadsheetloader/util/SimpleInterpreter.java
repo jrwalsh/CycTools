@@ -28,7 +28,7 @@ public class SimpleInterpreter implements Interpretable {
 				ArrayList<String> values = new ArrayList<String>();
 				values.add((String) tb.getValueAt(rowIndex, columnIndex));
 				
-				frameUpdates.add(new SlotUpdate(frameID, slotLabel, values));
+				frameUpdates.add(new SlotUpdate(frameID, slotLabel, values, true, true));
 			}
 		}
 		return frameUpdates;

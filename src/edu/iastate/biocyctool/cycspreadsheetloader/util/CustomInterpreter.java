@@ -26,12 +26,12 @@ public class CustomInterpreter implements Interpretable {
 			String frameID = (String) tb.getValueAt(rowIndex, 0);
 //			frameUpdates.add(new SlotUpdate(frameID, "CurrentGeneModelName", (String) tb.getValueAt(rowIndex, 1)));
 			String goTerm = (String) tb.getValueAt(rowIndex, 2);
-			frameUpdates.add(new SlotUpdate(frameID, "GO-TERMS", goTerm));
+			frameUpdates.add(new SlotUpdate(frameID, "GO-TERMS", goTerm, true, true));
 //			frameUpdates.add(new SlotUpdate(frameID, "ReferenceID", (String) tb.getValueAt(rowIndex, 5)));
 			
 			ArrayList<String> annotValues = new ArrayList<String>();
 			annotValues.add("\"" +(String) tb.getValueAt(rowIndex, 4) + ":" + (String) tb.getValueAt(rowIndex, 3) + ":3501259540:" + (String) tb.getValueAt(rowIndex, 6) + "\"");
-			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues));
+			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues, true, true));
 		}
 		return frameUpdates;
 	}

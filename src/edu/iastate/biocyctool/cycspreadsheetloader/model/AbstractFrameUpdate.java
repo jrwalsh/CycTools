@@ -8,30 +8,12 @@ import edu.iastate.javacyco.PtoolsErrorException;
 
 public abstract class AbstractFrameUpdate {
 	protected String frameID;
-//	protected boolean isConflict;
-//	protected boolean isDuplicate;
-//	protected boolean allowOverWrite;
+	protected boolean append;
+	protected boolean ignoreDuplicates;
 	
 	public Frame getFrame(JavacycConnection conn) throws PtoolsErrorException {
 		return Frame.load(conn, frameID);
 	}
-	
-//	public boolean isConflict() {
-//		return isConflict;
-//	}
-//	
-//	public boolean isDuplicate() {
-//		return isDuplicate;
-//	}
-//	
-//	public boolean allowOverWrite() {
-//		return allowOverWrite;
-//	}
-//	
-//	protected void compare(JavacycConnection conn) {
-//		isConflict = isRemoteValueEmpty(conn);
-//		isDuplicate = isRemoteValueDuplicate(conn);
-//	}
 	
 	public String getValuesAsLispArray() {
 		ArrayList<String> values = this.getValues();
@@ -56,7 +38,7 @@ public abstract class AbstractFrameUpdate {
 			return false;
 	}
 	
-	public abstract void commit(JavacycConnection conn) throws PtoolsErrorException;//TODO add overwrite/append and allowDuplicate flags
+	public abstract void commit(JavacycConnection conn) throws PtoolsErrorException;
 	protected abstract ArrayList<String> getValues();
 	protected abstract ArrayList<String> getRemoteValues(JavacycConnection conn) throws PtoolsErrorException;
 }

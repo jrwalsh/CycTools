@@ -10,18 +10,22 @@ public class SlotUpdate extends AbstractFrameUpdate {
 	private String slotLabel;
 	private ArrayList<String> slotValues;
 	
-	public SlotUpdate(String frameID, String slotLabel, String slotValue) {
+	public SlotUpdate(String frameID, String slotLabel, String slotValue, boolean append, boolean ignoreDuplicates) {
 		ArrayList<String> slotValues = new ArrayList<String>();
 		slotValues.add(slotValue);
 		this.frameID = frameID;
 		this.slotLabel = slotLabel;
 		this.slotValues = slotValues;
+		this.append = append;
+		this.ignoreDuplicates = ignoreDuplicates;
 	}
 	
-	public SlotUpdate(String frameID, String slotLabel, ArrayList<String> slotValues) {
+	public SlotUpdate(String frameID, String slotLabel, ArrayList<String> slotValues, boolean append, boolean ignoreDuplicates) {
 		this.frameID = frameID;
 		this.slotLabel = slotLabel;
 		this.slotValues = slotValues;
+		this.append = append;
+		this.ignoreDuplicates = ignoreDuplicates;
 	}
 	
 	public String getSlotLabel() {
@@ -33,16 +37,23 @@ public class SlotUpdate extends AbstractFrameUpdate {
 	public void commit(JavacycConnection conn) throws PtoolsErrorException {
 		Frame frame = this.getFrame(conn);
 		
+		// GO-TERMS are a special case, as pathway tools can automatically import information for them if told to do so.
 		if (slotLabel.equalsIgnoreCase("GO-TERMS")) {
-			conn.importGOTerms(getValues());//("import-go-terms '" + this.getValuesAsLispArray());
+			conn.importGOTerms(getValues());
 		}
 		
-		//TODO only if set to append
-		ArrayList<String> values = new ArrayList<String>();
-		values.addAll(frame.getSlotValues(slotLabel));
-		values.addAll(slotValues);
+		ArrayList<String> newValues = new ArrayList<String>();
+		if (append) {
+			newValues.addAll(frame.getSlotValues(slotLabel));
+		}
 		
-		frame.putSlotValues(slotLabel, values);
+		if (ignoreDuplicates) {
+			for (String value : slotValues) {
+				if (!newValues.contains(value)) newValues.add(value);
+			}
+		} else newValues.addAll(slotValues);
+		
+		frame.putSlotValues(slotLabel, newValues);
 		frame.commit();
 	}
 

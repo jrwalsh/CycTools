@@ -12,12 +12,14 @@ public class AnnotationUpdate extends AbstractFrameUpdate {
 	private String annotationLabel;
 	private ArrayList<String> annotationValues;
 	
-	public AnnotationUpdate(String frameID, String slotLabel, String slotValue, String annotationLabel, ArrayList<String> annotationValues) {
+	public AnnotationUpdate(String frameID, String slotLabel, String slotValue, String annotationLabel, ArrayList<String> annotationValues,  boolean append, boolean ignoreDuplicates) {
 		this.frameID = frameID;
 		this.slotLabel = slotLabel;
 		this.slotValue = slotValue;
 		this.annotationLabel = annotationLabel;
 		this.annotationValues = annotationValues;
+		this.append = append;
+		this.ignoreDuplicates = ignoreDuplicates;
 	}
 
 	protected String getSlotLabel() {
@@ -37,32 +39,20 @@ public class AnnotationUpdate extends AbstractFrameUpdate {
 	public void commit(JavacycConnection conn) throws PtoolsErrorException {
 		Frame frame = this.getFrame(conn);
 		
-		//TODO only if set to append
-		ArrayList<String> values = new ArrayList<String>();
-		values.addAll(frame.getAnnotations(slotLabel, slotValue, annotationLabel));
-		values.addAll(annotationValues);
+		ArrayList<String> newValues = new ArrayList<String>();
+		if (append) {
+			newValues.addAll(frame.getAnnotations(slotLabel, slotValue, annotationLabel));
+		}
 		
-		frame.putLocalSlotValueAnnotations(slotLabel, slotValue, annotationLabel, values);
+		if (ignoreDuplicates) {
+			for (String value : annotationValues) {
+				if (!newValues.contains(value)) newValues.add(value);
+			}
+		} else newValues.addAll(annotationValues);
+		
+		frame.putLocalSlotValueAnnotations(slotLabel, slotValue, annotationLabel, newValues);
 		frame.commit();
 	}
-	
-//	@Override
-//	protected boolean checkRemoteValueEmpty(JavacycConnection conn) throws PtoolsErrorException {
-//		ArrayList<String> remoteAnnotationValues = (ArrayList<String>) conn.getValueAnnots(frameID, slotLabel, slotValue, annotationLabel);
-//		if (remoteAnnotationValues == null || remoteAnnotationValues.isEmpty()) {
-//			return true;
-//		} else 
-//			return false;
-//	}
-//
-//	@Override
-//	protected boolean checkRemoteValueDuplicate(JavacycConnection conn) throws PtoolsErrorException {
-//		ArrayList<String> remoteAnnotationValues = (ArrayList<String>) conn.getValueAnnots(frameID, slotLabel, slotValue, annotationLabel);
-//		if (remoteAnnotationValues.containsAll(annotationValues) && annotationValues.containsAll(remoteAnnotationValues)) {
-//			return true;
-//		} else 
-//			return false;
-//	}
 	
 	@Override
 	protected ArrayList<String> getValues() {
