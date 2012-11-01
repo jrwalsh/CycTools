@@ -13,7 +13,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
 public class Main {
-	private static String host = "localhost";
+	private static String host = "jrwalsh.student.iastate.edu";
 	private static int port = 4444;
 	private static String organism = "CORN";
 	
