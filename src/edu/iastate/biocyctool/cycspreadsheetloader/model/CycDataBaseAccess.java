@@ -34,7 +34,7 @@ public class CycDataBaseAccess {
 	// Initialize connection using first organism available
 	private boolean connect(String server, int port) {
 		try {
-			conn = new JavacycConnection(server,port);
+			conn = new JavacycConnection(server,port,"me","pass");//TODO
 			if (conn.allOrgs() != null || conn.allOrgs().size() != 0) {
 				conn.selectOrganism(conn.allOrgs().get(0).getLocalID());
 			}
@@ -48,7 +48,7 @@ public class CycDataBaseAccess {
 	// Initialize connection with specified organism
 	private boolean connect(String server, int port, String organism) {
 		try {
-			conn = new JavacycConnection(server,port);
+			conn = new JavacycConnection(server, port, "me", "pass");//TODO
 			conn.selectOrganism(organism);
 			return true;
 		} catch(Exception e) {
