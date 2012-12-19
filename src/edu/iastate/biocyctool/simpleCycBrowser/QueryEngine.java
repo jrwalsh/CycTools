@@ -26,7 +26,7 @@ public class QueryEngine {
 	// Initiallize connection using first organism available
 	public boolean connect(String server, int port) {
 		try {
-			conn = new JavacycConnection(server,port);
+			conn = new JavacycConnection(server,port, "me", "pass");//TODO
 			if (conn.allOrgs() != null || conn.allOrgs().size() != 0) {
 				conn.selectOrganism(conn.allOrgs().get(0).getLocalID());
 			}
