@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 import javax.swing.table.TableModel;
 
-import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameUpdate;
+import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameEdit;
 
 public interface Interpretable {
-	ArrayList<AbstractFrameUpdate> tableToFrameUpdates(TableModel tb);
+	ArrayList<AbstractFrameEdit> tableToFrameUpdates(TableModel tb);
 }

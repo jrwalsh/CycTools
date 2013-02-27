@@ -5,7 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 
-import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameUpdate;
+import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameEdit;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.CycDataBaseAccess;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.DocumentModel;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.ReportModel;
@@ -48,7 +48,7 @@ public class DefaultController implements PropertyChangeListener {
     }
     
     public void submitTable(Interpretable interpreter) {
-    	ArrayList<AbstractFrameUpdate> frameUpdates = interpreter.tableToFrameUpdates(documentModel.getTableModel());
+    	ArrayList<AbstractFrameEdit> frameUpdates = interpreter.tableToFrameUpdates(documentModel.getTableModel());
 		try {
 			dataAccess.commitFrameUpdates(frameUpdates);
 		} catch (PtoolsErrorException e) {

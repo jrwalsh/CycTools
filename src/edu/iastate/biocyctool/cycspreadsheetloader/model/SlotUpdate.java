@@ -6,7 +6,7 @@ import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class SlotUpdate extends AbstractFrameUpdate {
+public class SlotUpdate extends AbstractFrameDataEdit {
 	private String slotLabel;
 	private ArrayList<String> slotValues;
 	
@@ -80,9 +80,14 @@ public class SlotUpdate extends AbstractFrameUpdate {
 		return slotValues;
 	}
 
-	
 	@Override
 	protected ArrayList<String> getRemoteValues(JavacycConnection conn) throws PtoolsErrorException {
 		return (ArrayList<String>) conn.getSlotValues(frameID, slotLabel);
+	}
+
+	@Override
+	public void revert(JavacycConnection conn) throws PtoolsErrorException {
+		// TODO Auto-generated method stub
+		
 	}
 }

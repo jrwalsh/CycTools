@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import javax.swing.table.TableModel;
 
-import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameUpdate;
+import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameEdit;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.AnnotationUpdate;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.SlotUpdate;
 import edu.iastate.javacyco.JavacycConnection;
@@ -19,8 +19,8 @@ public class CustomInterpreter implements Interpretable {
 	// Assumes one value per cell
 	// Assumes headers are ignored, effectively skipping row one
 	// Assumes frameID is in first column
-	public ArrayList<AbstractFrameUpdate> tableToFrameUpdates(TableModel tb) {
-		ArrayList<AbstractFrameUpdate> frameUpdates = new ArrayList<AbstractFrameUpdate>();
+	public ArrayList<AbstractFrameEdit> tableToFrameUpdates(TableModel tb) {
+		ArrayList<AbstractFrameEdit> frameUpdates = new ArrayList<AbstractFrameEdit>();
 		
 		for (int rowIndex = 0; rowIndex < tb.getRowCount(); rowIndex++) {
 			String frameID = (String) tb.getValueAt(rowIndex, 0);

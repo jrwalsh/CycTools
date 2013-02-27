@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import javax.swing.table.TableModel;
 
-import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameUpdate;
+import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameEdit;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.SlotUpdate;
 
 public class SimpleInterpreter implements Interpretable {
@@ -17,8 +17,8 @@ public class SimpleInterpreter implements Interpretable {
 	// Assumes only slot updates, no annotation updates
 	// Assumes slot label is column header
 	// Assumes frameID is in first column
-	public ArrayList<AbstractFrameUpdate> tableToFrameUpdates(TableModel tb) {
-		ArrayList<AbstractFrameUpdate> frameUpdates = new ArrayList<AbstractFrameUpdate>();
+	public ArrayList<AbstractFrameEdit> tableToFrameUpdates(TableModel tb) {
+		ArrayList<AbstractFrameEdit> frameUpdates = new ArrayList<AbstractFrameEdit>();
 		
 		for (int rowIndex = 0; rowIndex < tb.getRowCount(); rowIndex++) {
 			String frameID = (String) tb.getValueAt(rowIndex, 0);

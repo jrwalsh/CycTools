@@ -165,8 +165,8 @@ public class CycDataBaseAccess {
 		}
 	}
 	
-	public void commitFrameUpdates(ArrayList<AbstractFrameUpdate> frameUpdates) throws PtoolsErrorException {
-		for (AbstractFrameUpdate frameUpdate : frameUpdates) {
+	public void commitFrameUpdates(ArrayList<AbstractFrameEdit> frameUpdates) throws PtoolsErrorException {
+		for (AbstractFrameEdit frameUpdate : frameUpdates) {
 			frameUpdate.commit(conn);
 		}
 	}

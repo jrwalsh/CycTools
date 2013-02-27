@@ -2,18 +2,12 @@ package edu.iastate.biocyctool.cycspreadsheetloader.model;
 
 import java.util.ArrayList;
 
-import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public abstract class AbstractFrameUpdate {
-	protected String frameID;
+public abstract class AbstractFrameDataEdit extends AbstractFrameEdit {
 	protected boolean append;
 	protected boolean ignoreDuplicates;
-	
-	public Frame getFrame(JavacycConnection conn) throws PtoolsErrorException {
-		return Frame.load(conn, frameID);
-	}
 	
 	public String getValuesAsLispArray() {
 		ArrayList<String> values = this.getValues();
@@ -37,8 +31,7 @@ public abstract class AbstractFrameUpdate {
 		} else 
 			return false;
 	}
-	
-	public abstract void commit(JavacycConnection conn) throws PtoolsErrorException;
+
 	protected abstract ArrayList<String> getValues();
 	protected abstract ArrayList<String> getRemoteValues(JavacycConnection conn) throws PtoolsErrorException;
 }
