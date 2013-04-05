@@ -6,10 +6,10 @@ import java.io.File;
 import java.util.ArrayList;
 
 import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameEdit;
-import edu.iastate.biocyctool.cycspreadsheetloader.model.CycDataBaseAccess;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.DocumentModel;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.ReportModel;
 import edu.iastate.biocyctool.cycspreadsheetloader.util.Interpretable;
+import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.PtoolsErrorException;
 

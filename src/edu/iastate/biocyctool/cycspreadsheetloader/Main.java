@@ -1,9 +1,9 @@
 package edu.iastate.biocyctool.cycspreadsheetloader;
 
 import edu.iastate.biocyctool.cycspreadsheetloader.controller.DefaultController;
-import edu.iastate.biocyctool.cycspreadsheetloader.model.CycDataBaseAccess;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.DocumentModel;
 import edu.iastate.biocyctool.cycspreadsheetloader.view.DataViewPanel;
+import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
@@ -19,8 +19,8 @@ public class Main {
 	
 	public static void main(String[] args) {
 		// DataAccess
-		CycDataBaseAccess da = new CycDataBaseAccess(host, port, organism);
-		da.initDefault();
+		CycDataBaseAccess da = new CycDataBaseAccess(host, port, null, null);
+		da.selectOrganism(organism);
 		
 		// Models
 		DocumentModel document = new DocumentModel();
