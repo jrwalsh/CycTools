@@ -30,6 +30,7 @@ import java.awt.Insets;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
+import java.awt.Dimension;
 
 public class Main {
 	private static JMenuBar menuBar;
@@ -77,26 +78,12 @@ public class Main {
 		controller.addView(exportStructurePanel);
 		
 		JFrame displayFrame = new JFrame("CycBrowser");
+		displayFrame.setResizable(false);
+		displayFrame.setPreferredSize(new Dimension(800, 500));
 		displayFrame.setJMenuBar(new MenuBar(controller));
-		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[]{716, 0};
-		gridBagLayout.rowHeights = new int[]{300, 0, 0};
-		gridBagLayout.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		displayFrame.getContentPane().setLayout(gridBagLayout);
-		
-		GridBagConstraints gbc_cardPanel = new GridBagConstraints();
-		gbc_cardPanel.insets = new Insets(0, 0, 5, 0);
-		gbc_cardPanel.anchor = GridBagConstraints.NORTHWEST;
-		gbc_cardPanel.gridx = 0;
-		gbc_cardPanel.gridy = 0;
-		displayFrame.getContentPane().add(cardPanel, gbc_cardPanel);
-		
-		GridBagConstraints gbc_panel = new GridBagConstraints();
-		gbc_panel.fill = GridBagConstraints.BOTH;
-		gbc_panel.gridx = 0;
-		gbc_panel.gridy = 1;
-		displayFrame.getContentPane().add(statusPanel, gbc_panel);
+		displayFrame.getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		displayFrame.getContentPane().add(cardPanel);
+		displayFrame.getContentPane().add(statusPanel);
         displayFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         displayFrame.pack();
         

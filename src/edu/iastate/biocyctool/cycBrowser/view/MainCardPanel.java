@@ -22,6 +22,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
+import java.awt.Dimension;
 
 public class MainCardPanel extends AbstractViewPanel {
 	BrowserController controller;
@@ -37,6 +38,7 @@ public class MainCardPanel extends AbstractViewPanel {
 	 * @param controller 
 	 */
 	public MainCardPanel(BrowserController controller) {
+		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();
         localInitialization();

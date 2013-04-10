@@ -13,6 +13,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JProgressBar;
 import javax.swing.JComboBox;
+import java.awt.Dimension;
 
 public class StatusPanel extends AbstractViewPanel {
 	BrowserController controller;
@@ -26,6 +27,7 @@ public class StatusPanel extends AbstractViewPanel {
 	 * @param controller 
 	 */
 	public StatusPanel(BrowserController controller) {
+		setPreferredSize(new Dimension(800, 30));
 		this.controller = controller;
 		
 		lblStatus = new JLabel("Not Connected");

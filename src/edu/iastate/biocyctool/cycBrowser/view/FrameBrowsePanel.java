@@ -56,6 +56,7 @@ import edu.iastate.biocyctool.cycBrowser.controller.BrowserController;
 import edu.iastate.biocyctool.cycBrowser.model.BrowserStateModel.State;
 import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
+import javax.swing.ScrollPaneConstants;
 
 public class FrameBrowsePanel extends AbstractViewPanel {
 	BrowserController controller;
@@ -66,7 +67,6 @@ public class FrameBrowsePanel extends AbstractViewPanel {
 	private JScrollPane scrollPane;
 	private JTextArea textArea;
 	private final Action actionDisconnect = new ActionDisconnect();
-	private JPanel panel_2;
 	private JTextField txtEnterFrameid;
 	private JButton button;
 	
@@ -74,6 +74,7 @@ public class FrameBrowsePanel extends AbstractViewPanel {
 	 * Create the frame.
 	 */
 	public FrameBrowsePanel(BrowserController controller) {
+		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();
         localInitialization();
@@ -83,29 +84,27 @@ public class FrameBrowsePanel extends AbstractViewPanel {
     }
     
     private void initComponents() {
-		setMinimumSize(new Dimension(800, 525));
+		setMinimumSize(new Dimension(800, 400));
 		setName("SimpleBrowser");
 		
 		setBorder(new EmptyBorder(5, 5, 5, 5));
-		setLayout(new BorderLayout(0, 0));
+		setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
 		panel = new JPanel();
 		panel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		add(panel, BorderLayout.NORTH);
-		
-		panel_2 = new JPanel();
-		panel.add(panel_2);
+		add(panel);
 		
 		txtEnterFrameid = new JTextField();
+		panel.add(txtEnterFrameid);
 		txtEnterFrameid.setColumns(10);
-		panel_2.add(txtEnterFrameid);
 		
 		button = new JButton("Search");
+		panel.add(button);
 		button.setAction(actionSubmit);
-		panel_2.add(button);
 		
 		textPanel = new JPanel();
-		add(textPanel, BorderLayout.CENTER);
+		textPanel.setPreferredSize(new Dimension(800, 300));
+		add(textPanel);
 		GridBagLayout gbl_textPanel = new GridBagLayout();
 		gbl_textPanel.columnWidths = new int[]{503, 0};
 		gbl_textPanel.rowHeights = new int[]{132, 0};
@@ -117,14 +116,12 @@ public class FrameBrowsePanel extends AbstractViewPanel {
 		scrollPane.setMinimumSize(new Dimension(10, 10));
 		
 		textArea = new JTextArea();
-		textArea.setPreferredSize(new Dimension(4, 50));
-		textArea.setMinimumSize(new Dimension(10, 10));
 		textArea.setWrapStyleWord(true);
-		textArea.setRows(7);
 		textArea.setLineWrap(true);
 		textArea.setEditable(false);
 		textArea.setColumns(70);
 		scrollPane.setViewportView(textArea);
+		
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 		gbc_scrollPane.fill = GridBagConstraints.BOTH;
 		gbc_scrollPane.gridx = 0;
