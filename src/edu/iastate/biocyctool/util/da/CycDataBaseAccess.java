@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Vector;
 
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -125,13 +126,28 @@ public class CycDataBaseAccess {
 			return printString;
 		}
 		catch(PtoolsErrorException e) {
-			e.printStackTrace();
+			return null;
 		}
-		
-		return "failed";
 	}
 
 	// Search
+	public ArrayList<String> substringSearch(String text, String type) throws PtoolsErrorException {
+		ArrayList<String> resultIDs = new ArrayList<String>();
+		for (Frame resultFrame : conn.search(text, type)) {
+			resultIDs.add(resultFrame.getLocalID());
+		}
+		return resultIDs;
+	}
+	
+	// Custom results for showing id and common name in the combo box.... maybe useful later. remove boolean argument.  Remove Item subclass if this method not used.
+	public Vector substringSearch(String text, String type, boolean bool) throws PtoolsErrorException {
+		Vector model = new Vector();
+		for (Frame resultFrame : conn.search(text, type)) {
+			model.addElement(new Item(resultFrame.getLocalID(), resultFrame.getCommonName()));
+		}
+		return model;
+	}
+	
 	public DefaultTableModel getSearchResultsTable(String text, String type) throws PtoolsErrorException {
 		// Parse text for search terms
 		// Expect 1 term per line
@@ -306,4 +322,25 @@ public class CycDataBaseAccess {
 		}
 	}
 
+	class Item {
+		private String id;
+		private String description;
+		
+		public Item(String id, String description) {
+			this.id = id;
+			this.description = description;
+		}
+		
+		public String getId() {
+			return id;
+		}
+		
+		public String getDescription() {
+			return description;
+		}
+		
+		public String toString() {
+			return id + ": " + description;
+		}
+	}  
 }

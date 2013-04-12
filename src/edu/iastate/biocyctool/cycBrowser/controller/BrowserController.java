@@ -3,11 +3,14 @@ package edu.iastate.biocyctool.cycBrowser.controller;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Vector;
 
+import javax.swing.JFrame;
 import javax.swing.table.DefaultTableModel;
 
 import edu.iastate.biocyctool.cycBrowser.model.BrowserStateModel;
 import edu.iastate.biocyctool.cycBrowser.model.BrowserStateModel.State;
+import edu.iastate.biocyctool.cycBrowser.view.ToolPanel;
 import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.PtoolsErrorException;
@@ -16,6 +19,7 @@ public class BrowserController implements PropertyChangeListener {
 	private CycDataBaseAccess dataAccess;
 	private BrowserStateModel state;
 	private ArrayList<AbstractViewPanel> registeredViews;
+	public JFrame mainJFrame;
 	
 	public static String BROWSER_STATE_PROPERTY = "State";
 	
@@ -52,6 +56,10 @@ public class BrowserController implements PropertyChangeListener {
     	this.state.setState(state);
     }
     
+    public void setMainJFrame(JFrame jframe) {
+    	this.mainJFrame = jframe;
+    }
+    
     public ArrayList<String> getAvailableOrganisms() {
     	return dataAccess.getAvailableOrganisms();
     }
@@ -62,6 +70,14 @@ public class BrowserController implements PropertyChangeListener {
     
     public String frameToString(String frameID) {
     	return dataAccess.frameToString(frameID);
+    }
+    
+    public ArrayList<String> substringSearch(String text, String type) {
+    	try {
+			return dataAccess.substringSearch(text, type);
+		} catch (PtoolsErrorException e) {
+			return new ArrayList<String>();
+		}
     }
     
     public DefaultTableModel getSearchResultsTable(String text, String type) {

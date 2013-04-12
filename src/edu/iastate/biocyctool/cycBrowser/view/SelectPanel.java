@@ -21,6 +21,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
 import java.awt.Dimension;
+import java.awt.Insets;
 
 public class SelectPanel extends AbstractViewPanel {
 	BrowserController controller;
@@ -34,6 +35,7 @@ public class SelectPanel extends AbstractViewPanel {
 	 * @param controller 
 	 */
 	public SelectPanel(BrowserController controller) {
+		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();
         localInitialization();
@@ -44,52 +46,55 @@ public class SelectPanel extends AbstractViewPanel {
     
     private void initComponents() {
     	JButton btnFrameBrowse = new JButton("Frame Browse");
+    	btnFrameBrowse.setMargin(new Insets(2, 2, 2, 2));
     	btnFrameBrowse.setAction(actionSelectFrameBrowser);
 		
 		JButton btnExport = new JButton("Export");
+		btnExport.setMargin(new Insets(2, 2, 2, 2));
 		btnExport.setAction(actionSelectExportPanel);
 		
 		JButton btnSearch = new JButton("Search");
+		btnSearch.setMargin(new Insets(2, 2, 2, 2));
 		btnSearch.setAction(actionSelectSearchPanel);
 		
 		JButton btnExportStructure = new JButton("Export Structure");
+		btnExportStructure.setMargin(new Insets(2, 2, 2, 2));
 		btnExportStructure.setAction(actionExportStructurePanel);
-		
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(35)
+					.addGap(279)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(btnExportStructure, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(btnFrameBrowse, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
 							.addGap(18)
-							.addComponent(btnExport, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)))
-					.addContainerGap(195, Short.MAX_VALUE))
+							.addComponent(btnExport, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
+							.addGap(18)
+							.addComponent(btnExportStructure, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)))
+					.addContainerGap(301, Short.MAX_VALUE))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(35)
+					.addGap(96)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(btnExport, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnFrameBrowse, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
+						.addComponent(btnFrameBrowse, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnExport, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
 					.addGap(18)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnExportStructure, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap(79, Short.MAX_VALUE))
+					.addContainerGap(118, Short.MAX_VALUE))
 		);
 		setLayout(groupLayout);
 	}
     
 	private class ActionSelectFrameBrowser extends AbstractAction {
 		public ActionSelectFrameBrowser() {
-			putValue(NAME, "Frame Inspect Tool");
+			putValue(NAME, "<html><center>Frame Inspect<br>Tool</center></html>");
 			putValue(SHORT_DESCRIPTION, "Open the Frame Browser screen.");
 		}
 		public void actionPerformed(ActionEvent e) {
@@ -99,7 +104,7 @@ public class SelectPanel extends AbstractViewPanel {
 	
 	private class ActionSelectExportPanel extends AbstractAction {
 		public ActionSelectExportPanel() {
-			putValue(NAME, "Export Tool");
+			putValue(NAME, "<html><center>Export Tool</center></html>");
 			putValue(SHORT_DESCRIPTION, "Open the export screen.");
 		}
 		public void actionPerformed(ActionEvent e) {
@@ -109,7 +114,7 @@ public class SelectPanel extends AbstractViewPanel {
 	
 	private class ActionSelectSearchPanel extends AbstractAction {
 		public ActionSelectSearchPanel() {
-			putValue(NAME, "Search Tool");
+			putValue(NAME, "<html><center>Search Tool</center></html>");
 			putValue(SHORT_DESCRIPTION, "Open the search screen.");
 		}
 		public void actionPerformed(ActionEvent e) {
@@ -119,7 +124,7 @@ public class SelectPanel extends AbstractViewPanel {
 	
 	private class ActionExportStructurePanel extends AbstractAction {
 		public ActionExportStructurePanel() {
-			putValue(NAME, "Export Structure Tool");
+			putValue(NAME, "<html><center>Export Structure<br>Tool</center></html>");
 			putValue(SHORT_DESCRIPTION, "Export underlying PGDB Class and Instance structure.");
 		}
 		public void actionPerformed(ActionEvent e) {

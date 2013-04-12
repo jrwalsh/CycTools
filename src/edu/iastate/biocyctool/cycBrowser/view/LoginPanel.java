@@ -22,6 +22,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
+import java.awt.Dimension;
 
 public class LoginPanel extends AbstractViewPanel {
 	BrowserController controller;
@@ -35,6 +36,7 @@ public class LoginPanel extends AbstractViewPanel {
 	 * Create the frame.
 	 */
 	public LoginPanel(BrowserController controller) {
+		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();
         localInitialization();
@@ -45,7 +47,6 @@ public class LoginPanel extends AbstractViewPanel {
     
     private void initComponents() {
     	JPanel panel = new JPanel();
-		add(panel);
 		
 		txtHost = new JTextField();
 		txtHost.setText("jrwalsh.student.iastate.edu");
@@ -74,22 +75,22 @@ public class LoginPanel extends AbstractViewPanel {
 		gl_panel.setHorizontalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel.createSequentialGroup()
-					.addGap(168)
+					.addContainerGap()
 					.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
-						.addComponent(btnConnect)
-						.addGroup(gl_panel.createSequentialGroup()
-							.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
-								.addComponent(lblPassword, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblPort, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblUser, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblHost, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(gl_panel.createParallelGroup(Alignment.LEADING, false)
-								.addComponent(pwbox)
-								.addComponent(txtHost, GroupLayout.DEFAULT_SIZE, 279, Short.MAX_VALUE)
-								.addComponent(txtPort)
-								.addComponent(txtUser))))
-					.addGap(169))
+						.addComponent(lblPassword, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblPort, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblUser, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblHost, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
+							.addComponent(txtUser, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
+							.addComponent(pwbox, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
+							.addComponent(txtPort, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE))
+						.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
+							.addComponent(btnConnect)
+							.addComponent(txtHost, GroupLayout.PREFERRED_SIZE, 188, GroupLayout.PREFERRED_SIZE)))
+					.addGap(418))
 		);
 		gl_panel.setVerticalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
@@ -114,6 +115,22 @@ public class LoginPanel extends AbstractViewPanel {
 					.addComponent(btnConnect))
 		);
 		panel.setLayout(gl_panel);
+		GroupLayout groupLayout = new GroupLayout(this);
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.TRAILING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap(255, Short.MAX_VALUE)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)
+					.addGap(245))
+		);
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(107)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(145, Short.MAX_VALUE))
+		);
+		setLayout(groupLayout);
 	}
     
 	private class ActionConnect extends AbstractAction {
