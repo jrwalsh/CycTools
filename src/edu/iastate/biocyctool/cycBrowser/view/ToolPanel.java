@@ -7,27 +7,26 @@ import edu.iastate.biocyctool.cycBrowser.controller.BrowserController;
 import edu.iastate.biocyctool.cycBrowser.model.BrowserStateModel.State;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 
-import javax.swing.JLabel;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JProgressBar;
 import javax.swing.JComboBox;
 import java.awt.Dimension;
-import java.awt.Component;
-import javax.swing.Box;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
+@SuppressWarnings("serial")
 public class ToolPanel extends AbstractViewPanel {
-	BrowserController controller;
-	
 	public final static String noOrganism = "None Available";
 	
+	BrowserController controller;
 	private JComboBox comboBoxOrganism;
-	private final Action actionSubmit = new ActionSetOrganism();
+	private JButton btnBack;
+	private JButton btnForward;
+	private JButton btnHome;
+	private final Action actionSetOrganism = new ActionSetOrganism();
+	private final Action action = new ActionHome();
 	
 	/**
 	 * Create the frame.
@@ -43,31 +42,34 @@ public class ToolPanel extends AbstractViewPanel {
     public void localInitialization() {
     	comboBoxOrganism.addItem("None Available");
 		comboBoxOrganism.setSelectedItem("None Available");
-		comboBoxOrganism.setEnabled(false);
     }
     
     private void initComponents() {
     	setPreferredSize(new Dimension(800, 35));
 		
 		comboBoxOrganism = new JComboBox();
-		comboBoxOrganism.setAction(actionSubmit);
+		comboBoxOrganism.setAction(actionSetOrganism);
 		
-		JButton btnNewButton = new JButton("Back");
+		btnBack = new JButton("Back");
+		btnBack.setVisible(false);
 		
-		JButton btnNewButton_1 = new JButton("Forward");
+		btnForward = new JButton("Forward");
+		btnForward.setVisible(false);
 		
-		JButton btnNewButton_2 = new JButton("Home");
+		btnHome = new JButton("Home");
+		btnHome.setAction(action);
+		
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(btnNewButton)
+					.addComponent(btnHome)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnNewButton_1)
+					.addComponent(btnBack)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnNewButton_2)
-					.addGap(418)
+					.addComponent(btnForward)
+					.addGap(550)
 					.addComponent(comboBoxOrganism, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE)
 					.addGap(41))
 		);
@@ -76,10 +78,10 @@ public class ToolPanel extends AbstractViewPanel {
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(5)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnNewButton_1)
-						.addComponent(btnNewButton_2)
-						.addComponent(btnNewButton)
-						.addComponent(comboBoxOrganism, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(comboBoxOrganism, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnHome)
+						.addComponent(btnBack)
+						.addComponent(btnForward))
 					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 		);
 		setLayout(groupLayout);
@@ -105,19 +107,35 @@ public class ToolPanel extends AbstractViewPanel {
 				if (comboBoxOrganism.getItemCount() > 0) {
 					comboBoxOrganism.removeAllItems();
 				}
-				comboBoxOrganism.addItem(noOrganism);
-				comboBoxOrganism.setSelectedItem(noOrganism);
-				comboBoxOrganism.setEnabled(false);
-			}
-			else if (evt.getNewValue() == State.CONNECTED) {
+//				comboBoxOrganism.addItem(noOrganism);
+//				comboBoxOrganism.setSelectedItem(noOrganism);
+//				comboBoxOrganism.setEnabled(false);
+				this.setVisible(false);
+			} else if (evt.getNewValue() == State.MAIN_SCREEN) {
 				if (comboBoxOrganism.getItemCount() > 0) {
 					comboBoxOrganism.removeAllItems();
 				}
 				for (String org : controller.getAvailableOrganisms()) {
 					comboBoxOrganism.addItem(org);
 				}
-				comboBoxOrganism.setEnabled(true);
+//				comboBoxOrganism.setEnabled(true);
+				btnBack.setEnabled(false);
+				btnForward.setEnabled(false);
+				btnHome.setEnabled(false);
+				this.setVisible(true);
+			} else {
+				btnHome.setEnabled(true);
 			}
+		}
+	}
+	
+	private class ActionHome extends AbstractAction {
+		public ActionHome() {
+			putValue(NAME, "Home");
+			putValue(SHORT_DESCRIPTION, "Return to select menu");
+		}
+		public void actionPerformed(ActionEvent e) {
+			controller.showMainScreen();
 		}
 	}
 }

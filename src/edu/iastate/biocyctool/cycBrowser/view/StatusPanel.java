@@ -40,26 +40,20 @@ public class StatusPanel extends AbstractViewPanel {
     	setPreferredSize(new Dimension(800, 30));
 		
 		lblStatus = new JLabel("Not Connected");
-		
-		JProgressBar progressBar = new JProgressBar();
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(540)
+					.addContainerGap()
 					.addComponent(lblStatus)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(progressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addGap(32))
+					.addContainerGap(718, Short.MAX_VALUE))
 		);
 		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(progressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblStatus))
-					.addContainerGap())
+			groupLayout.createParallelGroup(Alignment.TRAILING)
+				.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(lblStatus)
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 		);
 		setLayout(groupLayout);
 	}
@@ -68,7 +62,7 @@ public class StatusPanel extends AbstractViewPanel {
 	public void modelPropertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals(BrowserController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
 			if (evt.getNewValue() == State.NOT_CONNECTED) lblStatus.setText("Not Connected");
-			else if (evt.getNewValue() == State.CONNECTED) lblStatus.setText("Connected");
+			else if (evt.getNewValue() == State.MAIN_SCREEN) lblStatus.setText("Connected");
 		}
 	}
 }

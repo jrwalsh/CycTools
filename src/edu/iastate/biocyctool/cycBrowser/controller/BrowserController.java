@@ -2,24 +2,29 @@ package edu.iastate.biocyctool.cycBrowser.controller;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Vector;
-
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.ProgressMonitor;
 import javax.swing.table.DefaultTableModel;
-
 import edu.iastate.biocyctool.cycBrowser.model.BrowserStateModel;
 import edu.iastate.biocyctool.cycBrowser.model.BrowserStateModel.State;
+import edu.iastate.biocyctool.cycBrowser.view.StatusPanel;
 import edu.iastate.biocyctool.cycBrowser.view.ToolPanel;
 import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
+import edu.iastate.javacyco.Frame;
+import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 public class BrowserController implements PropertyChangeListener {
 	private CycDataBaseAccess dataAccess;
 	private BrowserStateModel state;
 	private ArrayList<AbstractViewPanel> registeredViews;
-	public JFrame mainJFrame;
+	public static JFrame mainJFrame;
+	public ToolPanel toolPanel;
+	public StatusPanel statusPanel;
 	
 	public static String BROWSER_STATE_PROPERTY = "State";
 	
@@ -40,16 +45,38 @@ public class BrowserController implements PropertyChangeListener {
     public void connect(String host, int port, String userName, String password) {
     	try {
     		dataAccess = new CycDataBaseAccess(host, port, userName, password);
-    		state.setState(State.CONNECTED);
+    		state.setState(State.MAIN_SCREEN);
     	} catch (Exception e) {
     		dataAccess = null;
     		state.setState(State.NOT_CONNECTED);
+    		
+    		if (e.getMessage().equalsIgnoreCase("Unknown host")) {
+    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nCould not determine host", "Connection error", JOptionPane.ERROR_MESSAGE);
+    		} else if (e.getMessage().equalsIgnoreCase("Connection timed out")) {
+    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nServer not available", "Connection error", JOptionPane.ERROR_MESSAGE);
+    		} else if (e.getMessage().equalsIgnoreCase("Read timed out")) {
+    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nServer found, but connection timed out. Possibly requires user login.", "Connection error", JOptionPane.ERROR_MESSAGE);
+    		} else if (e.getMessage().equalsIgnoreCase("Problem connecting to remote socket")) {
+    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nJavaCycServer is not accessible", "Connection error", JOptionPane.ERROR_MESSAGE);
+    		} else if (e.getMessage().equalsIgnoreCase("Problem logging in to remote server")) {
+    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nIncorrect username and password", "Login error", JOptionPane.ERROR_MESSAGE);
+    		} else {
+    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
+    		}
     	}
+    }
+    
+    public void showMainScreen() {
+    	state.setState(State.MAIN_SCREEN);
     }
     
     public void disconnect() {
     	dataAccess = null;
 		state.setState(State.NOT_CONNECTED);
+    }
+    
+    public JavacycConnection getConnection() {
+    	return dataAccess.getConnection();
     }
     
     public void setState(State state) {
@@ -59,6 +86,14 @@ public class BrowserController implements PropertyChangeListener {
     public void setMainJFrame(JFrame jframe) {
     	this.mainJFrame = jframe;
     }
+
+    public void setToolPanel(ToolPanel toolPanel) {
+		this.toolPanel = toolPanel;
+	}
+    
+    public void setStatusPanel(StatusPanel statusPanel) {
+		this.statusPanel = statusPanel;
+	}
     
     public ArrayList<String> getAvailableOrganisms() {
     	return dataAccess.getAvailableOrganisms();
@@ -80,12 +115,48 @@ public class BrowserController implements PropertyChangeListener {
 		}
     }
     
+    public ArrayList<Frame> getFramesOfType(String type) {
+		try {
+			return dataAccess.getFramesOfType(type);
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+			return new ArrayList<Frame>();
+		}
+	}
+    
+    public int printFramesToXML(String path, String type) {
+		try {
+			return dataAccess.printFramesToXML(path, type);
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+			return -1;
+		}
+	}
+    
+    public int printFramesToCSV(String path, String type) {
+		try {
+			return dataAccess.printFramesToCSV(path, type);
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+			return -1;
+		}
+	}
+    
     public DefaultTableModel getSearchResultsTable(String text, String type) {
 		try {
 			return dataAccess.getSearchResultsTable(text, type);
 		} catch (PtoolsErrorException e) {
 			//TODO State failed search
 			return new DefaultTableModel();
+		}
+	}
+    
+    public ArrayList<String> getPGDBChildrenOfFrame(String rootGFPtype) {
+		try {
+			return dataAccess.getPGDBChildrenOfFrame(rootGFPtype);
+		} catch (PtoolsErrorException e) {
+			//TODO State failed
+			return new ArrayList<String>();
 		}
 	}
     

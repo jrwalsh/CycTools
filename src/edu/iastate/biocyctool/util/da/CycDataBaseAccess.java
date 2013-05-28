@@ -1,17 +1,38 @@
 package edu.iastate.biocyctool.util.da;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeSet;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
+import javax.swing.ProgressMonitor;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import edu.iastate.biocyctool.cycBrowser.controller.BrowserController;
 import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameEdit;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
@@ -20,7 +41,11 @@ import edu.iastate.javacyco.Network.Edge;
 import edu.iastate.javacyco.OrgStruct;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class CycDataBaseAccess {
+@SuppressWarnings({"rawtypes","unchecked"})
+public class CycDataBaseAccess implements PropertyChangeListener {
+	private ProgressMonitor progressMonitor;
+	private SwingWorker task;
+	
 	private JavacycConnection conn;
 	private String host;
 	private int port;
@@ -62,9 +87,16 @@ public class CycDataBaseAccess {
 		return false;
 	}
 	
+	public JavacycConnection getConnection() {
+		return conn;
+	}
+	
 	// Change selected organism
 	public void selectOrganism(String organism) {
-		if (getAvailableOrganisms().contains(organism)) conn.selectOrganism(organism);
+		if (getAvailableOrganisms().contains(organism)) {
+			this.organism = organism;
+			conn.selectOrganism(organism);
+		}
 	}
 	
 	// Get all organisms available at the current connection
@@ -101,7 +133,7 @@ public class CycDataBaseAccess {
 						}
 					}
 					else {
-						printString += "\t"+conn.ArrayList2LispList(slotValues)+"\n";
+						printString += "\t"+JavacycConnection.ArrayList2LispList(slotValues)+"\n";
 						break;
 					}
 				}
@@ -148,31 +180,284 @@ public class CycDataBaseAccess {
 		return model;
 	}
 	
-	public DefaultTableModel getSearchResultsTable(String text, String type) throws PtoolsErrorException {
-		// Parse text for search terms
-		// Expect 1 term per line
-		String[] terms = text.split("\n");
-		
-		// Create dataTable of results
-		Object[] header = new String[]{"Search Term", "Results"};
-		Object[][] data = new Object[terms.length][2];
-		for (int i=0; i<terms.length; i++) {
-			String term = terms[i].trim();
-			
-			ArrayList<Frame> results = conn.search(term, type);
-			String resultString = "";
-			for (Frame result : results) resultString += result.getLocalID() + ",";
-			if (resultString.length() > 0) resultString = resultString.substring(0, resultString.length()-1);
-			
-			data[i] = new String[]{term, resultString};
-		}
-		
-		DefaultTableModel dtm = new DefaultTableModel(data, header);
-		return dtm;
-	}
+//	public DefaultTableModel getSearchResultsTable(String text, String type) throws PtoolsErrorException {
+//		// Parse text for search terms
+//		// Expect 1 term per line
+//		String[] terms = text.split("\n");
+//		
+//		// Create dataTable of results
+//		Object[] header = new String[]{"Search Term", "Results"};
+//		Object[][] data = new Object[terms.length][2];
+//		for (int i=0; i<terms.length; i++) {
+//			String term = terms[i].trim();
+//			
+//			ArrayList<Frame> results = conn.search(term, type);
+//			String resultString = "";
+//			for (Frame result : results) resultString += result.getLocalID() + ",";
+//			if (resultString.length() > 0) resultString = resultString.substring(0, resultString.length()-1);
+//			
+//			data[i] = new String[]{term, resultString};
+//		}
+//		
+//		DefaultTableModel dtm = new DefaultTableModel(data, header);
+//		return dtm;
+//	}
 	
 	
 	// Export Data
+	public ArrayList<String> getPGDBChildrenOfFrame(String classFrameID) throws PtoolsErrorException {
+		ArrayList<String> childFrameIDs = (ArrayList<String>)conn.getClassDirectSubs(classFrameID);
+		return childFrameIDs;
+	}
+	
+	public ArrayList<Frame> getFramesOfType(String type) throws PtoolsErrorException {
+		ArrayList<Frame> frames = new ArrayList<Frame>();
+		for (Frame f : conn.getAllGFPInstances(type)) {
+			frames.add(f);
+		}
+		return frames;
+	}
+	
+	/**
+	 * Converts the frames instances of "type" to an XML format and writes to file at "path".
+	 * 
+	 * The format for XML is as follows.  Each frame is an element with an attribute of "ID" which contains the PGDB ID of that frame.
+	 * Frames have Slot elements with the attribute of "Label".  If the slot is a string value slot (i.e. a string or an array of strings),
+	 * then the slot will have zero or more text elements called SlotValue each of which will contain a single value for the slot and 
+	 * zero or more Annotation elements.  Annotation elements have the attribute "AnnotationLabel".  Annotations will then have zero or 
+	 * more Value text elements with the values of the Annotation.
+	 * 
+	 * A slot value can sometimes be a list of lists (i.e. String[][] rather than a string or array of strings), in which case the SlotValue
+	 * element may contain more than one Value element.  Slots which contain array structures do not have annotations.
+	 * 
+	 * @param path
+	 * @param type
+	 * @return
+	 * @throws PtoolsErrorException
+	 */
+	public int printFramesToXML(String path, String type) throws PtoolsErrorException {
+		ArrayList<Frame> frames = new ArrayList<Frame>(); //TODO build this into a worker thread, tends to run long
+		for (Frame f : conn.getAllGFPInstances(type)) {
+			frames.add(f);
+		}
+		
+		try {
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+			Document doc = docBuilder.newDocument();
+			Element rootElement = doc.createElement("Frames");
+			doc.appendChild(rootElement);
+			
+			for (Frame frame : frames) {
+				Element frameElement = doc.createElement("Frame");
+				frameElement.setAttribute("ID", frame.getLocalID());
+				
+				for (String slotLabel : frame.getSlots().keySet()) {
+					Element slotElement = doc.createElement("Slot");
+					slotElement.setAttribute("Label", slotLabel);
+					
+					ArrayList<Object> slotValues = frame.getSlotValues(slotLabel); //Sometime slot data is actually an arraylist, not a string
+					for (Object slotValueObject : slotValues) {
+						Element slotValueElement = doc.createElement("SlotValue");
+						
+						if (slotValueObject instanceof ArrayList) {
+							// Handle when the slot value is actually an array of values
+							ArrayList<String> valueArray = (ArrayList<String>)slotValueObject;
+							for (String value : valueArray) {
+								Element valueElement = doc.createElement("Value");
+								valueElement.appendChild(doc.createTextNode(value));
+								slotValueElement.appendChild(valueElement);
+							}
+						} else {
+							// Handle when slot value is a normal string value
+							String slotValue = (String) slotValueObject;
+							
+							Element valueElement = doc.createElement("Value");
+							valueElement.appendChild(doc.createTextNode(slotValue));
+							slotValueElement.appendChild(valueElement);
+							for (String annotationLabel : frame.getAllAnnotLabels(slotLabel, slotValue)) {
+								Element annotationElement = doc.createElement("Annotation");
+								annotationElement.setAttribute("Label", annotationLabel);
+								slotValueElement.appendChild(annotationElement);
+								
+								ArrayList<String> annotationValues = frame.getAnnotations(slotLabel, slotValue, annotationLabel);
+								for (String annotationValue : annotationValues) {
+									Element annotationValueElement = doc.createElement("Value");
+									annotationValueElement.appendChild(doc.createTextNode(annotationValue));
+									annotationElement.appendChild(annotationValueElement);
+								}
+							}
+						}
+						slotElement.appendChild(slotValueElement);
+					}
+					frameElement.appendChild(slotElement);
+				}
+				rootElement.appendChild(frameElement);
+			}
+	 
+			// write the content into xml file
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			DOMSource source = new DOMSource(doc);
+			StreamResult result = new StreamResult(new File(path));
+	 
+			// StreamResult result = new StreamResult(System.out);
+	 
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+			transformer.transform(source, result);
+	 
+//			System.out.println("File saved!");
+			
+			return 0;
+		  } catch (ParserConfigurationException pce) {
+			pce.printStackTrace();
+		  } catch (TransformerException tfe) {
+			tfe.printStackTrace();
+		  }
+		return -1;
+	}
+	
+	public int printFramesToCSV(String path, String type) throws PtoolsErrorException {
+		String slotDelimiter = "\t";
+		String valueDelimiter = "$";
+		
+//		Frame frame = Frame.load(conn,  "G-14659");
+		
+		ArrayList<Frame> frames = new ArrayList<Frame>();
+		frames.add(Frame.load(conn,  "G-14659"));
+		frames.add(Frame.load(conn,  "G-14659"));
+		frames.add(Frame.load(conn,  "G-14659"));
+		frames.add(Frame.load(conn,  "G-14659"));
+		
+		TreeSet<String> slots = new TreeSet<String>();
+		for (Frame frame : frames) {
+			for (String slotLabel : frame.getSlots().keySet()) slots.add(slotLabel);
+		}
+		
+		ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>();
+		for (Frame frame : frames) {
+			ArrayList<String> row = new ArrayList<String>();
+			
+			// Format to CSV
+			row.add(frame.getLocalID());
+			
+			for (String slotLabel : slots) {
+				ArrayList<Object> slotValueObjects = frame.getSlotValues(slotLabel);
+				String slotValue = "";
+				for (Object slotValueObject : slotValueObjects) {
+					if (slotValueObject instanceof ArrayList) {
+						ArrayList<String> valueArray = (ArrayList<String>)slotValueObject;
+						String valueString = "(";
+						for (String value : valueArray) {
+							valueString += value + " ";
+						}
+						if (valueArray.size() > 0) valueString = valueString.substring(0, valueString.length()-1);
+						valueString += ")";
+						slotValue += valueString + valueDelimiter;
+					} else {
+						String value = (String) slotValueObject;
+						slotValue += value + valueDelimiter;
+					}	
+				}
+				if (slotValue.endsWith(valueDelimiter)) slotValue = slotValue.substring(0, slotValue.length()-1);
+				row.add(slotValue);
+			}
+			rows.add(row);
+		}
+		
+		String printString = "";
+		printString += "FrameID\t";
+		for (String slotLabel : slots) {
+			printString += slotLabel + slotDelimiter;
+		}
+		printString += "\n";
+		for (ArrayList<String> row : rows) {
+			for (String string : row) {
+				printString += string + slotDelimiter;
+			}
+			printString += "\n";
+		}
+		
+		try {
+			printString(path, printString);
+			return 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	
+//	public int printFramesToCSV(String path, String type) throws PtoolsErrorException {
+//		ArrayList<Frame> frames = new ArrayList<Frame>();  //TODO build this into a worker thread and pull the data directly from the preview table, rather than reloading it.  Additionally, take this format and make it a separate option, maybe a custom extension.  This will be as "complete" an output of a frame in CSV as possible.
+//		for (Frame f : conn.getAllGFPInstances(type)) {
+//			frames.add(f);
+//		}
+//		
+//		String printString = "";
+//		String headerString = "";
+//		String slotDelimiter = "\t";
+//		String valueDelimiter = ":";
+//		String valueArrayDelimiter = "::";
+//		TreeSet<String> slots = new TreeSet<String>();
+//		
+//		// Get all possible slots for this group of frames
+//		for (Frame frame : frames) {
+//			for (String slotLabel : frame.getSlots().keySet()) slots.add(slotLabel);
+//		}
+//		
+//		// Set up header string
+//		headerString += "FrameID" + slotDelimiter;
+//		for (String slot : slots) {
+//			headerString += slot + slotDelimiter;
+//		}
+//		headerString += "\n";
+//		
+//		// Format to CSV
+//		for (Frame frame : frames) {
+//			printString += frame.getLocalID() + slotDelimiter;
+//			
+//			for (String slotLabel : slots) {
+//				ArrayList<Object> slotValueObjects = frame.getSlotValues(slotLabel);
+//				for (Object slotValueObject : slotValueObjects) {
+//					if (slotValueObject instanceof ArrayList) {
+//						ArrayList<String> valueArray = (ArrayList<String>)slotValueObject;
+//						for (String value : valueArray) {
+//							printString += value + valueArrayDelimiter;
+//						}
+//					} else {
+//						String value = (String) slotValueObject;
+//						printString += value + valueDelimiter;
+//					}	
+//				}
+//				printString += slotDelimiter;
+//			}
+//			printString += "\n";
+//		}
+//		
+//		try {
+//			printString(path, headerString + printString);
+//			return 0;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		
+//		return -1;
+//	}
+		
+	private void printString(String fileName, String printString) {
+		PrintStream o = null;
+		try {
+			o = new PrintStream(new File(fileName));
+			o.println(printString);
+			o.close();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+	}
+	
 	public DefaultTableModel getPGDBStructureTable(String rootGFPtype, boolean includeInstances, boolean directionForward) throws PtoolsErrorException {
 		Network network = conn.getClassHierarchy(rootGFPtype, includeInstances, directionForward);
 		ArrayList<Edge> edges = network.getEdges();
@@ -241,7 +526,7 @@ public class CycDataBaseAccess {
 			ArrayList<String> slotValues = new ArrayList<String>();
  			for (Object slotValue : conn.getSlotValues(frame.getLocalID(), slotLabel)) {
  				if (slotValue instanceof String) slotValues.add((String) slotValue);
- 				else slotValues.add(conn.ArrayList2LispList((ArrayList) slotValue));
+ 				else slotValues.add(JavacycConnection.ArrayList2LispList((ArrayList) slotValue));
  			}
  			for (String slotValue : slotValues) {
  					DefaultMutableTreeNode slotValueNode = new DefaultMutableTreeNode(slotValue);
@@ -321,6 +606,78 @@ public class CycDataBaseAccess {
 			}
 		}
 	}
+	
+	public DefaultTableModel getSearchResultsTable(String text, String type) throws PtoolsErrorException {
+		progressMonitor = new ProgressMonitor(BrowserController.mainJFrame, "Running a Long Task", "", 0, 100);
+		progressMonitor.setMillisToDecideToPopup(0);
+		progressMonitor.setMinimum(0);
+		progressMonitor.setProgress(0);
+		task = new GetSearchResultsTableTask(text, type);
+		task.addPropertyChangeListener(this);
+		task.execute();
+		
+		try {
+			if (task.get() == null) return null;
+			else return (DefaultTableModel)task.get();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	
+	private class GetSearchResultsTableTask extends SwingWorker<DefaultTableModel, Void> {
+		private String text;
+		private String type;
+		
+		public GetSearchResultsTableTask(String text, String type) {
+			this.text = text;
+			this.type = type;
+		}
+		
+		@Override
+		public DefaultTableModel doInBackground() {
+			int progress = 0;
+			setProgress(progress);
+			try {
+				// Parse text for search terms
+				// Expect 1 term per line from the user
+				String[] terms = text.split("\n");
+
+				// Create dataTable of results
+				Object[] header = new String[]{"Search Term", "Results"};
+				Object[][] data = new Object[terms.length][2];
+				for (int i=0; i<terms.length; i++) {
+					String term = terms[i].trim();
+					
+					ArrayList<Frame> results = conn.search(term, type);
+					String resultString = "";
+					for (Frame result : results) resultString += result.getLocalID() + ",";
+					if (resultString.length() > 0) resultString = resultString.substring(0, resultString.length()-1);
+					
+					data[i] = new String[]{term, resultString};
+					
+					progress = (int) ((i*100)/terms.length);
+					setProgress(progress);
+				}
+				
+				DefaultTableModel dtm = new DefaultTableModel(data, header);
+				return dtm;
+			} catch (PtoolsErrorException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		
+		@Override
+		public void done() {
+			System.out.println("Done");
+			progressMonitor.setProgress(0);
+		}
+	}
 
 	class Item {
 		private String id;
@@ -342,5 +699,20 @@ public class CycDataBaseAccess {
 		public String toString() {
 			return id + ": " + description;
 		}
-	}  
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if ("progress".equalsIgnoreCase(evt.getPropertyName())) {
+			int progress = (Integer) evt.getNewValue();
+			progressMonitor.setProgress(progress);
+			
+			if (progressMonitor.isCanceled() || task.isDone()) {
+				if (progressMonitor.isCanceled()) {
+					task.cancel(true);
+				} else {
+				}
+			}
+		}
+	} 
 }

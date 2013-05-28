@@ -6,13 +6,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.JScrollPane;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.text.DefaultEditorKit;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
@@ -21,11 +16,14 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.GroupLayout.Alignment;
 
 import edu.iastate.biocyctool.cycBrowser.controller.BrowserController;
+import edu.iastate.biocyctool.util.util.Util;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.*;
 import java.awt.event.ActionListener;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JComboBox;
 
+@SuppressWarnings("serial")
 public class FrameInspectPanel extends AbstractViewPanel {
 	BrowserController controller;
 	private final Action actionSubmit = new ActionSubmit();
@@ -33,6 +31,7 @@ public class FrameInspectPanel extends AbstractViewPanel {
 	private JTextArea textArea;
 	private JTextField txtEnterFrameid;
 	private JButton button;
+	private JComboBox<String> cmbType;
 	
 	/**
 	 * Create the frame.
@@ -45,7 +44,15 @@ public class FrameInspectPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
-    	installContextMenu(textArea);
+    	Util.installContextMenu(txtEnterFrameid);
+    	Util.installContextMenu(textArea);
+    	
+    	cmbType.addItem(Compound.GFPtype);
+    	cmbType.addItem(Gene.GFPtype);
+    	cmbType.addItem(Pathway.GFPtype);
+    	cmbType.addItem(Protein.GFPtype);
+    	cmbType.addItem(Regulation.GFPtype);
+    	cmbType.addItem(Reaction.GFPtype);
     }
     
     private void initComponents() {
@@ -56,13 +63,14 @@ public class FrameInspectPanel extends AbstractViewPanel {
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		
 		txtEnterFrameid = new JTextField();
+		txtEnterFrameid.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				actionSubmit.actionPerformed(event);
+			}
+		});
 		txtEnterFrameid.setColumns(10);
 		
 		button = new JButton("Search");
-		button.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-			}
-		});
 		button.setAction(actionSubmit);
 		
 		textArea = new JTextArea();
@@ -74,22 +82,24 @@ public class FrameInspectPanel extends AbstractViewPanel {
 		scrollPane.setPreferredSize(new Dimension(800, 300));
 		scrollPane.setViewportView(textArea);
 		
+		cmbType = new JComboBox<String>();
+		
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 						.addGroup(groupLayout.createSequentialGroup()
-							.addContainerGap()
 							.addComponent(txtEnterFrameid, GroupLayout.PREFERRED_SIZE, 165, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(button))
-						.addGroup(groupLayout.createSequentialGroup()))
-					.addGap(389))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 770, Short.MAX_VALUE)
-					.addContainerGap())
+							.addComponent(cmbType, GroupLayout.PREFERRED_SIZE, 131, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(button)
+							.addGap(389))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 770, Short.MAX_VALUE)
+							.addContainerGap())))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -97,65 +107,27 @@ public class FrameInspectPanel extends AbstractViewPanel {
 					.addGap(5)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(txtEnterFrameid, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(button))
+						.addComponent(button)
+						.addComponent(cmbType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addGap(5)
 					.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 351, GroupLayout.PREFERRED_SIZE))
 		);
 		setLayout(groupLayout);
 	}
-	
-	
-	
-	//http://www.coderanch.com/t/346220/GUI/java/Copy-paste-popup-menu
-    private void installContextMenu(final JTextField component) {
-    }
-    
-    private void installContextMenu(final JTextArea component) {
-    	component.addMouseListener(new MouseAdapter() {
-    		public void mousePressed(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					showMenu(e);
-				}
-			}
-			public void mouseReleased(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					showMenu(e);
-				}
-			}
-			public void showMenu(final MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					final JPopupMenu menu = new JPopupMenu();
-					JMenuItem item;
-					item = new JMenuItem(new DefaultEditorKit.CopyAction());
-					item.setText("Copy");
-					item.setEnabled(component.getSelectionStart() != component.getSelectionEnd());
-					menu.add(item);
-					item = new JMenuItem(new DefaultEditorKit.CutAction());
-					item.setText("Cut");
-					item.setEnabled(component.isEditable() && component.getSelectionStart() != component.getSelectionEnd());
-					menu.add(item);
-					item = new JMenuItem(new DefaultEditorKit.PasteAction());
-					item.setText("Paste");
-					item.setEnabled(component.isEditable());
-					menu.add(item);
-					menu.show(e.getComponent(), e.getX(), e.getY());
-				}
-			}
-    	});
-    }
 
 	private class ActionSubmit extends AbstractAction {
 		public ActionSubmit() {
 			putValue(NAME, "Submit");
 			putValue(SHORT_DESCRIPTION, "Submits query from text field and returns results in the primary tab.");
 		}
+		
 		public void actionPerformed(ActionEvent e) {
-			String result = controller.frameToString(txtEnterFrameid.getText());
-			if (result == null || result.isEmpty()) {
-				Object[] possibilities = controller.substringSearch(txtEnterFrameid.getText(), Pathway.GFPtype).toArray(); //TODO search type selection
+			String result = "";//controller.frameToString(txtEnterFrameid.getText());
+//			if (result == null || result.isEmpty()) {
+				Object[] possibilities = controller.substringSearch(txtEnterFrameid.getText(), (String)cmbType.getSelectedItem()).toArray();
 				if (possibilities.length > 0) {
 					String s = (String)JOptionPane.showInputDialog(
-										controller.mainJFrame,
+										BrowserController.mainJFrame,
 					                    "Select from the below possible search results",
 					                    "Search Results",
 					                    JOptionPane.PLAIN_MESSAGE,
@@ -165,12 +137,12 @@ public class FrameInspectPanel extends AbstractViewPanel {
 					if ((s != null) && (s.length() > 0)) {
 						result = controller.frameToString(s);
 					} else {
-						// Canceled
+						// Cancelled
 					}
 				} else {
-					JOptionPane.showMessageDialog(controller.mainJFrame, "No search results found");
+					JOptionPane.showMessageDialog(BrowserController.mainJFrame, "No search results found");
 				}
-			}
+//			}
 			textArea.setText(result);
 		}
 	}
@@ -179,5 +151,4 @@ public class FrameInspectPanel extends AbstractViewPanel {
 	public void modelPropertyChange(PropertyChangeEvent evt) {
 		
 	}
-	
 }

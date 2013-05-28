@@ -1,78 +1,52 @@
 package edu.iastate.biocyctool.cycBrowser.view;
 
 import java.awt.BorderLayout;
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JTextField;
 import javax.swing.JButton;
-import javax.swing.JTextArea;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
 import javax.swing.JScrollPane;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JTable;
-import javax.swing.KeyStroke;
-import javax.swing.JMenu;
-import javax.swing.JPopupMenu;
-import java.awt.Component;
-import javax.swing.JSeparator;
+import javax.swing.ProgressMonitor;
+import javax.swing.SwingWorker;
+
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import javax.swing.border.EtchedBorder;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.text.DefaultEditorKit;
-import javax.swing.JLabel;
 import java.awt.FlowLayout;
-import javax.swing.JTabbedPane;
-import javax.swing.JProgressBar;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
-import javax.swing.JTree;
 import java.awt.Dimension;
-import javax.swing.JComboBox;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
 import java.beans.PropertyChangeEvent;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.JSplitPane;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
+import java.util.concurrent.ExecutionException;
 
 import edu.iastate.biocyctool.cycBrowser.controller.BrowserController;
-import edu.iastate.biocyctool.cycBrowser.model.BrowserStateModel.State;
-import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
+import edu.iastate.biocyctool.util.util.Util;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
+import edu.iastate.javacyco.Frame;
+import edu.iastate.javacyco.Gene;
+import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Protein;
-import edu.iastate.javacyco.Reaction;
-
+import edu.iastate.javacyco.PtoolsErrorException;
 import javax.swing.JEditorPane;
+import java.awt.event.ActionListener;
 
+@SuppressWarnings("serial")
 public class SearchPanel extends AbstractViewPanel {
 	BrowserController controller;
+	private ProgressMonitor progressMonitor;
+	private GetSearchResultsTableTask task;
 
-	private JPanel panel;
-	private JPanel textPanel;
+	private JPanel queryPanel;
+	private JPanel resultPanel;
 	private final Action actionSubmit = new ActionSubmit();
-	private JScrollPane scrollPane;
-	private final Action actionDisconnect = new ActionDisconnect();
+	private JScrollPane scrollPaneResults;
 	private JButton btnSubmit;
 	private JTable tblResults;
 	private JEditorPane txtSearch;
+	private JScrollPane scrollPaneQuery;
 	
 	/**
 	 * Create the frame.
@@ -84,6 +58,7 @@ public class SearchPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	Util.installContextMenu(txtSearch);
     }
     
     private void initComponents() {
@@ -93,130 +68,136 @@ public class SearchPanel extends AbstractViewPanel {
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		setLayout(new BorderLayout(0, 0));
 		
-		panel = new JPanel();
-		panel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		add(panel, BorderLayout.NORTH);
+		queryPanel = new JPanel();
+		queryPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+		add(queryPanel, BorderLayout.NORTH);
+		
+		scrollPaneQuery = new JScrollPane();
+		queryPanel.add(scrollPaneQuery);
 		
 		txtSearch = new JEditorPane();
 		txtSearch.setPreferredSize(new Dimension(400, 80));
-		panel.add(txtSearch);
+		scrollPaneQuery.setViewportView(txtSearch);
 		
 		btnSubmit = new JButton("Search");
-		panel.add(btnSubmit);
-		btnSubmit.setAction(actionSubmit);
-		
-		textPanel = new JPanel();
-		add(textPanel, BorderLayout.CENTER);
-		GridBagLayout gbl_textPanel = new GridBagLayout();
-		gbl_textPanel.columnWidths = new int[]{503, 0};
-		gbl_textPanel.rowHeights = new int[]{132, 0};
-		gbl_textPanel.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-		gbl_textPanel.rowWeights = new double[]{1.0, Double.MIN_VALUE};
-		textPanel.setLayout(gbl_textPanel);
-		
-		scrollPane = new JScrollPane();
-		scrollPane.setMinimumSize(new Dimension(10, 10));
-		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-		gbc_scrollPane.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane.gridx = 0;
-		gbc_scrollPane.gridy = 0;
-		textPanel.add(scrollPane, gbc_scrollPane);
-		
-		tblResults = new JTable();
-		scrollPane.setViewportView(tblResults);
-	}
-	
-	
-	
-	//http://www.coderanch.com/t/346220/GUI/java/Copy-paste-popup-menu
-    private void installContextMenu(final JTextField component) {
-    }
-    private void installContextMenu(final JTextArea component) {
-    	component.addMouseListener(new MouseAdapter() {
-    		public void mousePressed(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					showMenu(e);
-				}
-			}
-			public void mouseReleased(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					showMenu(e);
-				}
-			}
-			public void showMenu(final MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					final JPopupMenu menu = new JPopupMenu();
-					JMenuItem item;
-					item = new JMenuItem(new DefaultEditorKit.CopyAction());
-					item.setText("Copy");
-					item.setEnabled(component.getSelectionStart() != component.getSelectionEnd());
-					menu.add(item);
-					item = new JMenuItem(new DefaultEditorKit.CutAction());
-					item.setText("Cut");
-					item.setEnabled(component.isEditable() && component.getSelectionStart() != component.getSelectionEnd());
-					menu.add(item);
-					item = new JMenuItem(new DefaultEditorKit.PasteAction());
-					item.setText("Paste");
-					item.setEnabled(component.isEditable());
-					menu.add(item);
-					menu.show(e.getComponent(), e.getX(), e.getY());
-				}
-			}
-    	});
-    }
-
-    private static void addPopup(Component component, final JPopupMenu popup) {
-		component.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					showMenu(e);
-				}
-			}
-			public void mouseReleased(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					showMenu(e);
-				}
-			}
-			private void showMenu(MouseEvent e) {
-				popup.show(e.getComponent(), e.getX(), e.getY());
+		btnSubmit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
 			}
 		});
+		queryPanel.add(btnSubmit);
+		btnSubmit.setAction(actionSubmit);
+		
+		resultPanel = new JPanel();
+		resultPanel.setMinimumSize(new Dimension(450, 400));
+		add(resultPanel, BorderLayout.CENTER);
+		GridBagLayout gbl_resultPanel = new GridBagLayout();
+		gbl_resultPanel.columnWidths = new int[]{503, 0};
+		gbl_resultPanel.rowHeights = new int[]{132, 0};
+		gbl_resultPanel.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+		gbl_resultPanel.rowWeights = new double[]{1.0, Double.MIN_VALUE};
+		resultPanel.setLayout(gbl_resultPanel);
+		
+		scrollPaneResults = new JScrollPane();
+		scrollPaneResults.setMinimumSize(new Dimension(10, 10));
+		GridBagConstraints gbc_scrollPaneResults = new GridBagConstraints();
+		gbc_scrollPaneResults.fill = GridBagConstraints.BOTH;
+		gbc_scrollPaneResults.gridx = 0;
+		gbc_scrollPaneResults.gridy = 0;
+		resultPanel.add(scrollPaneResults, gbc_scrollPaneResults);
+		
+		tblResults = new JTable();
+		scrollPaneResults.setViewportView(tblResults);
 	}
-
+    
 	private class ActionSubmit extends AbstractAction {
 		public ActionSubmit() {
 			putValue(NAME, "Submit");
 			putValue(SHORT_DESCRIPTION, "Submits query from text field and returns results in the primary tab.");
 		}
+		
 		public void actionPerformed(ActionEvent e) {
-			DefaultTableModel dtm = controller.getSearchResultsTable(txtSearch.getText(), Protein.GFPtype); //TODO search type selection
-			tblResults.setModel(dtm);
-			revalidate();
-			repaint();
+			getSearchResultsTable(txtSearch.getText(), Gene.GFPtype); //TODO selectable type
 		}
 	}
 	
-	private class ActionDisconnect extends AbstractAction {
-		public ActionDisconnect() {
-			putValue(NAME, "Disconnect");
-			putValue(SHORT_DESCRIPTION, "Disconnect from database.");
-		}
-		public void actionPerformed(ActionEvent e) {
-			controller.disconnect();
-//			da = null;
-//			updateContent();
+	public void getSearchResultsTable(String text, String type) {
+		progressMonitor = new ProgressMonitor(BrowserController.mainJFrame, "Searching terms...", "", 0, 100);
+		progressMonitor.setMinimum(0);
+		progressMonitor.setProgress(0);
+		task = new GetSearchResultsTableTask(text, type);
+		
+		task.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent e) {
+                if ("progress".equals(e.getPropertyName())) {
+                	progressMonitor.setProgress((Integer) e.getNewValue());
+                }
+            }
+        });
+
+		task.execute();
+	}
+	
+	private class GetSearchResultsTableTask extends SwingWorker<DefaultTableModel, Void> {
+		private String text;
+		private String type;
+		
+		public GetSearchResultsTableTask(String text, String type) {
+			this.text = text;
+			this.type = type;
 		}
 		
-		private void updateContent() {
-//			comboBoxOrganism.removeAllItems();
-//			comboBoxOrganism.setEnabled(false);
-//			
-//			txtEnterFrameid.setEnabled(false);
-//			txtServer.setEnabled(true);
-//			txtPort.setEnabled(true);
-//			lblNotConnected.setText("Not Connected");
-//			actionDisconnect.setEnabled(false);
-//			actionSubmit.setEnabled(false);
+		@Override
+		public DefaultTableModel doInBackground() {
+			JavacycConnection conn = controller.getConnection();
+			
+			int progress = 0;
+			setProgress(progress);
+			try {
+				// Parse text for search terms
+				// Expect 1 term per line from the user
+				String[] terms = text.split("\n"); //TODO more checking for bad input
+
+				// Create dataTable of results
+				Object[] header = new String[]{"Search Term", "Results"};
+				Object[][] data = new Object[terms.length][2];
+				for (int i=0; i<terms.length; i++) {
+					String term = terms[i].trim();
+					
+					ArrayList<Frame> results = conn.search(term, type);
+					String resultString = "";
+					for (Frame result : results) resultString += result.getLocalID() + ",";
+					if (resultString.length() > 0) resultString = resultString.substring(0, resultString.length()-1);
+					
+					data[i] = new String[]{term, resultString};
+					
+					progressMonitor.setNote("Completed " + i + " of " + terms.length);
+					progress = (int) ((i*100)/terms.length);
+					setProgress(progress);
+				}
+				
+				DefaultTableModel dtm = new DefaultTableModel(data, header);
+				return dtm;
+			} catch (PtoolsErrorException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		
+		@Override
+		public void done() {
+			try {
+				tblResults.setModel(task.get());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
+			revalidate();
+			repaint();
+			
+			progressMonitor.setProgress(0);
+			progressMonitor.close();
 		}
 	}
 

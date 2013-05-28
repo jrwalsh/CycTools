@@ -6,6 +6,7 @@ import edu.iastate.biocyctool.cycBrowser.controller.BrowserController;
 import edu.iastate.biocyctool.cycBrowser.model.BrowserStateModel.State;
 import edu.iastate.biocyctool.cycspreadsheetloader.controller.DefaultController;
 import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
+import edu.iastate.biocyctool.util.util.Util;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 
 import javax.swing.AbstractAction;
@@ -43,6 +44,9 @@ public class LoginPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	Util.installContextMenu(txtHost);
+    	Util.installContextMenu(txtPort);
+    	Util.installContextMenu(txtUser);
     }
     
     private void initComponents() {
@@ -115,20 +119,32 @@ public class LoginPanel extends AbstractViewPanel {
 					.addComponent(btnConnect))
 		);
 		panel.setLayout(gl_panel);
+		
+		JLabel lblWelcomeToCyctools = new JLabel("<html><h1>Welcome to CycTools</h1></html>");
+		
+		JLabel lblNewLabel = new JLabel("<html>Please enter connection information. If no username and password is required for your server, leave these fields blank.</html>");
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.TRAILING)
+			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap(255, Short.MAX_VALUE)
-					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)
-					.addGap(245))
+					.addGap(255)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblWelcomeToCyctools, GroupLayout.PREFERRED_SIZE, 306, GroupLayout.PREFERRED_SIZE)
+						.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+							.addComponent(lblNewLabel, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
+							.addComponent(panel, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 300, Short.MAX_VALUE)))
+					.addContainerGap(239, Short.MAX_VALUE))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(107)
+					.addContainerGap()
+					.addComponent(lblWelcomeToCyctools)
+					.addGap(11)
+					.addComponent(lblNewLabel, GroupLayout.PREFERRED_SIZE, 53, GroupLayout.PREFERRED_SIZE)
+					.addGap(18)
 					.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(145, Short.MAX_VALUE))
+					.addContainerGap(110, Short.MAX_VALUE))
 		);
 		setLayout(groupLayout);
 	}
@@ -140,14 +156,18 @@ public class LoginPanel extends AbstractViewPanel {
 		}
 		public void actionPerformed(ActionEvent e) {
 			try {
-				controller.connect(txtHost.getText(), Integer.parseInt(txtPort.getText()), null, null);
+				if (txtUser.getText() != null && !txtUser.getText().isEmpty()) {
+					String pw = "";
+					if (pwbox.getPassword() != null) {
+						pw = pwbox.getPassword().toString();
+					}
+					controller.connect(txtHost.getText(), Integer.parseInt(txtPort.getText()), txtUser.getText(), pw);
+				} else {
+					controller.connect(txtHost.getText(), Integer.parseInt(txtPort.getText()), null, null);
+				}
 			} catch (Exception exception) {
 				
 			}
-			updateContent();
-		}
-		private void updateContent() {
-			//TODO set warning if login failed
 		}
 	}
 	
