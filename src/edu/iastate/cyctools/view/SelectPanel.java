@@ -2,28 +2,23 @@ package edu.iastate.cyctools.view;
 
 import java.beans.PropertyChangeEvent;
 
-import edu.iastate.cyctools.CycDataBaseAccess;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.DefaultStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.JLabel;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.JPasswordField;
 import javax.swing.JButton;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 
+@SuppressWarnings("serial")
 public class SelectPanel extends AbstractViewPanel {
 	DefaultController controller;
 	private final Action actionSelectFrameBrowser = new ActionSelectFrameBrowser();
@@ -45,6 +40,9 @@ public class SelectPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	//Add self as property change event listener of the controller
+    	controller.addView(this);
+    	
     }
     
     private void initComponents() {

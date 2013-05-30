@@ -34,6 +34,8 @@ public class MainCardPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	//Add self as property change event listener of the controller
+    	controller.addView(this);
     }
     
     private void initComponents() {

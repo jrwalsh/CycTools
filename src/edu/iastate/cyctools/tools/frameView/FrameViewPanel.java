@@ -44,6 +44,10 @@ public class FrameViewPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	//Add self as property change event listener of the controller
+    	controller.addView(this);
+    	
+    	
     	MenuPopupUtil.installContextMenu(txtEnterFrameid);
     	MenuPopupUtil.installContextMenu(textArea);
     	

@@ -3,11 +3,9 @@ package edu.iastate.cyctools;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.ProgressMonitor;
 import javax.swing.table.DefaultTableModel;
 
 import edu.iastate.cyctools.DefaultStateModel.State;
@@ -35,18 +33,19 @@ public class DefaultController implements PropertyChangeListener {
 	public static String BROWSER_STATE_PROPERTY = "State";
 	
     public DefaultController(DefaultStateModel state) {
-    	dataAccess = null;
+    	this.dataAccess = null;
+    	this.documentModel = null;
     	this.state = state;
-    	registeredViews = new ArrayList<AbstractViewPanel>();
-    	documentModel = null;
+    	this.registeredViews = new ArrayList<AbstractViewPanel>();
     }
     
+    // Getters and Setters
     public void addView(AbstractViewPanel view) {
-        registeredViews.add(view);
+    	this.registeredViews.add(view);
     }
 
     public void removeView(AbstractViewPanel view) {
-        registeredViews.remove(view);
+    	this.registeredViews.remove(view);
     }
     
     public void setDocumentModel(DocumentModel documentModel) {
@@ -54,7 +53,33 @@ public class DefaultController implements PropertyChangeListener {
     }
     
     public void changeDocumentFile(File newFile) {
-    	documentModel.setFile(newFile);
+    	this.documentModel.setFile(newFile);
+    }
+    
+    public void setMainJFrame(JFrame jframe) {
+    	DefaultController.mainJFrame = jframe;
+    }
+
+    public void setToolPanel(ToolPanel toolPanel) {
+		this.toolPanel = toolPanel;
+	}
+    
+    public void setStatusPanel(StatusPanel statusPanel) {
+		this.statusPanel = statusPanel;
+	}
+    
+    public JavacycConnection getConnection() {
+    	return dataAccess.getConnection();
+    }
+
+    
+    // Actions
+    public void showMainScreen() {
+    	state.setState(State.MAIN_SCREEN);
+    }
+    
+    public void setState(State state) {
+    	this.state.setState(state);
     }
     
     public void connect(String host, int port, String userName, String password) {
@@ -81,41 +106,19 @@ public class DefaultController implements PropertyChangeListener {
     	}
     }
     
-    public void showMainScreen() {
-    	state.setState(State.MAIN_SCREEN);
-    }
-    
     public void disconnect() {
     	dataAccess = null;
 		state.setState(State.NOT_CONNECTED);
     }
     
-    public JavacycConnection getConnection() {
-    	return dataAccess.getConnection();
-    }
-    
-    public void setState(State state) {
-    	this.state.setState(state);
-    }
-    
-    public void setMainJFrame(JFrame jframe) {
-    	this.mainJFrame = jframe;
-    }
-
-    public void setToolPanel(ToolPanel toolPanel) {
-		this.toolPanel = toolPanel;
-	}
-    
-    public void setStatusPanel(StatusPanel statusPanel) {
-		this.statusPanel = statusPanel;
-	}
-    
-    public ArrayList<String> getAvailableOrganisms() {
-    	return dataAccess.getAvailableOrganisms();
-    }
-    
     public void selectOrganism(String organism) {
     	dataAccess.selectOrganism(organism);
+    }
+    
+    
+    // Queries
+    public ArrayList<String> getAvailableOrganisms() {
+    	return dataAccess.getAvailableOrganisms();
     }
     
     public String frameToString(String frameID) {

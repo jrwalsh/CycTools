@@ -7,7 +7,6 @@ import edu.iastate.cyctools.tools.compare.DatabaseComparePanel;
 import edu.iastate.cyctools.tools.exportFrame.ExportFramePanel;
 import edu.iastate.cyctools.tools.exportPGDBStructure.ExportPGDBStructurePanel;
 import edu.iastate.cyctools.tools.frameView.FrameViewPanel;
-import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.view.LoadPanel;
 import edu.iastate.cyctools.tools.search.SearchPanel;
 import edu.iastate.cyctools.view.LoginPanel;
@@ -34,10 +33,6 @@ public class Main {
 		DefaultStateModel state = new DefaultStateModel();
 		state.initDefault();
 		
-		// Models
-		DocumentModel document = new DocumentModel();
-		document.initDefault();
-		
 		// Controller
 		DefaultController controller = new DefaultController(state);
 		state.addPropertyChangeListener(controller);
@@ -45,43 +40,20 @@ public class Main {
 		// Views
 		ToolPanel toolPanel = new ToolPanel(controller);
 		StatusPanel statusPanel = new StatusPanel(controller);
-		LoginPanel loginPanel = new LoginPanel(controller);
-		SelectPanel selectPanel = new SelectPanel(controller);
-		FrameViewPanel frameBrowsePanel = new FrameViewPanel(controller);
-		ExportFramePanel exportPanel = new ExportFramePanel(controller);
-		SearchPanel searchPanel = new SearchPanel(controller);
-		ExportPGDBStructurePanel exportStructurePanel = new ExportPGDBStructurePanel(controller);
-		DatabaseComparePanel databaseComparePanel = new DatabaseComparePanel(controller);
-		LoadPanel loadPanel = new LoadPanel(controller);
 		
 		MainCardPanel cardPanel = new MainCardPanel(controller);
-		cardPanel.add(loginPanel, MainCardPanel.loginCard);
-		cardPanel.add(selectPanel, MainCardPanel.selectCard);
-		cardPanel.add(frameBrowsePanel, MainCardPanel.frameBrowseCard);
-		cardPanel.add(exportPanel, MainCardPanel.exportCard);
-		cardPanel.add(searchPanel, MainCardPanel.searchCard);
-		cardPanel.add(exportStructurePanel, MainCardPanel.structureExportCard);
-		cardPanel.add(databaseComparePanel, MainCardPanel.databaseCompareCard);
-		cardPanel.add(loadPanel, MainCardPanel.loadCard);
-		
-		// Connect views
-		controller.addView(toolPanel);
-		controller.addView(statusPanel);
-		controller.addView(cardPanel);
-		controller.addView(loginPanel);
-		controller.addView(selectPanel);
-		controller.addView(frameBrowsePanel);
-		controller.addView(exportPanel);
-		controller.addView(searchPanel);
-		controller.addView(exportStructurePanel);
-		controller.addView(databaseComparePanel);
-		controller.addView(loadPanel);
-		
-		// Connect models, controllers, and data objects.
-		controller.setDocumentModel(document);
-		document.addPropertyChangeListener(controller);
+		cardPanel.add(new LoginPanel(controller), MainCardPanel.loginCard);
+		cardPanel.add(new SelectPanel(controller), MainCardPanel.selectCard);
+		cardPanel.add(new FrameViewPanel(controller), MainCardPanel.frameBrowseCard);
+		cardPanel.add(new ExportFramePanel(controller), MainCardPanel.exportCard);
+		cardPanel.add(new SearchPanel(controller), MainCardPanel.searchCard);
+		cardPanel.add(new ExportPGDBStructurePanel(controller), MainCardPanel.structureExportCard);
+		cardPanel.add(new DatabaseComparePanel(controller), MainCardPanel.databaseCompareCard);
+		cardPanel.add(new LoadPanel(controller), MainCardPanel.loadCard);
 		
 		JFrame displayFrame = new JFrame("CycBrowser");
+		controller.setMainJFrame(displayFrame);
+		
 		displayFrame.setResizable(false);
 		displayFrame.setPreferredSize(new Dimension(835, 535));
 		displayFrame.setJMenuBar(new MenuBar(controller));
@@ -99,7 +71,6 @@ public class Main {
 		gbc_toolPanel.gridx = 0;
 		gbc_toolPanel.gridy = 0;
 		displayFrame.getContentPane().add(toolPanel, gbc_toolPanel);
-		
 		
 		GridBagConstraints gbc_cardPanel = new GridBagConstraints();
 		gbc_cardPanel.fill = GridBagConstraints.HORIZONTAL;
@@ -120,10 +91,6 @@ public class Main {
         displayFrame.pack();
         
         displayFrame.setLocationRelativeTo(null);
-        controller.setMainJFrame(displayFrame);
-        controller.setToolPanel(toolPanel);
-        controller.setStatusPanel(statusPanel);
-        toolPanel.setVisible(false);
         displayFrame.setVisible(true);
 	}
 }

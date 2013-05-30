@@ -3,7 +3,6 @@ package edu.iastate.cyctools.tools.exportFrame;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
@@ -43,7 +42,6 @@ import java.awt.Dimension;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.ScrollPaneConstants;
 
 @SuppressWarnings({"serial", "unchecked"})
 public class ExportFramePanel extends AbstractViewPanel {
@@ -66,7 +64,8 @@ public class ExportFramePanel extends AbstractViewPanel {
     }
 
 	public void localInitialization() {
-		
+		//Add self as property change event listener of the controller
+    	controller.addView(this);
 	}
     
     private void initComponents() {

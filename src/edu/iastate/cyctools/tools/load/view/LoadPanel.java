@@ -8,6 +8,7 @@ import java.beans.PropertyChangeEvent;
 
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
+import edu.iastate.cyctools.tools.load.model.DocumentModel;
 
 import java.awt.FlowLayout;
 
@@ -27,6 +28,13 @@ public class LoadPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	//Add self as property change event listener of the controller
+    	controller.addView(this);
+    	
+    	DocumentModel document = new DocumentModel();
+		document.initDefault();
+		controller.setDocumentModel(document);
+		document.addPropertyChangeListener(controller);
     }
     
     private void initComponents() {

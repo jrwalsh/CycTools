@@ -2,28 +2,17 @@ package edu.iastate.cyctools.tools.compare;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.GroupLayout;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
-import javax.swing.JScrollPane;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.text.DefaultEditorKit;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
-import javax.swing.Action;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import javax.swing.GroupLayout.Alignment;
 
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
-import edu.iastate.javacyco.*;
-import java.awt.event.ActionListener;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JSplitPane;
 import javax.swing.JPanel;
@@ -31,6 +20,7 @@ import java.awt.CardLayout;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 
+@SuppressWarnings("serial")
 public class DatabaseComparePanel extends AbstractViewPanel {
 	DefaultController controller;
 	private JTextField textField;
@@ -49,6 +39,8 @@ public class DatabaseComparePanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	//Add self as property change event listener of the controller
+    	controller.addView(this);
     }
     
     private void initComponents() {
@@ -165,15 +157,6 @@ public class DatabaseComparePanel extends AbstractViewPanel {
 		setLayout(groupLayout);
 	}
 	
-	
-	
-	//http://www.coderanch.com/t/346220/GUI/java/Copy-paste-popup-menu
-    private void installContextMenu(final JTextField component) {
-    }
-    
-    private void installContextMenu(final JTextArea component) {
-    }
-
 	private class ActionSubmit extends AbstractAction {
 		public ActionSubmit() {
 			putValue(NAME, "Submit");

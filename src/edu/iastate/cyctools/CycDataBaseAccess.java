@@ -2,11 +2,7 @@ package edu.iastate.cyctools;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +24,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -48,7 +43,8 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	private JavacycConnection conn;
 	private String host;
 	private int port;
-	private String organism;
+	private String currentOrganism;
+	private String defaultOrganism;
 	private String userName;
 	private String password;
 	
@@ -63,10 +59,14 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	
 	private void init() {
 		conn = null;
+		currentOrganism = null;
+		defaultOrganism = null;
 		if (connect()) {
 			try {
 				if (conn.allOrgs() != null || conn.allOrgs().size() != 0) {
-					conn.selectOrganism(conn.allOrgs().get(0).getLocalID());
+					defaultOrganism = conn.allOrgs().get(0).getLocalID();
+					currentOrganism = defaultOrganism;
+					conn.selectOrganism(currentOrganism);
 				}
 			} catch (PtoolsErrorException e) {
 				e.printStackTrace();
@@ -93,8 +93,11 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	// Change selected organism
 	public void selectOrganism(String organism) {
 		if (getAvailableOrganisms().contains(organism)) {
-			this.organism = organism;
+			this.currentOrganism = organism;
 			conn.selectOrganism(organism);
+		} else {
+			conn.selectOrganism(defaultOrganism);
+			System.err.println("Error: Could not find requested organism, attempting to select default organism.");
 		}
 	}
 	
@@ -178,30 +181,6 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		}
 		return model;
 	}
-	
-//	public DefaultTableModel getSearchResultsTable(String text, String type) throws PtoolsErrorException {
-//		// Parse text for search terms
-//		// Expect 1 term per line
-//		String[] terms = text.split("\n");
-//		
-//		// Create dataTable of results
-//		Object[] header = new String[]{"Search Term", "Results"};
-//		Object[][] data = new Object[terms.length][2];
-//		for (int i=0; i<terms.length; i++) {
-//			String term = terms[i].trim();
-//			
-//			ArrayList<Frame> results = conn.search(term, type);
-//			String resultString = "";
-//			for (Frame result : results) resultString += result.getLocalID() + ",";
-//			if (resultString.length() > 0) resultString = resultString.substring(0, resultString.length()-1);
-//			
-//			data[i] = new String[]{term, resultString};
-//		}
-//		
-//		DefaultTableModel dtm = new DefaultTableModel(data, header);
-//		return dtm;
-//	}
-	
 	
 	// Export Data
 	public ArrayList<String> getPGDBChildrenOfFrame(String classFrameID) throws PtoolsErrorException {
@@ -496,7 +475,6 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		}
 	}
 	
-		
 	public DefaultMutableTreeNode frameToTree(String frameID) {
  		Frame frame = null;
  		try {
@@ -547,64 +525,6 @@ public class CycDataBaseAccess implements PropertyChangeListener {
  		}
  		return top;
  	}
-
-	
-	
-	// Queryies that change the database
-	public void revertDB() {
-		try {
-			conn.revertKB();
-		} catch (PtoolsErrorException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void specificLoadOfGoTerms(String excelFileName) {
-		File file = new File(excelFileName);
-		BufferedReader reader = null;
-		try {
-			reader = new BufferedReader(new FileReader(file));
-			String text = null;
-			
-			String header = reader.readLine();
-			String[] headings = header.split(",");
-			
-			while ((text = reader.readLine()) != null) {
-				String[] row = text.split(",");
-				Frame frame = Frame.load(conn, row[0]);
-				for (int i=1; i < row.length; i++) {
-					frame.putSlotValue(headings[i], row[i]);
-					if (headings[i].equalsIgnoreCase("GO-TERMS")) {
-						//TODO remember, this is probably going to be an array of values, not a single
-						ArrayList<String> goTerms = new ArrayList<String>();
-						goTerms.add(row[i]);
-						conn.importGOTerms(goTerms);//conn.callFuncString("import-go-terms '" + row[i]);
-					}
-				}
-				frame.commit();
-			}
-//				conn.saveKB();
-		} catch (FileNotFoundException exception) {
-			exception.printStackTrace();
-		} catch (IOException exception) {
-			exception.printStackTrace();
-		} catch (Exception exception) {
-			exception.printStackTrace();
-		}
-		finally {
-			try {
-			} catch (Exception exception) {
-				exception.printStackTrace();
-			}
-			try {
-				if (reader != null) {
-					reader.close();
-				}
-			} catch (IOException exception) {
-				exception.printStackTrace();
-			}
-		}
-	}
 	
 	public DefaultTableModel getSearchResultsTable(String text, String type) throws PtoolsErrorException {
 		progressMonitor = new ProgressMonitor(DefaultController.mainJFrame, "Running a Long Task", "", 0, 100);
@@ -626,7 +546,6 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		
 		return null;
 	}
-	
 	
 	private class GetSearchResultsTableTask extends SwingWorker<DefaultTableModel, Void> {
 		private String text;

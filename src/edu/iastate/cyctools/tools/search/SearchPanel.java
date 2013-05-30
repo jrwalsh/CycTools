@@ -28,7 +28,6 @@ import edu.iastate.cyctools.externalSourceCode.MenuPopupUtil;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
-import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
 import javax.swing.JEditorPane;
 import java.awt.event.ActionListener;
@@ -58,6 +57,9 @@ public class SearchPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	//Add self as property change event listener of the controller
+    	controller.addView(this);
+    	
     	MenuPopupUtil.installContextMenu(txtSearch);
     }
     

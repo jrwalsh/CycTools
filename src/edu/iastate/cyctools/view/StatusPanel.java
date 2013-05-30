@@ -1,6 +1,5 @@
 package edu.iastate.cyctools.view;
 
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 
 import edu.iastate.cyctools.DefaultController;
@@ -9,15 +8,11 @@ import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 
 import javax.swing.JLabel;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JProgressBar;
-import javax.swing.JComboBox;
 import java.awt.Dimension;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
 
+@SuppressWarnings("serial")
 public class StatusPanel extends AbstractViewPanel {
 	DefaultController controller;
 	private JLabel lblStatus;
@@ -34,6 +29,9 @@ public class StatusPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	//Add self as property change event listener of the controller
+    	controller.addView(this);
+    	controller.setStatusPanel(this);
     }
     
     private void initComponents() {

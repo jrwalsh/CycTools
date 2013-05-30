@@ -13,6 +13,7 @@ import javax.swing.JDialog;
 
 import edu.iastate.cyctools.DefaultController;
 
+@SuppressWarnings("serial")
 public class SearchResultDialog extends JDialog implements ActionListener, PropertyChangeListener {
     private JOptionPane optionPane;
     private DefaultController controller;

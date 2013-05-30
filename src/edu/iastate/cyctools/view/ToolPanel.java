@@ -16,7 +16,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public class ToolPanel extends AbstractViewPanel {
 	public final static String noOrganism = "None Available";
 	
@@ -40,8 +40,14 @@ public class ToolPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
+    	//Add self as property change event listener of the controller
+    	controller.addView(this);
+    	controller.setToolPanel(this);
+    	
     	comboBoxOrganism.addItem("None Available");
 		comboBoxOrganism.setSelectedItem("None Available");
+		
+		this.setVisible(false);
     }
     
     private void initComponents() {
