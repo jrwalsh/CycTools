@@ -9,6 +9,7 @@ import edu.iastate.biocyctool.cycBrowser.view.DatabaseComparePanel;
 import edu.iastate.biocyctool.cycBrowser.view.ExportPGDBStructurePanel;
 import edu.iastate.biocyctool.cycBrowser.view.ExportPanel;
 import edu.iastate.biocyctool.cycBrowser.view.FrameInspectPanel;
+import edu.iastate.biocyctool.cycBrowser.view.LoadPanel;
 import edu.iastate.biocyctool.cycBrowser.view.LoginPanel;
 import edu.iastate.biocyctool.cycBrowser.view.MainCardPanel;
 import edu.iastate.biocyctool.cycBrowser.view.MenuBar;
@@ -47,6 +48,7 @@ public class Main {
 		SearchPanel searchPanel = new SearchPanel(controller);
 		ExportPGDBStructurePanel exportStructurePanel = new ExportPGDBStructurePanel(controller);
 		DatabaseComparePanel databaseComparePanel = new DatabaseComparePanel(controller);
+		LoadPanel loadPanel = new LoadPanel(controller);
 		
 		MainCardPanel cardPanel = new MainCardPanel(controller);
 		cardPanel.add(loginPanel, MainCardPanel.loginCard);
@@ -56,6 +58,7 @@ public class Main {
 		cardPanel.add(searchPanel, MainCardPanel.searchCard);
 		cardPanel.add(exportStructurePanel, MainCardPanel.structureExportCard);
 		cardPanel.add(databaseComparePanel, MainCardPanel.databaseCompareCard);
+		cardPanel.add(loadPanel, MainCardPanel.loadCard);
 		
 		// Connect views, models, controllers, and data objects.
 		controller.addView(toolPanel);
@@ -68,6 +71,7 @@ public class Main {
 		controller.addView(searchPanel);
 		controller.addView(exportStructurePanel);
 		controller.addView(databaseComparePanel);
+		controller.addView(loadPanel);
 		
 		JFrame displayFrame = new JFrame("CycBrowser");
 		displayFrame.setResizable(false);

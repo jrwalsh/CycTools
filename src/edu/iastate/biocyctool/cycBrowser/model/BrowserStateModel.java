@@ -25,7 +25,7 @@ public class BrowserStateModel extends AbstractModel {
     }
     
     public enum State {
-    	NOVALUE, MAIN_SCREEN, NOT_CONNECTED, FRAMEBROWSE, EXPORT, SEARCH, STRUCTURE_EXPORT, DATABASE_COMPARE;
+    	NOVALUE, MAIN_SCREEN, NOT_CONNECTED, FRAMEBROWSE, EXPORT, SEARCH, STRUCTURE_EXPORT, DATABASE_COMPARE, LOAD;
     	
     	public static State value(String state) {
 	        try {

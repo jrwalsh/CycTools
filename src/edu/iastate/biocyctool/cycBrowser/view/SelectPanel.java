@@ -31,6 +31,7 @@ public class SelectPanel extends AbstractViewPanel {
 	private final Action actionSelectSearchPanel = new ActionSelectSearchPanel();
 	private final Action actionExportStructurePanel = new ActionExportStructurePanel();
 	private final Action actionComparePanel = new ActionComparePanel();
+	private final Action actionLoad = new ActionLoad();
 
 	/**
 	 * Create the frame.
@@ -81,6 +82,12 @@ public class SelectPanel extends AbstractViewPanel {
 		
 		JLabel lbltheCompareTool = new JLabel("<html>The compare tool allows a frame by frame comparison between two databases and reports on any frames that do not match.</html>");
 		
+		JButton btnLoadData = new JButton("Load Data");
+		btnLoadData.setAction(actionLoad);
+		btnLoadData.setMargin(new Insets(2, 2, 2, 2));
+		
+		JLabel lblloadASpreadsheet = new JLabel("<html>Load a spreadsheet file into the database.</html>");
+		
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -90,7 +97,11 @@ public class SelectPanel extends AbstractViewPanel {
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(btnCompare, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
 							.addGap(18)
-							.addComponent(lbltheCompareTool, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE))
+							.addComponent(lbltheCompareTool, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
+							.addGap(18)
+							.addComponent(btnLoadData, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
+							.addGap(18)
+							.addComponent(lblloadASpreadsheet, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 								.addComponent(btnFrameBrowse, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
@@ -115,21 +126,21 @@ public class SelectPanel extends AbstractViewPanel {
 					.addGap(56)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
 						.addComponent(lblExport, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-							.addComponent(lblFrameInspect, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(btnFrameBrowse, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
+						.addComponent(lblFrameInspect, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnFrameBrowse, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
 						.addComponent(btnExport, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
 					.addGap(18)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
 						.addComponent(lblStructure, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(btnExportStructure, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
-						.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-							.addComponent(lblSearch, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(btnSearch, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)))
+						.addComponent(lblSearch, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(btnSearch, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
 					.addGap(18)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 						.addComponent(btnCompare, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lbltheCompareTool, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
+						.addComponent(lbltheCompareTool, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnLoadData, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblloadASpreadsheet, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
 					.addGap(56))
 		);
 		setLayout(groupLayout);
@@ -185,7 +196,18 @@ public class SelectPanel extends AbstractViewPanel {
 		}
 	}
 	
+	private class ActionLoad extends AbstractAction {
+		public ActionLoad() {
+			putValue(NAME, "<html><center>Load Data</center></html>");
+			putValue(SHORT_DESCRIPTION, "Load spreadsheet file into database");
+		}
+		public void actionPerformed(ActionEvent e) {
+			controller.setState(State.LOAD);
+		}
+	}
+	
 	@Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
 	}
+	
 }

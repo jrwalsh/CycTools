@@ -19,6 +19,7 @@ public class MainCardPanel extends AbstractViewPanel {
 	public final static String searchCard = "Search";
 	public final static String structureExportCard = "Structure Export";
 	public final static String databaseCompareCard = "Database Compare";
+	public final static String loadCard = "Load";
 	
 
 	/**
@@ -69,6 +70,10 @@ public class MainCardPanel extends AbstractViewPanel {
 			else if (evt.getNewValue() == State.DATABASE_COMPARE) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.databaseCompareCard);
+			}
+			else if (evt.getNewValue() == State.LOAD) {
+				CardLayout cl = (CardLayout)(this.getLayout());
+			    cl.show(this, MainCardPanel.loadCard);
 			}
 		}
 	}
