@@ -10,8 +10,8 @@ import java.util.concurrent.ExecutionException;
 
 import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.DefaultStateModel.State;
+import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
 import edu.iastate.biocyctool.tools.load.util.CustomInterpreter;
-import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;

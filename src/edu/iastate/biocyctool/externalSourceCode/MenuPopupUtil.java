@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.util.util;
+package edu.iastate.biocyctool.externalSourceCode;
 
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
@@ -11,7 +11,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.text.DefaultEditorKit;
 
-public class Util {
+public class MenuPopupUtil {
 
 	// http://www.coderanch.com/t/346220/GUI/java/Copy-paste-popup-menu
 	public static void installContextMenu(final JTextField component) {

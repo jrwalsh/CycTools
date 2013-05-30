@@ -21,7 +21,7 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.GroupLayout.Alignment;
 
 import edu.iastate.biocyctool.DefaultController;
-import edu.iastate.biocyctool.util.view.AbstractViewPanel;
+import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
 import edu.iastate.javacyco.*;
 import java.awt.event.ActionListener;
 import javax.swing.LayoutStyle.ComponentPlacement;

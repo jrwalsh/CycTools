@@ -16,8 +16,8 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.GroupLayout.Alignment;
 
 import edu.iastate.biocyctool.DefaultController;
-import edu.iastate.biocyctool.util.util.Util;
-import edu.iastate.biocyctool.util.view.AbstractViewPanel;
+import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
+import edu.iastate.biocyctool.externalSourceCode.MenuPopupUtil;
 import edu.iastate.javacyco.*;
 import java.awt.event.ActionListener;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -44,8 +44,8 @@ public class FrameViewPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
-    	Util.installContextMenu(txtEnterFrameid);
-    	Util.installContextMenu(textArea);
+    	MenuPopupUtil.installContextMenu(txtEnterFrameid);
+    	MenuPopupUtil.installContextMenu(textArea);
     	
     	cmbType.addItem(Compound.GFPtype);
     	cmbType.addItem(Gene.GFPtype);

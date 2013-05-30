@@ -7,7 +7,7 @@
  * and open the template in the editor.
  */
 
-package edu.iastate.biocyctool.util.view;
+package edu.iastate.biocyctool.externalSourceCode;
 
 import java.beans.PropertyChangeEvent;
 import javax.swing.JPanel;

@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.util.da;
+package edu.iastate.biocyctool.util;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

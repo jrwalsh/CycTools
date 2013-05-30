@@ -10,8 +10,8 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 
 import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
 import edu.iastate.biocyctool.tools.load.model.DocumentModel;
-import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import java.awt.FlowLayout;
 
 public class LoadPanel extends AbstractViewPanel {

@@ -1,7 +1,8 @@
-package edu.iastate.biocyctool.util.model;
+package edu.iastate.biocyctool.util;
 
 import java.util.ArrayList;
 
+import edu.iastate.biocyctool.externalSourceCode.AbstractModel;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;

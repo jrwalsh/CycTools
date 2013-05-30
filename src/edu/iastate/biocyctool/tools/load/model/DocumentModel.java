@@ -1,7 +1,8 @@
 package edu.iastate.biocyctool.tools.load.model;
 
 import edu.iastate.biocyctool.DefaultController;
-import edu.iastate.biocyctool.util.model.AbstractModel;
+import edu.iastate.biocyctool.externalSourceCode.AbstractModel;
+
 import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
 import java.io.File;

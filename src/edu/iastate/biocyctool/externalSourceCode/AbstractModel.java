@@ -7,9 +7,8 @@
  * and open the template in the editor.
  */
 
-package edu.iastate.biocyctool.util.model;
+package edu.iastate.biocyctool.externalSourceCode;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 

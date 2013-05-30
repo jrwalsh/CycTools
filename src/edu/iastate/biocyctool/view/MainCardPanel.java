@@ -4,7 +4,7 @@ import java.beans.PropertyChangeEvent;
 
 import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.DefaultStateModel.State;
-import edu.iastate.biocyctool.util.view.AbstractViewPanel;
+import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;

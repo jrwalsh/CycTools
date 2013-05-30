@@ -1,6 +1,6 @@
 package edu.iastate.biocyctool;
 
-import edu.iastate.biocyctool.util.model.AbstractModel;
+import edu.iastate.biocyctool.externalSourceCode.AbstractModel;
 
 public class DefaultStateModel extends AbstractModel {
 	private State state;

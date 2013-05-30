@@ -4,8 +4,8 @@ import java.beans.PropertyChangeEvent;
 
 import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.DefaultStateModel.State;
-import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
-import edu.iastate.biocyctool.util.view.AbstractViewPanel;
+import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
+import edu.iastate.biocyctool.util.CycDataBaseAccess;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;

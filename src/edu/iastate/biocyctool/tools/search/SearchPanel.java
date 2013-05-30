@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 import edu.iastate.biocyctool.DefaultController;
-import edu.iastate.biocyctool.util.util.Util;
-import edu.iastate.biocyctool.util.view.AbstractViewPanel;
+import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
+import edu.iastate.biocyctool.externalSourceCode.MenuPopupUtil;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
@@ -58,7 +58,7 @@ public class SearchPanel extends AbstractViewPanel {
     }
 
     public void localInitialization() {
-    	Util.installContextMenu(txtSearch);
+    	MenuPopupUtil.installContextMenu(txtSearch);
     }
     
     private void initComponents() {
