@@ -22,6 +22,7 @@ import javax.swing.JPanel;
  * @author Robert Eckstein
  */
 
+@SuppressWarnings("serial")
 public abstract class AbstractViewPanel extends JPanel {
 	public AbstractViewPanel() {
 	}

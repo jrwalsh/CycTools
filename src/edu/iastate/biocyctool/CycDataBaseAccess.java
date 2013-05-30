@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.util;
+package edu.iastate.biocyctool;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -32,7 +32,6 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.tools.load.model.AbstractFrameEdit;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;

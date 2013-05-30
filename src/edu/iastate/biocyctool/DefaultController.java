@@ -15,7 +15,6 @@ import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
 import edu.iastate.biocyctool.tools.load.model.AbstractFrameEdit;
 import edu.iastate.biocyctool.tools.load.model.DocumentModel;
 import edu.iastate.biocyctool.tools.load.util.Interpretable;
-import edu.iastate.biocyctool.util.CycDataBaseAccess;
 import edu.iastate.biocyctool.view.StatusPanel;
 import edu.iastate.biocyctool.view.ToolPanel;
 import edu.iastate.javacyco.Frame;

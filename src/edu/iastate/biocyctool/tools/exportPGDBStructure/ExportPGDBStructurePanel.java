@@ -53,10 +53,10 @@ import javax.swing.JSplitPane;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 
+import edu.iastate.biocyctool.CycDataBaseAccess;
 import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.DefaultStateModel.State;
 import edu.iastate.biocyctool.externalSourceCode.AbstractViewPanel;
-import edu.iastate.biocyctool.util.CycDataBaseAccess;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.Reaction;
