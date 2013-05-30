@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.view;
+package edu.iastate.biocyctool.tools.exportPGDBStructure;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;

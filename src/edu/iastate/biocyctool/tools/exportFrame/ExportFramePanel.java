@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.view;
+package edu.iastate.biocyctool.tools.exportFrame;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -46,7 +46,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.ScrollPaneConstants;
 
 @SuppressWarnings({"serial", "unchecked"})
-public class ExportPanel extends AbstractViewPanel {
+public class ExportFramePanel extends AbstractViewPanel {
 	private ProgressMonitor progressMonitor;
 	private GetFramesOfTypeTask task;
 	DefaultController controller;
@@ -59,7 +59,7 @@ public class ExportPanel extends AbstractViewPanel {
 	/**
 	 * Create the frame.
 	 */
-	public ExportPanel(DefaultController controller) {
+	public ExportFramePanel(DefaultController controller) {
 		this.controller = controller;
 		initComponents();
         localInitialization();

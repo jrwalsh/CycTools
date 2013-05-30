@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.view;
+package edu.iastate.biocyctool.tools.frameView;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.GroupLayout;
@@ -24,7 +24,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JComboBox;
 
 @SuppressWarnings("serial")
-public class FrameInspectPanel extends AbstractViewPanel {
+public class FrameViewPanel extends AbstractViewPanel {
 	DefaultController controller;
 	private final Action actionSubmit = new ActionSubmit();
 	private JScrollPane scrollPane;
@@ -36,7 +36,7 @@ public class FrameInspectPanel extends AbstractViewPanel {
 	/**
 	 * Create the frame.
 	 */
-	public FrameInspectPanel(DefaultController controller) {
+	public FrameViewPanel(DefaultController controller) {
 		this.controller = controller;
 		
 		initComponents();

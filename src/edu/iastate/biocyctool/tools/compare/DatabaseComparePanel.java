@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.view;
+package edu.iastate.biocyctool.tools.compare;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.GroupLayout;

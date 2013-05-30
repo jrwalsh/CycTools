@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.view;
+package edu.iastate.biocyctool.tools.search;
 
 import java.awt.BorderLayout;
 import javax.swing.JPanel;

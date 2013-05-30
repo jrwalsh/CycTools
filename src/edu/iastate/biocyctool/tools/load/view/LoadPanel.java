@@ -1,4 +1,4 @@
-package edu.iastate.biocyctool.view;
+package edu.iastate.biocyctool.tools.load.view;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
@@ -11,7 +11,6 @@ import java.beans.PropertyChangeEvent;
 
 import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.tools.load.model.DocumentModel;
-import edu.iastate.biocyctool.tools.load.view.DataViewPanel;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import java.awt.FlowLayout;
 
