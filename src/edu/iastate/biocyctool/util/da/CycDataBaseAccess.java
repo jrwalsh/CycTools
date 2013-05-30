@@ -32,8 +32,8 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import edu.iastate.biocyctool.cycBrowser.controller.BrowserController;
-import edu.iastate.biocyctool.cycspreadsheetloader.model.AbstractFrameEdit;
+import edu.iastate.biocyctool.controller.BrowserController;
+import edu.iastate.biocyctool.tools.load.model.AbstractFrameEdit;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.Network;

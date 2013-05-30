@@ -1,6 +1,6 @@
 package edu.iastate.biocyctool.util.view;
 
-import edu.iastate.biocyctool.cycspreadsheetloader.controller.DefaultController;
+import edu.iastate.biocyctool.tools.load.controller.DefaultController;
 
 import java.beans.PropertyChangeEvent;
 import javax.swing.JPanel;
