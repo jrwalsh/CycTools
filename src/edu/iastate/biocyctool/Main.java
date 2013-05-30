@@ -3,8 +3,7 @@ package edu.iastate.biocyctool;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel;
+import edu.iastate.biocyctool.tools.load.model.DocumentModel;
 import edu.iastate.biocyctool.view.DatabaseComparePanel;
 import edu.iastate.biocyctool.view.ExportPGDBStructurePanel;
 import edu.iastate.biocyctool.view.ExportPanel;
@@ -32,11 +31,15 @@ public class Main {
 		// DataAccess object initialized through the loginPanel
 		
 		// Model
-		ApplicationStateModel state = new ApplicationStateModel();
+		DefaultStateModel state = new DefaultStateModel();
 		state.initDefault();
 		
+		// Models
+		DocumentModel document = new DocumentModel();
+		document.initDefault();
+		
 		// Controller
-		BrowserController controller = new BrowserController(state);
+		DefaultController controller = new DefaultController(state);
 		state.addPropertyChangeListener(controller);
 		
 		// Views
@@ -61,7 +64,7 @@ public class Main {
 		cardPanel.add(databaseComparePanel, MainCardPanel.databaseCompareCard);
 		cardPanel.add(loadPanel, MainCardPanel.loadCard);
 		
-		// Connect views, models, controllers, and data objects.
+		// Connect views
 		controller.addView(toolPanel);
 		controller.addView(statusPanel);
 		controller.addView(cardPanel);
@@ -73,6 +76,10 @@ public class Main {
 		controller.addView(exportStructurePanel);
 		controller.addView(databaseComparePanel);
 		controller.addView(loadPanel);
+		
+		// Connect models, controllers, and data objects.
+		controller.setDocumentModel(document);
+		document.addPropertyChangeListener(controller);
 		
 		JFrame displayFrame = new JFrame("CycBrowser");
 		displayFrame.setResizable(false);

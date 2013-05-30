@@ -1,15 +1,19 @@
-package edu.iastate.biocyctool.controller;
+package edu.iastate.biocyctool;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 import javax.swing.table.DefaultTableModel;
-import edu.iastate.biocyctool.model.ApplicationStateModel;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
+
+import edu.iastate.biocyctool.DefaultStateModel.State;
+import edu.iastate.biocyctool.tools.load.model.AbstractFrameEdit;
+import edu.iastate.biocyctool.tools.load.model.DocumentModel;
+import edu.iastate.biocyctool.tools.load.util.Interpretable;
 import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.biocyctool.view.StatusPanel;
@@ -18,20 +22,24 @@ import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-public class BrowserController implements PropertyChangeListener {
+public class DefaultController implements PropertyChangeListener {
 	private CycDataBaseAccess dataAccess;
-	private ApplicationStateModel state;
+	private DefaultStateModel state;
 	private ArrayList<AbstractViewPanel> registeredViews;
 	public static JFrame mainJFrame;
 	public ToolPanel toolPanel;
 	public StatusPanel statusPanel;
+	private DocumentModel documentModel;
 	
+	public static String DOCUMENT_FILEPATH_PROPERTY = "FilePath";
+	public static String DOCUMENT_TABLEMODEL_PROPERTY = "TableModel";
 	public static String BROWSER_STATE_PROPERTY = "State";
 	
-    public BrowserController(ApplicationStateModel state) {
+    public DefaultController(DefaultStateModel state) {
     	dataAccess = null;
     	this.state = state;
     	registeredViews = new ArrayList<AbstractViewPanel>();
+    	documentModel = null;
     }
     
     public void addView(AbstractViewPanel view) {
@@ -40,6 +48,14 @@ public class BrowserController implements PropertyChangeListener {
 
     public void removeView(AbstractViewPanel view) {
         registeredViews.remove(view);
+    }
+    
+    public void setDocumentModel(DocumentModel documentModel) {
+    	this.documentModel = documentModel;
+    }
+    
+    public void changeDocumentFile(File newFile) {
+    	documentModel.setFile(newFile);
     }
     
     public void connect(String host, int port, String userName, String password) {
@@ -167,6 +183,23 @@ public class BrowserController implements PropertyChangeListener {
 			//TODO State failed
 			return new DefaultTableModel();
 		}
+	}
+	
+	public void submitTable(Interpretable interpreter) {
+    	ArrayList<AbstractFrameEdit> frameUpdates = interpreter.tableToFrameUpdates(documentModel.getTableModel());
+		try {
+			dataAccess.commitFrameUpdates(frameUpdates);
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		}
+	}
+    
+	public void revertDataBase() {
+		dataAccess.revertDataBase();
+	}
+	
+	public void saveDataBase() {
+		dataAccess.saveDataBase();
 	}
     
 	@Override

@@ -20,7 +20,7 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import javax.swing.GroupLayout.Alignment;
 
-import edu.iastate.biocyctool.controller.BrowserController;
+import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.*;
 import java.awt.event.ActionListener;
@@ -32,7 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 
 public class DatabaseComparePanel extends AbstractViewPanel {
-	BrowserController controller;
+	DefaultController controller;
 	private JTextField textField;
 	private JPasswordField passwordField;
 	private JTextField textField_1;
@@ -41,7 +41,7 @@ public class DatabaseComparePanel extends AbstractViewPanel {
 	/**
 	 * Create the frame.
 	 */
-	public DatabaseComparePanel(BrowserController controller) {
+	public DatabaseComparePanel(DefaultController controller) {
 		this.controller = controller;
 		
 		initComponents();

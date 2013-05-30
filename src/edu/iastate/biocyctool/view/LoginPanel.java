@@ -2,9 +2,8 @@ package edu.iastate.biocyctool.view;
 
 import java.beans.PropertyChangeEvent;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
-import edu.iastate.biocyctool.tools.load.controller.DefaultController;
+import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.DefaultStateModel.State;
 import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 import edu.iastate.biocyctool.util.util.Util;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
@@ -26,7 +25,7 @@ import javax.swing.JButton;
 import java.awt.Dimension;
 
 public class LoginPanel extends AbstractViewPanel {
-	BrowserController controller;
+	DefaultController controller;
 	private JTextField txtHost;
 	private JTextField txtPort;
 	private JTextField txtUser;
@@ -36,7 +35,7 @@ public class LoginPanel extends AbstractViewPanel {
 	/**
 	 * Create the frame.
 	 */
-	public LoginPanel(BrowserController controller) {
+	public LoginPanel(DefaultController controller) {
 		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();

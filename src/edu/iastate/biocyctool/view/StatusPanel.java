@@ -3,8 +3,8 @@ package edu.iastate.biocyctool.view;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
+import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.DefaultStateModel.State;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 
 import javax.swing.JLabel;
@@ -19,14 +19,14 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
 public class StatusPanel extends AbstractViewPanel {
-	BrowserController controller;
+	DefaultController controller;
 	private JLabel lblStatus;
 	
 	/**
 	 * Create the frame.
 	 * @param controller 
 	 */
-	public StatusPanel(BrowserController controller) {
+	public StatusPanel(DefaultController controller) {
 		this.controller = controller;
 		
 		initComponents();
@@ -60,7 +60,7 @@ public class StatusPanel extends AbstractViewPanel {
     
 	@Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
-		if (evt.getPropertyName().equals(BrowserController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
+		if (evt.getPropertyName().equals(DefaultController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
 			if (evt.getNewValue() == State.NOT_CONNECTED) lblStatus.setText("Not Connected");
 			else if (evt.getNewValue() == State.MAIN_SCREEN) lblStatus.setText("Connected");
 		}

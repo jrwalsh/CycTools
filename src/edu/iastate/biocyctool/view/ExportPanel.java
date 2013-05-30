@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
+import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.DefaultStateModel.State;
 import edu.iastate.biocyctool.tools.load.util.CustomInterpreter;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.Frame;
@@ -49,7 +49,7 @@ import javax.swing.ScrollPaneConstants;
 public class ExportPanel extends AbstractViewPanel {
 	private ProgressMonitor progressMonitor;
 	private GetFramesOfTypeTask task;
-	BrowserController controller;
+	DefaultController controller;
 	private JTable tblPreviewExport;
 	private JTree treeFrameHierarchy;
 	private ArrayList<String> expandedNodes;
@@ -59,7 +59,7 @@ public class ExportPanel extends AbstractViewPanel {
 	/**
 	 * Create the frame.
 	 */
-	public ExportPanel(BrowserController controller) {
+	public ExportPanel(DefaultController controller) {
 		this.controller = controller;
 		initComponents();
         localInitialization();
@@ -237,7 +237,7 @@ public class ExportPanel extends AbstractViewPanel {
 	}
 	
 	private void getFramesOfType(String type) {
-		progressMonitor = new ProgressMonitor(BrowserController.mainJFrame, "Importing frame data...", "", 0, 100);
+		progressMonitor = new ProgressMonitor(DefaultController.mainJFrame, "Importing frame data...", "", 0, 100);
 		progressMonitor.setMinimum(0);
 		progressMonitor.setProgress(0);
 		task = new GetFramesOfTypeTask(type);
@@ -324,7 +324,7 @@ public class ExportPanel extends AbstractViewPanel {
 				
 				//TODO Dialog which slots user wants
 				Object[] possibilities = {"All Slots", "GO-Term Annotations"};
-				String s = (String)JOptionPane.showInputDialog(BrowserController.mainJFrame, "Select output format", "Select", JOptionPane.PLAIN_MESSAGE, null, possibilities, "All Slots");
+				String s = (String)JOptionPane.showInputDialog(DefaultController.mainJFrame, "Select output format", "Select", JOptionPane.PLAIN_MESSAGE, null, possibilities, "All Slots");
 				
 				if (s.equalsIgnoreCase("GO-Term Annotations")) { //TODO potential slow down here. Prefer modal select slot screen.  minimum add this to the progress monitor
 					CustomInterpreter interpreter = new CustomInterpreter();
@@ -428,14 +428,14 @@ public class ExportPanel extends AbstractViewPanel {
 		}
 		public void actionPerformed(ActionEvent e) {
 			if (tblPreviewExport.getModel().getRowCount() == 0) {
-				JOptionPane.showMessageDialog(BrowserController.mainJFrame, "Nothing to export", "Warning", JOptionPane.WARNING_MESSAGE);
+				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Nothing to export", "Warning", JOptionPane.WARNING_MESSAGE);
 				return;
 			}
 			
 			JFileChooser fc = new JFileChooser();
 			fc.addChoosableFileFilter(new XMLFileFilter());
 			fc.addChoosableFileFilter(new CSVFileFilter());
-			int returnVal = fc.showSaveDialog(BrowserController.mainJFrame);
+			int returnVal = fc.showSaveDialog(DefaultController.mainJFrame);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 	            File file = fc.getSelectedFile();
 	            String path = file.getAbsolutePath();

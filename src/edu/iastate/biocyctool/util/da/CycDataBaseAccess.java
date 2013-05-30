@@ -32,7 +32,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import edu.iastate.biocyctool.controller.BrowserController;
+import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.tools.load.model.AbstractFrameEdit;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
@@ -608,7 +608,7 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	}
 	
 	public DefaultTableModel getSearchResultsTable(String text, String type) throws PtoolsErrorException {
-		progressMonitor = new ProgressMonitor(BrowserController.mainJFrame, "Running a Long Task", "", 0, 100);
+		progressMonitor = new ProgressMonitor(DefaultController.mainJFrame, "Running a Long Task", "", 0, 100);
 		progressMonitor.setMillisToDecideToPopup(0);
 		progressMonitor.setMinimum(0);
 		progressMonitor.setProgress(0);

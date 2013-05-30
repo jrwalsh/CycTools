@@ -2,8 +2,8 @@ package edu.iastate.biocyctool.view;
 
 import java.beans.PropertyChangeEvent;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
+import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.DefaultStateModel.State;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 
 import java.awt.CardLayout;
@@ -11,7 +11,7 @@ import java.awt.Dimension;
 
 @SuppressWarnings("serial")
 public class MainCardPanel extends AbstractViewPanel {
-	BrowserController controller;
+	DefaultController controller;
 	public final static String loginCard = "Login";
 	public final static String selectCard = "Select";
 	public final static String frameBrowseCard = "FrameBrowse";
@@ -26,7 +26,7 @@ public class MainCardPanel extends AbstractViewPanel {
 	 * Create the frame.
 	 * @param controller 
 	 */
-	public MainCardPanel(BrowserController controller) {
+	public MainCardPanel(DefaultController controller) {
 		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();
@@ -42,7 +42,7 @@ public class MainCardPanel extends AbstractViewPanel {
     
 	@Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
-		if (evt.getPropertyName().equals(BrowserController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
+		if (evt.getPropertyName().equals(DefaultController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
 			if (evt.getNewValue() == State.NOT_CONNECTED) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.loginCard);

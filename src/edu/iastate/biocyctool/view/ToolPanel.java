@@ -3,8 +3,8 @@ package edu.iastate.biocyctool.view;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
+import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.DefaultStateModel.State;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 
 import javax.swing.AbstractAction;
@@ -20,7 +20,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 public class ToolPanel extends AbstractViewPanel {
 	public final static String noOrganism = "None Available";
 	
-	BrowserController controller;
+	DefaultController controller;
 	private JComboBox comboBoxOrganism;
 	private JButton btnBack;
 	private JButton btnForward;
@@ -32,7 +32,7 @@ public class ToolPanel extends AbstractViewPanel {
 	 * Create the frame.
 	 * @param controller 
 	 */
-	public ToolPanel(BrowserController controller) {
+	public ToolPanel(DefaultController controller) {
 		this.controller = controller;
 		
 		initComponents();
@@ -102,7 +102,7 @@ public class ToolPanel extends AbstractViewPanel {
 
 	@Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
-		if (evt.getPropertyName().equals(BrowserController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
+		if (evt.getPropertyName().equals(DefaultController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
 			if (evt.getNewValue() == State.NOT_CONNECTED) {
 				if (comboBoxOrganism.getItemCount() > 0) {
 					comboBoxOrganism.removeAllItems();

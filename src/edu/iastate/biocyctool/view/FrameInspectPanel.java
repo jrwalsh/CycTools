@@ -15,7 +15,7 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import javax.swing.GroupLayout.Alignment;
 
-import edu.iastate.biocyctool.controller.BrowserController;
+import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.util.util.Util;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.*;
@@ -25,7 +25,7 @@ import javax.swing.JComboBox;
 
 @SuppressWarnings("serial")
 public class FrameInspectPanel extends AbstractViewPanel {
-	BrowserController controller;
+	DefaultController controller;
 	private final Action actionSubmit = new ActionSubmit();
 	private JScrollPane scrollPane;
 	private JTextArea textArea;
@@ -36,7 +36,7 @@ public class FrameInspectPanel extends AbstractViewPanel {
 	/**
 	 * Create the frame.
 	 */
-	public FrameInspectPanel(BrowserController controller) {
+	public FrameInspectPanel(DefaultController controller) {
 		this.controller = controller;
 		
 		initComponents();
@@ -127,7 +127,7 @@ public class FrameInspectPanel extends AbstractViewPanel {
 				Object[] possibilities = controller.substringSearch(txtEnterFrameid.getText(), (String)cmbType.getSelectedItem()).toArray();
 				if (possibilities.length > 0) {
 					String s = (String)JOptionPane.showInputDialog(
-										BrowserController.mainJFrame,
+										DefaultController.mainJFrame,
 					                    "Select from the below possible search results",
 					                    "Search Results",
 					                    JOptionPane.PLAIN_MESSAGE,
@@ -140,7 +140,7 @@ public class FrameInspectPanel extends AbstractViewPanel {
 						// Cancelled
 					}
 				} else {
-					JOptionPane.showMessageDialog(BrowserController.mainJFrame, "No search results found");
+					JOptionPane.showMessageDialog(DefaultController.mainJFrame, "No search results found");
 				}
 //			}
 			textArea.setText(result);

@@ -53,8 +53,8 @@ import javax.swing.JSplitPane;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
+import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.DefaultStateModel.State;
 import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.Frame;
@@ -64,7 +64,7 @@ import edu.iastate.javacyco.Reaction;
 import javax.swing.JEditorPane;
 
 public class ExportPGDBStructurePanel extends AbstractViewPanel {
-	BrowserController controller;
+	DefaultController controller;
 
 	private JPanel panel;
 	private JPanel textPanel;
@@ -78,7 +78,7 @@ public class ExportPGDBStructurePanel extends AbstractViewPanel {
 	/**
 	 * Create the frame.
 	 */
-	public ExportPGDBStructurePanel(BrowserController controller) {
+	public ExportPGDBStructurePanel(DefaultController controller) {
 		this.controller = controller;
 		initComponents();
         localInitialization();

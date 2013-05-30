@@ -22,7 +22,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-import edu.iastate.biocyctool.controller.BrowserController;
+import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.util.util.Util;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 import edu.iastate.javacyco.Frame;
@@ -35,7 +35,7 @@ import java.awt.event.ActionListener;
 
 @SuppressWarnings("serial")
 public class SearchPanel extends AbstractViewPanel {
-	BrowserController controller;
+	DefaultController controller;
 	private ProgressMonitor progressMonitor;
 	private GetSearchResultsTableTask task;
 
@@ -51,7 +51,7 @@ public class SearchPanel extends AbstractViewPanel {
 	/**
 	 * Create the frame.
 	 */
-	public SearchPanel(BrowserController controller) {
+	public SearchPanel(DefaultController controller) {
 		this.controller = controller;
 		initComponents();
         localInitialization();
@@ -121,7 +121,7 @@ public class SearchPanel extends AbstractViewPanel {
 	}
 	
 	public void getSearchResultsTable(String text, String type) {
-		progressMonitor = new ProgressMonitor(BrowserController.mainJFrame, "Searching terms...", "", 0, 100);
+		progressMonitor = new ProgressMonitor(DefaultController.mainJFrame, "Searching terms...", "", 0, 100);
 		progressMonitor.setMinimum(0);
 		progressMonitor.setProgress(0);
 		task = new GetSearchResultsTableTask(text, type);

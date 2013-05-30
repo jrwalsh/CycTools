@@ -1,7 +1,7 @@
 package edu.iastate.biocyctool.view;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
+import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.DefaultStateModel.State;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -13,7 +13,7 @@ import java.awt.event.ActionEvent;
 
 @SuppressWarnings("serial")
 public class MenuBar extends JMenuBar {
-	BrowserController controller;
+	DefaultController controller;
 	
 	private static JMenu mnFile;
 	private static JMenu mnAbout;
@@ -28,7 +28,7 @@ public class MenuBar extends JMenuBar {
 	/**
 	 * Create the frame.
 	 */
-	public MenuBar(BrowserController controller) {
+	public MenuBar(DefaultController controller) {
 		this.controller = controller;
 		initComponents();
         localInitialization();
@@ -85,7 +85,7 @@ public class MenuBar extends JMenuBar {
 			putValue(SHORT_DESCRIPTION, "About this program.");
 		}
 		public void actionPerformed(ActionEvent e) {
-			JOptionPane.showMessageDialog(BrowserController.mainJFrame, "This program was written by Jesse Walsh", "About", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(DefaultController.mainJFrame, "This program was written by Jesse Walsh", "About", JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
 }

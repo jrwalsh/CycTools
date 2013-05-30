@@ -1,6 +1,6 @@
 package edu.iastate.biocyctool.tools.load.view;
 
-import edu.iastate.biocyctool.tools.load.controller.DefaultController;
+import edu.iastate.biocyctool.DefaultController;
 import edu.iastate.biocyctool.tools.load.util.CustomInterpreter;
 import edu.iastate.biocyctool.tools.load.util.SimpleInterpreter;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;

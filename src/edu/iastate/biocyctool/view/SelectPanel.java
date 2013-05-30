@@ -2,8 +2,8 @@ package edu.iastate.biocyctool.view;
 
 import java.beans.PropertyChangeEvent;
 
-import edu.iastate.biocyctool.controller.BrowserController;
-import edu.iastate.biocyctool.model.ApplicationStateModel.State;
+import edu.iastate.biocyctool.DefaultController;
+import edu.iastate.biocyctool.DefaultStateModel.State;
 import edu.iastate.biocyctool.util.da.CycDataBaseAccess;
 import edu.iastate.biocyctool.util.view.AbstractViewPanel;
 
@@ -25,7 +25,7 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 
 public class SelectPanel extends AbstractViewPanel {
-	BrowserController controller;
+	DefaultController controller;
 	private final Action actionSelectFrameBrowser = new ActionSelectFrameBrowser();
 	private final Action actionSelectExportPanel = new ActionSelectExportPanel();
 	private final Action actionSelectSearchPanel = new ActionSelectSearchPanel();
@@ -37,7 +37,7 @@ public class SelectPanel extends AbstractViewPanel {
 	 * Create the frame.
 	 * @param controller 
 	 */
-	public SelectPanel(BrowserController controller) {
+	public SelectPanel(DefaultController controller) {
 		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();

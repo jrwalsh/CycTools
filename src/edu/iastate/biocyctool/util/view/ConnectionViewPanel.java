@@ -1,25 +1,16 @@
 package edu.iastate.biocyctool.util.view;
 
-import edu.iastate.biocyctool.tools.load.controller.DefaultController;
-
 import java.beans.PropertyChangeEvent;
 import javax.swing.JPanel;
-import javax.swing.border.EtchedBorder;
-import java.awt.GridBagLayout;
 import javax.swing.JLabel;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-
-import javax.swing.JDialog;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.AbstractAction;
-import java.awt.event.ActionEvent;
-import javax.swing.Action;
+
+import edu.iastate.biocyctool.DefaultController;
 
 public class ConnectionViewPanel extends AbstractViewPanel {
     // The controller used by this view

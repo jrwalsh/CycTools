@@ -1,12 +1,11 @@
-package edu.iastate.biocyctool.model;
+package edu.iastate.biocyctool;
 
-import edu.iastate.biocyctool.controller.BrowserController;
 import edu.iastate.biocyctool.util.model.AbstractModel;
 
-public class ApplicationStateModel extends AbstractModel {
+public class DefaultStateModel extends AbstractModel {
 	private State state;
     
-    public ApplicationStateModel() {
+    public DefaultStateModel() {
     	initDefault();
     }
     
@@ -17,7 +16,7 @@ public class ApplicationStateModel extends AbstractModel {
     public void setState(State state) {
     	State oldState = this.state;
     	this.state = state;
-    	firePropertyChange(BrowserController.BROWSER_STATE_PROPERTY, oldState, state);
+    	firePropertyChange(DefaultController.BROWSER_STATE_PROPERTY, oldState, state);
     }
     
     public State getState() {

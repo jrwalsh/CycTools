@@ -11,16 +11,16 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JDialog;
 
-import edu.iastate.biocyctool.controller.BrowserController;
+import edu.iastate.biocyctool.DefaultController;
 
 public class SearchResultDialog extends JDialog implements ActionListener, PropertyChangeListener {
     private JOptionPane optionPane;
-    private BrowserController controller;
+    private DefaultController controller;
 
     private String btnString1 = "Enter";
     private String btnString2 = "Cancel";
 
-    public SearchResultDialog(JFrame aFrame, String searchTerm, BrowserController controller) {
+    public SearchResultDialog(JFrame aFrame, String searchTerm, DefaultController controller) {
         super(aFrame, true);
         
         this.controller = controller;
