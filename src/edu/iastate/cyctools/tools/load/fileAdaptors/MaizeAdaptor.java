@@ -1,4 +1,4 @@
-package edu.iastate.cyctools.tools.load.util;
+package edu.iastate.cyctools.tools.load.fileAdaptors;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,9 +14,15 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 // Designed for the MaizeGDB teams curation updates.  To be designed to handle their specifically formated input file.
-public class CustomInterpreter implements Interpretable {
-
-	public CustomInterpreter() {
+public class MaizeAdaptor implements FileAdaptor {
+	private boolean append;
+	private boolean ignoreDuplicates;
+	private String multipleValueDelimiter;
+	
+	public MaizeAdaptor() {
+		append = true;
+		ignoreDuplicates = true;
+		multipleValueDelimiter = "$"; //TODO convert multiple value entries into arrays before insert
 	}
 	
 	// Assumes exact format for file with a defined column for each piece of info
@@ -38,11 +44,11 @@ public class CustomInterpreter implements Interpretable {
 			conn.selectOrganism("CORN");
 			String encodedTime = encodeTimeStampString(timeStampString, conn);
 			
-			frameUpdates.add(new SlotUpdate(frameID, "GO-TERMS", goTerm, true, true));
+			frameUpdates.add(new SlotUpdate(frameID, "GO-TERMS", goTerm, append, ignoreDuplicates));
 			
 			ArrayList<String> annotValues = new ArrayList<String>();
 			annotValues.add("\"" + pubMedID + ":" + evCode + ":" + encodedTime + ":" + curator + "\"");
-			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues, true, true));
+			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues, append, ignoreDuplicates));
 		}
 		return frameUpdates;
 	}
@@ -140,5 +146,20 @@ public class CustomInterpreter implements Interpretable {
 		}
 		
 		return encodedTime;
+	}
+
+	@Override
+	public void setAppend(boolean append) {
+		this.append = append;
+	}
+
+	@Override
+	public void setIgnoreDuplicates(boolean ignoreDuplicates) {
+		this.ignoreDuplicates = ignoreDuplicates;
+	}
+
+	@Override
+	public void setMultipleValueDelimiter(String multipleValueDelimiter) {
+		this.multipleValueDelimiter = multipleValueDelimiter;
 	}
 }

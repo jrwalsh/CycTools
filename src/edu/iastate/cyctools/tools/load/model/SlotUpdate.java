@@ -32,7 +32,6 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 		return slotLabel;
 	}
 	
-	// Catches all "special" cases for slot updates, such as GO-TERMS
 	@Override
 	public void commit(JavacycConnection conn) throws PtoolsErrorException {
 		Frame frame = this.getFrame(conn);
@@ -54,7 +53,32 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 		} else newValues.addAll(slotValues);
 		
 		frame.putSlotValues(slotLabel, newValues);
+		
 		frame.commit();
+	}
+	
+	// Catches all "special" cases for slot updates, such as GO-TERMS
+	@Override
+	public Frame modifyLocalFrame(Frame frame, JavacycConnection conn) throws PtoolsErrorException {
+//		// GO-TERMS are a special case, as pathway tools can automatically import information for them if told to do so.
+//		if (slotLabel.equalsIgnoreCase("GO-TERMS")) {
+//			conn.importGOTerms(getValues());
+//		}
+		
+		ArrayList<String> newValues = new ArrayList<String>();
+		if (append) {
+			newValues.addAll(frame.getSlotValues(slotLabel));
+		}
+		
+		if (ignoreDuplicates) {
+			for (String value : slotValues) {
+				if (!newValues.contains(value)) newValues.add(value);
+			}
+		} else newValues.addAll(slotValues);
+		
+		frame.putSlotValues(slotLabel, newValues);
+		
+		return frame;
 	}
 
 //	@Override

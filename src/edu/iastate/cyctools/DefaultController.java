@@ -10,9 +10,9 @@ import javax.swing.table.DefaultTableModel;
 
 import edu.iastate.cyctools.DefaultStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
+import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
-import edu.iastate.cyctools.tools.load.util.Interpretable;
 import edu.iastate.cyctools.view.StatusPanel;
 import edu.iastate.cyctools.view.ToolPanel;
 import edu.iastate.javacyco.Frame;
@@ -54,6 +54,10 @@ public class DefaultController implements PropertyChangeListener {
     
     public void changeDocumentFile(File newFile) {
     	this.documentModel.setFile(newFile);
+    }
+    
+    public DocumentModel getDocumentModel() {
+    	return this.documentModel;
     }
     
     public void setMainJFrame(JFrame jframe) {
@@ -125,6 +129,10 @@ public class DefaultController implements PropertyChangeListener {
     	return dataAccess.frameToString(frameID);
     }
     
+    public String frameToString(Frame frame) {
+    	return dataAccess.frameToString(frame);
+    }
+    
     public ArrayList<String> substringSearch(String text, String type) {
     	try {
 			return dataAccess.substringSearch(text, type);
@@ -187,13 +195,22 @@ public class DefaultController implements PropertyChangeListener {
 		}
 	}
 	
-	public void submitTable(Interpretable interpreter) {
+	public void submitTable(FileAdaptor interpreter) {
     	ArrayList<AbstractFrameEdit> frameUpdates = interpreter.tableToFrameUpdates(documentModel.getTableModel());
 		try {
 			dataAccess.commitFrameUpdates(frameUpdates);
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public Frame updateLocalFrame(String frameID, ArrayList<AbstractFrameEdit> frameUpdates) {
+		try {
+			return dataAccess.updateLocalFrame(frameID, frameUpdates);
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
     
 	public void revertDataBase() {

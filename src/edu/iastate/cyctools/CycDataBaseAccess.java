@@ -163,6 +163,56 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 			return null;
 		}
 	}
+	
+	// Convert a frame into a printable string
+		public String frameToString(Frame frame) {
+			String printString = "";
+			
+			printString += "\n"+frame.getLocalID()+"\n";
+			
+			try {
+				ArrayList slots = frame.getSlotLabels();
+				for(int k=0;k<slots.size();k++) {
+					String slotName = (String)slots.get(k);
+					ArrayList slotValues = frame.getSlotValues(slotName);
+					printString += slotName+" ("+JavacycConnection.countLists(slotValues)+")\n";
+					for(Object slotValue : slotValues) {
+						if(slotValue instanceof String) {
+							printString += "\t"+(String)slotValue+"\n";
+							ArrayList<String> annots = frame.getAllAnnotLabels(slotName, (String)slotValue);
+							for(String annotName : annots) {
+								printString += "\t\t--"+annotName+"\t"+frame.getAnnotations(slotName, (String)slotValue, annotName)+"\n";
+							}
+						}
+						else {
+							printString += "\t"+JavacycConnection.ArrayList2LispList(slotValues)+"\n";
+							break;
+						}
+					}
+				}
+
+				if(!conn.getFrameType(frame.getLocalID()).toUpperCase().equals(":CLASS"))
+				{
+					printString += "~~THE FOLLOWING ARE NOT SLOTS~~\n~GFP SUPERCLASSES: \n";
+					for(Object t : conn.getInstanceAllTypes(frame.getLocalID())) {
+						printString += "\t"+(String)t+"\n";
+					}
+					printString += "~DIRECT GFP SUPERCLASSES: \n";
+					for(Object t : conn.getInstanceDirectTypes(frame.getLocalID()))
+					{
+						printString += "\t"+(String)t+"\n";
+					}
+				}
+			
+				printString += "~CLASSIFIED AS\n\t"+Frame.load(conn, frame.getLocalID()).getClass().getName()+"\n";
+				printString += "~LOADED FROM\n\t"+Frame.load(conn, frame.getLocalID()).getOrganism().getLocalID()+" "+Frame.load(conn, frame.getLocalID()).getOrganism().getSpecies()+"\n";
+				
+				return printString;
+			}
+			catch(PtoolsErrorException e) {
+				return null;
+			}
+		}
 
 	// Search
 	public ArrayList<String> substringSearch(String text, String type) throws PtoolsErrorException {
@@ -473,6 +523,14 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		for (AbstractFrameEdit frameUpdate : frameUpdates) {
 			frameUpdate.commit(conn);
 		}
+	}
+	
+	public Frame updateLocalFrame(String frameID, ArrayList<AbstractFrameEdit> frameUpdates) throws PtoolsErrorException {
+		Frame frame = Frame.load(conn, frameID);
+		for (AbstractFrameEdit frameUpdate : frameUpdates) {
+			frameUpdate.modifyLocalFrame(frame, conn);
+		}
+		return frame;
 	}
 	
 	public DefaultMutableTreeNode frameToTree(String frameID) {

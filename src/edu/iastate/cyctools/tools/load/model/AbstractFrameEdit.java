@@ -8,6 +8,10 @@ public abstract class AbstractFrameEdit {
 	protected String frameID;
 	protected int[] associatedRows;
 	
+	public String getFrameID() throws PtoolsErrorException {
+		return frameID;
+	}
+	
 	public Frame getFrame(JavacycConnection conn) throws PtoolsErrorException {
 		return Frame.load(conn, frameID);
 	}
@@ -17,5 +21,6 @@ public abstract class AbstractFrameEdit {
 	}
 	
 	public abstract void commit(JavacycConnection conn) throws PtoolsErrorException;
+	public abstract Frame modifyLocalFrame(Frame frame, JavacycConnection conn) throws PtoolsErrorException;
 	public abstract void revert(JavacycConnection conn) throws PtoolsErrorException;
 }

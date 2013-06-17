@@ -55,6 +55,24 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 	}
 	
 	@Override
+	public Frame modifyLocalFrame(Frame frame, JavacycConnection conn) throws PtoolsErrorException {
+		ArrayList<String> newValues = new ArrayList<String>();
+		if (append) {
+			newValues.addAll(frame.getAnnotations(slotLabel, slotValue, annotationLabel));
+		}
+		
+		if (ignoreDuplicates) {
+			for (String value : annotationValues) {
+				if (!newValues.contains(value)) newValues.add(value);
+			}
+		} else newValues.addAll(annotationValues);
+		
+		frame.putLocalSlotValueAnnotations(slotLabel, slotValue, annotationLabel, newValues);
+		
+		return frame;
+	}
+	
+	@Override
 	protected ArrayList<String> getValues() {
 		return annotationValues;
 	}

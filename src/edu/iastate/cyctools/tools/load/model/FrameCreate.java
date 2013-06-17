@@ -29,4 +29,11 @@ public class FrameCreate extends AbstractFrameEdit {
 	public void revert(JavacycConnection conn) throws PtoolsErrorException {
 		// TODO Auto-generated method stub
 	}
+
+	@Override
+	public Frame modifyLocalFrame(Frame frame, JavacycConnection conn)
+			throws PtoolsErrorException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

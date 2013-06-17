@@ -1,4 +1,4 @@
-package edu.iastate.cyctools.tools.load.util;
+package edu.iastate.cyctools.tools.load.fileAdaptors;
 
 import java.util.ArrayList;
 
@@ -7,9 +7,15 @@ import javax.swing.table.TableModel;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.SlotUpdate;
 
-public class NewRegulation implements Interpretable {
-
+public class NewRegulation implements FileAdaptor {
+	private boolean append;
+	private boolean ignoreDuplicates;
+	private String multipleValueDelimiter;
+	
 	public NewRegulation() {
+		append = true;
+		ignoreDuplicates = true;
+		multipleValueDelimiter = "$";//TODO convert multiple value entries into arrays before insert
 	}
 	
 	// FrameID of regulationFrame
@@ -36,10 +42,25 @@ public class NewRegulation implements Interpretable {
 			String regulatorFrameID = (String) tb.getValueAt(rowIndex, 1);
 			String regulateeFrameID = (String) tb.getValueAt(rowIndex, 2);
 			String modeValue = (String) tb.getValueAt(rowIndex, 3);
-			frameUpdates.add(new SlotUpdate(regulationFrameID, "REGULATOR", regulatorFrameID, true, true));
-			frameUpdates.add(new SlotUpdate(regulationFrameID, "REGULATEE", regulateeFrameID, true, true));
-			frameUpdates.add(new SlotUpdate(regulationFrameID, "MODE", modeValue, true, true));
+			frameUpdates.add(new SlotUpdate(regulationFrameID, "REGULATOR", regulatorFrameID, append, ignoreDuplicates));
+			frameUpdates.add(new SlotUpdate(regulationFrameID, "REGULATEE", regulateeFrameID, append, ignoreDuplicates));
+			frameUpdates.add(new SlotUpdate(regulationFrameID, "MODE", modeValue, append, ignoreDuplicates));
 		}
 		return frameUpdates;
+	}
+	
+	@Override
+	public void setAppend(boolean append) {
+		this.append = append;
+	}
+
+	@Override
+	public void setIgnoreDuplicates(boolean ignoreDuplicates) {
+		this.ignoreDuplicates = ignoreDuplicates;
+	}
+
+	@Override
+	public void setMultipleValueDelimiter(String multipleValueDelimiter) {
+		this.multipleValueDelimiter = multipleValueDelimiter;
 	}
 }

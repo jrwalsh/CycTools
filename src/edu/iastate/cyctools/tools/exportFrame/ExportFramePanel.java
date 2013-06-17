@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutionException;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.DefaultStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
-import edu.iastate.cyctools.tools.load.util.CustomInterpreter;
+import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
@@ -326,7 +326,7 @@ public class ExportFramePanel extends AbstractViewPanel {
 				String s = (String)JOptionPane.showInputDialog(DefaultController.mainJFrame, "Select output format", "Select", JOptionPane.PLAIN_MESSAGE, null, possibilities, "All Slots");
 				
 				if (s.equalsIgnoreCase("GO-Term Annotations")) { //TODO potential slow down here. Prefer modal select slot screen.  minimum add this to the progress monitor
-					CustomInterpreter interpreter = new CustomInterpreter();
+					MaizeAdaptor interpreter = new MaizeAdaptor();
 					return interpreter.framesToTable(frames, conn);
 				}
 				

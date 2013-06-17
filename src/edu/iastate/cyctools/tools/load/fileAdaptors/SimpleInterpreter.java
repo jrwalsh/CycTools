@@ -1,4 +1,4 @@
-package edu.iastate.cyctools.tools.load.util;
+package edu.iastate.cyctools.tools.load.fileAdaptors;
 
 import java.util.ArrayList;
 
@@ -7,9 +7,15 @@ import javax.swing.table.TableModel;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.SlotUpdate;
 
-public class SimpleInterpreter implements Interpretable {
+public class SimpleInterpreter implements FileAdaptor {
+	private boolean append;
+	private boolean ignoreDuplicates;
+	private String multipleValueDelimiter;
 
 	public SimpleInterpreter() {
+		append = true;
+		ignoreDuplicates = true;
+		multipleValueDelimiter = "$";//TODO convert multiple value entries into arrays before insert
 	}
 	
 	// Assumes one frame per row
@@ -28,9 +34,24 @@ public class SimpleInterpreter implements Interpretable {
 				ArrayList<String> values = new ArrayList<String>();
 				values.add((String) tb.getValueAt(rowIndex, columnIndex));
 				
-				frameUpdates.add(new SlotUpdate(frameID, slotLabel, values, true, true));
+				frameUpdates.add(new SlotUpdate(frameID, slotLabel, values, append, ignoreDuplicates));
 			}
 		}
 		return frameUpdates;
+	}
+	
+	@Override
+	public void setAppend(boolean append) {
+		this.append = append;
+	}
+
+	@Override
+	public void setIgnoreDuplicates(boolean ignoreDuplicates) {
+		this.ignoreDuplicates = ignoreDuplicates;
+	}
+
+	@Override
+	public void setMultipleValueDelimiter(String multipleValueDelimiter) {
+		this.multipleValueDelimiter = multipleValueDelimiter;
 	}
 }
