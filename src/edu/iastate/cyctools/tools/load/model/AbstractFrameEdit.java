@@ -4,11 +4,12 @@ import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
+// Any change that can be committed to the database must be coded as an AbstractFrameEdit or a child class.
 public abstract class AbstractFrameEdit {
 	protected String frameID;
 	protected int[] associatedRows;
 	
-	public String getFrameID() throws PtoolsErrorException {
+	public String getFrameID() {
 		return frameID;
 	}
 	
@@ -16,11 +17,24 @@ public abstract class AbstractFrameEdit {
 		return Frame.load(conn, frameID);
 	}
 	
+	public int[] getAssociatedRows() {
+		return associatedRows;
+	}
+	
+	public String getAssociatedRowsString() {
+		String associatedRowsString = "";
+		for (int i = 0; i < associatedRows.length; i++) {
+			associatedRowsString += associatedRows[i] + ", ";
+		}
+		
+		if (associatedRowsString.length() > 2) associatedRowsString = associatedRowsString.substring(0, associatedRowsString.length() - 2);
+		return associatedRowsString;
+	}
+	
 	protected boolean frameExistsInKB(JavacycConnection conn) throws PtoolsErrorException {
 		return conn.frameExists(frameID);
 	}
 	
-	public abstract void commit(JavacycConnection conn) throws PtoolsErrorException;
-	public abstract Frame modifyLocalFrame(Frame frame, JavacycConnection conn) throws PtoolsErrorException;
-	public abstract void revert(JavacycConnection conn) throws PtoolsErrorException;
+	public abstract boolean commit(JavacycConnection conn) throws PtoolsErrorException;
+	public abstract Frame commitLocal(Frame frame, JavacycConnection conn) throws PtoolsErrorException;
 }

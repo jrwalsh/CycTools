@@ -10,7 +10,7 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 	private String slotLabel;
 	private ArrayList<String> slotValues;
 	
-	public SlotUpdate(String frameID, String slotLabel, String slotValue, boolean append, boolean ignoreDuplicates) {
+	public SlotUpdate(String frameID, String slotLabel, String slotValue, boolean append, boolean ignoreDuplicates, int[] associatedRows) {
 		ArrayList<String> slotValues = new ArrayList<String>();
 		slotValues.add(slotValue);
 		this.frameID = frameID;
@@ -18,14 +18,16 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 		this.slotValues = slotValues;
 		this.append = append;
 		this.ignoreDuplicates = ignoreDuplicates;
+		this.associatedRows = associatedRows;
 	}
 	
-	public SlotUpdate(String frameID, String slotLabel, ArrayList<String> slotValues, boolean append, boolean ignoreDuplicates) {
+	public SlotUpdate(String frameID, String slotLabel, ArrayList<String> slotValues, boolean append, boolean ignoreDuplicates, int[] associatedRows) {
 		this.frameID = frameID;
 		this.slotLabel = slotLabel;
 		this.slotValues = slotValues;
 		this.append = append;
 		this.ignoreDuplicates = ignoreDuplicates;
+		this.associatedRows = associatedRows;
 	}
 	
 	public String getSlotLabel() {
@@ -33,17 +35,37 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 	}
 	
 	@Override
-	public void commit(JavacycConnection conn) throws PtoolsErrorException {
-		Frame frame = this.getFrame(conn);
+	public boolean commit(JavacycConnection conn) {
+		Frame frame = null;
+		try {
+			if(!conn.frameExists(frameID)) {
+				return false;
+			}
+			
+			frame = this.getFrame(conn);
+		} catch (PtoolsErrorException e1) {
+			System.out.println("not sure how you would reach this");
+			return false;
+		}
 		
 		// GO-TERMS are a special case, as pathway tools can automatically import information for them if told to do so.
 		if (slotLabel.equalsIgnoreCase("GO-TERMS")) {
-			conn.importGOTerms(getValues());
+			try {
+				conn.importGOTerms(getValues());
+			} catch (PtoolsErrorException e) {
+				System.out.println("here we have a problem importing a GO-term.  Perhaps this term doesn't exist?");
+				return false;
+			}
 		}
 		
 		ArrayList<String> newValues = new ArrayList<String>();
 		if (append) {
-			newValues.addAll(frame.getSlotValues(slotLabel));
+			try {
+				newValues.addAll(frame.getSlotValues(slotLabel));
+			} catch (PtoolsErrorException e) {
+				System.out.println("not sure what to make of this.  The slot doesn't exist? bad data format?");
+				return false;
+			}
 		}
 		
 		if (ignoreDuplicates) {
@@ -54,12 +76,18 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 		
 		frame.putSlotValues(slotLabel, newValues);
 		
-		frame.commit();
+		try {
+			frame.commit();
+		} catch (PtoolsErrorException e) {
+			System.out.println("error during commit, recommend a rollback");
+			return false;
+		}
+		return true;
 	}
 	
 	// Catches all "special" cases for slot updates, such as GO-TERMS
 	@Override
-	public Frame modifyLocalFrame(Frame frame, JavacycConnection conn) throws PtoolsErrorException {
+	public Frame commitLocal(Frame frame, JavacycConnection conn) throws PtoolsErrorException {
 //		// GO-TERMS are a special case, as pathway tools can automatically import information for them if told to do so.
 //		if (slotLabel.equalsIgnoreCase("GO-TERMS")) {
 //			conn.importGOTerms(getValues());
@@ -80,24 +108,6 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 		
 		return frame;
 	}
-
-//	@Override
-//	protected boolean checkRemoteValueEmpty(JavacycConnection conn) throws PtoolsErrorException {
-//		ArrayList<String> remoteSlotValues = (ArrayList<String>) conn.getSlotValues(frameID, slotLabel);
-//		if (remoteSlotValues == null || remoteSlotValues.isEmpty()) {
-//			return true;
-//		} else 
-//			return false;
-//	}
-//
-//	@Override
-//	protected boolean checkRemoteValueDuplicate(JavacycConnection conn) throws PtoolsErrorException {
-//		ArrayList<String> remoteSlotValues = (ArrayList<String>) conn.getSlotValues(frameID, slotLabel);
-//		if (remoteSlotValues.containsAll(slotValues) && slotValues.containsAll(remoteSlotValues)) {
-//			return true;
-//		} else 
-//			return false;
-//	}
 	
 	@Override
 	public ArrayList<String> getValues() {
@@ -107,11 +117,5 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 	@Override
 	protected ArrayList<String> getRemoteValues(JavacycConnection conn) throws PtoolsErrorException {
 		return (ArrayList<String>) conn.getSlotValues(frameID, slotLabel);
-	}
-
-	@Override
-	public void revert(JavacycConnection conn) throws PtoolsErrorException {
-		// TODO Auto-generated method stub
-		
 	}
 }

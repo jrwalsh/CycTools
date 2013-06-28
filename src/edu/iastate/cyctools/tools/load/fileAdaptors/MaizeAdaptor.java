@@ -44,11 +44,11 @@ public class MaizeAdaptor implements FileAdaptor {
 			conn.selectOrganism("CORN");
 			String encodedTime = encodeTimeStampString(timeStampString, conn);
 			
-			frameUpdates.add(new SlotUpdate(frameID, "GO-TERMS", goTerm, append, ignoreDuplicates));
+			frameUpdates.add(new SlotUpdate(frameID, "GO-TERMS", goTerm, append, ignoreDuplicates, new int[] {rowIndex}));
 			
 			ArrayList<String> annotValues = new ArrayList<String>();
 			annotValues.add("\"" + pubMedID + ":" + evCode + ":" + encodedTime + ":" + curator + "\"");
-			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues, append, ignoreDuplicates));
+			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues, append, ignoreDuplicates, new int[] {rowIndex}));
 		}
 		return frameUpdates;
 	}

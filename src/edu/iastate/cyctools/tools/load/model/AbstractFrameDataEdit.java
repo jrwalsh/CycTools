@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
+// This class is intended to represent any changes to an existing frame, but more specifically not used to create or remove frames.
 public abstract class AbstractFrameDataEdit extends AbstractFrameEdit {
 	protected boolean append;
 	protected boolean ignoreDuplicates;

@@ -31,6 +31,9 @@ public class DefaultController implements PropertyChangeListener {
 	public static String DOCUMENT_FILEPATH_PROPERTY = "FilePath";
 	public static String DOCUMENT_TABLEMODEL_PROPERTY = "TableModel";
 	public static String BROWSER_STATE_PROPERTY = "State";
+	public static String REPORT_PROPERTY_FRAME_EDITS_PROCESSED = "FrameEditsProcessed";
+	public static String REPORT_PROPERTY_FRAME_EDITS_SUCCESS = "FrameEditsSuccess";
+	public static String REPORT_PROPERTY_FRAME_EDITS_FAIL = "FrameEditsFail";
 	
     public DefaultController(DefaultStateModel state) {
     	this.dataAccess = null;

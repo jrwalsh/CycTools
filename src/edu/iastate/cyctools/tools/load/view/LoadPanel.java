@@ -19,8 +19,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import edu.iastate.cyctools.DefaultController;
@@ -30,11 +28,11 @@ import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleInterpreter;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
+import edu.iastate.cyctools.tools.load.model.BatchEditModel;
 import edu.iastate.cyctools.tools.load.util.KeyValue;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-import java.awt.FlowLayout;
 import java.awt.CardLayout;
 import javax.swing.JComboBox;
 import javax.swing.JCheckBox;
@@ -63,8 +61,12 @@ public class LoadPanel extends AbstractViewPanel {
 	private JList listFrames;
 	private JTextArea textAreaOld;
 	private JTextArea textAreaNew;
-	private ArrayList<AbstractFrameEdit> frameEdits;
-	private HashMap<String, ArrayList<AbstractFrameEdit>> frameEditsMap;
+	private JTextArea textFrameEdits;
+	private JTextArea textSuccess;
+	private JTextArea textFail;
+	private JTextArea textConverted;
+	private JTextArea textLog;
+	private BatchEditModel batchEdits;
 	private JCheckBox chckbxAppend;
 	private JCheckBox chckbxIgnoreDuplicate;
 	
@@ -211,9 +213,6 @@ public class LoadPanel extends AbstractViewPanel {
 		scrollPane_2.setViewportView(textAreaNew);
 		splitPane.setDividerLocation(250);
 		
-		
-		
-		
 		previewPanel.setLayout(gl_previewPanel);
 		add(reviewPanel, "ReviewPanel");
 		
@@ -339,9 +338,108 @@ public class LoadPanel extends AbstractViewPanel {
         );
         filePanel.setLayout(gl_filePanel);
         
-        reviewPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        reviewPanel.add(btnRevert);
-        reviewPanel.add(btnSave);
+        JScrollPane scrollPane_3 = new JScrollPane();
+        
+        JPanel panel_1 = new JPanel();
+        
+        JLabel lblSummaryResults = new JLabel("Summary Results");
+        
+        GroupLayout gl_reviewPanel = new GroupLayout(reviewPanel);
+        gl_reviewPanel.setHorizontalGroup(
+        	gl_reviewPanel.createParallelGroup(Alignment.LEADING)
+        		.addGroup(gl_reviewPanel.createSequentialGroup()
+        			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.LEADING)
+        				.addGroup(gl_reviewPanel.createSequentialGroup()
+        					.addContainerGap()
+        					.addComponent(btnRevert)
+        					.addPreferredGap(ComponentPlacement.RELATED)
+        					.addComponent(btnSave))
+        				.addGroup(gl_reviewPanel.createSequentialGroup()
+        					.addGap(12)
+        					.addComponent(scrollPane_3, GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE))
+        				.addGroup(gl_reviewPanel.createSequentialGroup()
+        					.addContainerGap()
+        					.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 399, GroupLayout.PREFERRED_SIZE))
+        				.addGroup(gl_reviewPanel.createSequentialGroup()
+        					.addContainerGap()
+        					.addComponent(lblSummaryResults)))
+        			.addContainerGap())
+        );
+        gl_reviewPanel.setVerticalGroup(
+        	gl_reviewPanel.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(gl_reviewPanel.createSequentialGroup()
+        			.addGap(14)
+        			.addComponent(lblSummaryResults)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addComponent(panel_1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addComponent(scrollPane_3, GroupLayout.PREFERRED_SIZE, 178, GroupLayout.PREFERRED_SIZE)
+        			.addGap(18)
+        			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(btnRevert)
+        				.addComponent(btnSave))
+        			.addContainerGap())
+        );
+        
+        textConverted = new JTextArea();
+        textConverted.setEditable(false);
+        
+        JLabel lblTotalFrameEdits = new JLabel("Total Frame Edits Processed");
+        
+        JLabel lblSuccessfulUpdates = new JLabel("Successful Updates");
+        
+        JLabel lblFailedUpdates = new JLabel("Failed Updates");
+        
+        textFrameEdits = new JTextArea();
+        textFrameEdits.setEditable(false);
+        textSuccess = new JTextArea();
+        textSuccess.setEditable(false);
+        textFail = new JTextArea();
+        textFail.setEditable(false);
+        GroupLayout gl_panel_1 = new GroupLayout(panel_1);
+        gl_panel_1.setHorizontalGroup(
+        	gl_panel_1.createParallelGroup(Alignment.LEADING)
+        		.addGroup(gl_panel_1.createSequentialGroup()
+        			.addContainerGap()
+        			.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+        				.addComponent(textConverted, GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
+        				.addGroup(gl_panel_1.createSequentialGroup()
+        					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+        						.addComponent(lblTotalFrameEdits)
+        						.addComponent(lblSuccessfulUpdates)
+        						.addComponent(lblFailedUpdates))
+        					.addGap(18)
+        					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING, false)
+        						.addComponent(textFail, GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE)
+        						.addComponent(textSuccess, GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE)
+        						.addComponent(textFrameEdits))
+        					.addPreferredGap(ComponentPlacement.RELATED, 98, Short.MAX_VALUE)))
+        			.addContainerGap())
+        );
+        gl_panel_1.setVerticalGroup(
+        	gl_panel_1.createParallelGroup(Alignment.LEADING)
+        		.addGroup(gl_panel_1.createSequentialGroup()
+        			.addContainerGap()
+        			.addComponent(textConverted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(lblTotalFrameEdits)
+        				.addComponent(textFrameEdits, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(lblSuccessfulUpdates)
+        				.addComponent(textSuccess, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(lblFailedUpdates)
+        				.addComponent(textFail, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+        			.addContainerGap(25, Short.MAX_VALUE))
+        );
+        panel_1.setLayout(gl_panel_1);
+        
+        textLog = new JTextArea();
+        scrollPane_3.setViewportView(textLog);
+        reviewPanel.setLayout(gl_reviewPanel);
 	}
     
 
@@ -350,7 +448,7 @@ public class LoadPanel extends AbstractViewPanel {
 		textAreaOld.setText(controller.frameToString(frameID));
 		
 		// select the frame edits which relate to this frame
-		ArrayList<AbstractFrameEdit> frameEditArray = frameEditsMap.get(frameID);
+		ArrayList<AbstractFrameEdit> frameEditArray = batchEdits.getFrameEditsMap().get(frameID);
 		
 		// apply frame edits to local copy of frame
 		Frame resultFrame = controller.updateLocalFrame(frameID, frameEditArray);
@@ -361,28 +459,11 @@ public class LoadPanel extends AbstractViewPanel {
 	
 	
 	private void populateListOfFrames() throws PtoolsErrorException {
-		frameEdits = selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel());
-		
-		frameEditsMap = new HashMap<String, ArrayList<AbstractFrameEdit>>();
-		for (AbstractFrameEdit frameEdit : frameEdits) {
-			if (frameEditsMap.containsKey(frameEdit.getFrameID())) {
-				ArrayList<AbstractFrameEdit> frameEditArray = frameEditsMap.get(frameEdit.getFrameID());
-				frameEditArray.add(frameEdit);
-				frameEditsMap.put(frameEdit.getFrameID(), frameEditArray);
-			} else {
-				ArrayList<AbstractFrameEdit> frameEditArray = new ArrayList<AbstractFrameEdit>();
-				frameEditArray.add(frameEdit);
-				frameEditsMap.put(frameEdit.getFrameID(), frameEditArray);
-			}
-		}
-		
-		TreeSet<String> frameIDs = new TreeSet<String>();
-		for (AbstractFrameEdit frameEdit : frameEdits) {
-			frameIDs.add(frameEdit.getFrameID());
-		}
+		batchEdits = new BatchEditModel(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()));
+		batchEdits.addPropertyChangeListener(controller);
 		
 		DefaultListModel listModel = (DefaultListModel) listFrames.getModel();
-		for (String frameID : frameIDs) {
+		for (String frameID : batchEdits.getFrameIDSet()) {
 			listModel.addElement(frameID);
 		}
 	}
@@ -409,7 +490,9 @@ public class LoadPanel extends AbstractViewPanel {
 		}
 		public void actionPerformed(ActionEvent e) {
 			cardLayout.show(contentPane, "ReviewPanel");
-			controller.submitTable(selectedAdaptor);
+			textConverted.setText("Converted " + batchEdits.getLines() + " lines of updates into " + batchEdits.getFrameEdits().size() + " individual updates.");
+			batchEdits.commitAll(controller.getConnection());
+			textLog.setText(batchEdits.getLog());
 		}
 	}
 	
@@ -502,6 +585,27 @@ public class LoadPanel extends AbstractViewPanel {
 		if (evt.getPropertyName().equals(DefaultController.DOCUMENT_TABLEMODEL_PROPERTY) && evt.getNewValue() != null) {
 			DefaultTableModel dtm = (DefaultTableModel)evt.getNewValue();
 			tableSpreadSheet.setModel(dtm);
+			revalidate();
+			repaint();
+		}
+		
+		if (evt.getPropertyName().equals(DefaultController.REPORT_PROPERTY_FRAME_EDITS_PROCESSED) && evt.getNewValue() != null) {
+			String value = (String)evt.getNewValue().toString();
+			textFrameEdits.setText("" + value);
+			revalidate();
+			repaint();
+		}
+		
+		if (evt.getPropertyName().equals(DefaultController.REPORT_PROPERTY_FRAME_EDITS_SUCCESS) && evt.getNewValue() != null) {
+			String value = (String)evt.getNewValue().toString();
+			textSuccess.setText("" + value);
+			revalidate();
+			repaint();
+		}
+		
+		if (evt.getPropertyName().equals(DefaultController.REPORT_PROPERTY_FRAME_EDITS_FAIL) && evt.getNewValue() != null) {
+			String value = (String)evt.getNewValue().toString();
+			textFail.setText("" + value);
 			revalidate();
 			repaint();
 		}

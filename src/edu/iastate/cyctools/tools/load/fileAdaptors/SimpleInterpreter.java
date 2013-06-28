@@ -34,7 +34,7 @@ public class SimpleInterpreter implements FileAdaptor {
 				ArrayList<String> values = new ArrayList<String>();
 				values.add((String) tb.getValueAt(rowIndex, columnIndex));
 				
-				frameUpdates.add(new SlotUpdate(frameID, slotLabel, values, append, ignoreDuplicates));
+				frameUpdates.add(new SlotUpdate(frameID, slotLabel, values, append, ignoreDuplicates, new int[] {rowIndex}));
 			}
 		}
 		return frameUpdates;

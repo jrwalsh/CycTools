@@ -42,9 +42,9 @@ public class NewRegulation implements FileAdaptor {
 			String regulatorFrameID = (String) tb.getValueAt(rowIndex, 1);
 			String regulateeFrameID = (String) tb.getValueAt(rowIndex, 2);
 			String modeValue = (String) tb.getValueAt(rowIndex, 3);
-			frameUpdates.add(new SlotUpdate(regulationFrameID, "REGULATOR", regulatorFrameID, append, ignoreDuplicates));
-			frameUpdates.add(new SlotUpdate(regulationFrameID, "REGULATEE", regulateeFrameID, append, ignoreDuplicates));
-			frameUpdates.add(new SlotUpdate(regulationFrameID, "MODE", modeValue, append, ignoreDuplicates));
+			frameUpdates.add(new SlotUpdate(regulationFrameID, "REGULATOR", regulatorFrameID, append, ignoreDuplicates, new int[] {rowIndex}));
+			frameUpdates.add(new SlotUpdate(regulationFrameID, "REGULATEE", regulateeFrameID, append, ignoreDuplicates, new int[] {rowIndex}));
+			frameUpdates.add(new SlotUpdate(regulationFrameID, "MODE", modeValue, append, ignoreDuplicates, new int[] {rowIndex}));
 		}
 		return frameUpdates;
 	}

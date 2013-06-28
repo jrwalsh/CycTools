@@ -521,14 +521,14 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	
 	public void commitFrameUpdates(ArrayList<AbstractFrameEdit> frameUpdates) throws PtoolsErrorException {
 		for (AbstractFrameEdit frameUpdate : frameUpdates) {
-			frameUpdate.commit(conn);
+			boolean result = frameUpdate.commit(conn);
 		}
 	}
 	
 	public Frame updateLocalFrame(String frameID, ArrayList<AbstractFrameEdit> frameUpdates) throws PtoolsErrorException {
 		Frame frame = Frame.load(conn, frameID);
 		for (AbstractFrameEdit frameUpdate : frameUpdates) {
-			frameUpdate.modifyLocalFrame(frame, conn);
+			frameUpdate.commitLocal(frame, conn);
 		}
 		return frame;
 	}

@@ -12,7 +12,7 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 	private String annotationLabel;
 	private ArrayList<String> annotationValues;
 	
-	public AnnotationUpdate(String frameID, String slotLabel, String slotValue, String annotationLabel, ArrayList<String> annotationValues,  boolean append, boolean ignoreDuplicates) {
+	public AnnotationUpdate(String frameID, String slotLabel, String slotValue, String annotationLabel, ArrayList<String> annotationValues,  boolean append, boolean ignoreDuplicates, int[] associatedRows) {
 		this.frameID = frameID;
 		this.slotLabel = slotLabel;
 		this.slotValue = slotValue;
@@ -20,6 +20,7 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 		this.annotationValues = annotationValues;
 		this.append = append;
 		this.ignoreDuplicates = ignoreDuplicates;
+		this.associatedRows = associatedRows;
 	}
 
 	protected String getSlotLabel() {
@@ -36,12 +37,27 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 	
 	// Catches all "special" cases for annotation updates, such as PUBMED citations
 	@Override
-	public void commit(JavacycConnection conn) throws PtoolsErrorException {
-		Frame frame = this.getFrame(conn);
+	public boolean commit(JavacycConnection conn) {
+		Frame frame = null;
+		try {
+			if(!conn.frameExists(frameID)) {
+				return false;
+			}
+			
+			frame = this.getFrame(conn);
+		} catch (PtoolsErrorException e1) {
+			System.out.println("not sure how you would reach this");
+			return false;
+		}
 		
 		ArrayList<String> newValues = new ArrayList<String>();
 		if (append) {
-			newValues.addAll(frame.getAnnotations(slotLabel, slotValue, annotationLabel));
+			try {
+				newValues.addAll(frame.getAnnotations(slotLabel, slotValue, annotationLabel));
+			} catch (PtoolsErrorException e) {
+				System.out.println("not sure what to make of this.  The slot doesn't exist? bad data format?");
+				return false;
+			}
 		}
 		
 		if (ignoreDuplicates) {
@@ -51,11 +67,19 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 		} else newValues.addAll(annotationValues);
 		
 		frame.putLocalSlotValueAnnotations(slotLabel, slotValue, annotationLabel, newValues);
-		frame.commit();
+		
+		try {
+			frame.commit();
+		} catch (PtoolsErrorException e) {
+			System.out.println("error during commit, recommend a rollback");
+			return false;
+		}
+		
+		return true;
 	}
 	
 	@Override
-	public Frame modifyLocalFrame(Frame frame, JavacycConnection conn) throws PtoolsErrorException {
+	public Frame commitLocal(Frame frame, JavacycConnection conn) throws PtoolsErrorException {
 		ArrayList<String> newValues = new ArrayList<String>();
 		if (append) {
 			newValues.addAll(frame.getAnnotations(slotLabel, slotValue, annotationLabel));
@@ -80,11 +104,5 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 	@Override
 	protected ArrayList<String> getRemoteValues(JavacycConnection conn) throws PtoolsErrorException {
 		return (ArrayList<String>) conn.getValueAnnots(frameID, slotLabel, slotValue, annotationLabel);
-	}
-
-	@Override
-	public void revert(JavacycConnection conn) throws PtoolsErrorException {
-		// TODO Auto-generated method stub
-		
 	}
 }
