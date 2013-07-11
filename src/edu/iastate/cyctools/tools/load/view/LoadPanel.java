@@ -3,6 +3,8 @@ package edu.iastate.cyctools.tools.load.view;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
@@ -15,6 +17,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import java.awt.event.ActionEvent;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
@@ -22,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import edu.iastate.cyctools.DefaultController;
+import edu.iastate.cyctools.DefaultStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
@@ -44,6 +48,7 @@ import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.JTextPane;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
@@ -60,7 +65,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private JPanel contentPane;
 	private JList listFrames;
 	private JTextArea textAreaOld;
-	private JTextArea textAreaNew;
+	private JTextPane textAreaNew;
 	private JTextArea textFrameEdits;
 	private JTextArea textSuccess;
 	private JTextArea textFail;
@@ -150,31 +155,40 @@ public class LoadPanel extends AbstractViewPanel {
 		JPanel panel = new JPanel();
 		
 		JSplitPane splitPane = new JSplitPane();
+		
+		JLabel lblPreviewChanges = new JLabel("<html><h3>Preview Changes</h3></html>");
 		GroupLayout gl_previewPanel = new GroupLayout(previewPanel);
 		gl_previewPanel.setHorizontalGroup(
 			gl_previewPanel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_previewPanel.createSequentialGroup()
-					.addContainerGap()
 					.addGroup(gl_previewPanel.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_previewPanel.createSequentialGroup()
-							.addComponent(panel, GroupLayout.PREFERRED_SIZE, 216, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE))
+							.addContainerGap()
+							.addGroup(gl_previewPanel.createParallelGroup(Alignment.LEADING)
+								.addGroup(Alignment.TRAILING, gl_previewPanel.createSequentialGroup()
+									.addComponent(btnBack2)
+									.addPreferredGap(ComponentPlacement.RELATED, 660, Short.MAX_VALUE)
+									.addComponent(btnUpload))
+								.addGroup(gl_previewPanel.createSequentialGroup()
+									.addComponent(panel, GroupLayout.PREFERRED_SIZE, 216, GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE))))
 						.addGroup(gl_previewPanel.createSequentialGroup()
-							.addComponent(btnBack2)
-							.addPreferredGap(ComponentPlacement.RELATED, 660, Short.MAX_VALUE)
-							.addComponent(btnUpload)))
+							.addGap(303)
+							.addComponent(lblPreviewChanges, GroupLayout.PREFERRED_SIZE, 129, GroupLayout.PREFERRED_SIZE)))
 					.addContainerGap())
 		);
 		gl_previewPanel.setVerticalGroup(
-			gl_previewPanel.createParallelGroup(Alignment.TRAILING)
-				.addGroup(Alignment.LEADING, gl_previewPanel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_previewPanel.createParallelGroup(Alignment.LEADING)
-						.addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addGroup(gl_previewPanel.createParallelGroup(Alignment.BASELINE)
+			gl_previewPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, gl_previewPanel.createSequentialGroup()
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addComponent(lblPreviewChanges)
+					.addGap(26)
+					.addGroup(gl_previewPanel.createParallelGroup(Alignment.TRAILING, false)
+						.addComponent(splitPane)
+						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_previewPanel.createParallelGroup(Alignment.TRAILING)
 						.addComponent(btnUpload)
 						.addComponent(btnBack2))
 					.addContainerGap())
@@ -198,19 +212,30 @@ public class LoadPanel extends AbstractViewPanel {
 			gl_panel.createParallelGroup(Alignment.TRAILING)
 				.addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
 		);
+		
+		JLabel lblFramesToBe = new JLabel("Frames to be Updated");
+		scrollPane.setColumnHeaderView(lblFramesToBe);
 		panel.setLayout(gl_panel);
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
 		splitPane.setLeftComponent(scrollPane_1);
 		
 		textAreaOld = new JTextArea();
+		textAreaOld.setEditable(false);
 		scrollPane_1.setViewportView(textAreaOld);
+		
+		JLabel lblExistingFrameData = new JLabel("Existing Frame Data");
+		scrollPane_1.setColumnHeaderView(lblExistingFrameData);
 		
 		JScrollPane scrollPane_2 = new JScrollPane();
 		splitPane.setRightComponent(scrollPane_2);
 		
-		textAreaNew = new JTextArea();
+		textAreaNew = new JTextPane();
+		textAreaNew.setEditable(false);
 		scrollPane_2.setViewportView(textAreaNew);
+		
+		JLabel lblFrameDataAfter = new JLabel("Frame Data after Update");
+		scrollPane_2.setColumnHeaderView(lblFrameDataAfter);
 		splitPane.setDividerLocation(250);
 		
 		previewPanel.setLayout(gl_previewPanel);
@@ -225,7 +250,7 @@ public class LoadPanel extends AbstractViewPanel {
         modelFormat.addElement( new KeyValue(2, "Tab-delimited file (tab)"));
         cmbFormat = new JComboBox<KeyValue>(modelFormat);
 		
-		chckbxAppend = new JCheckBox("Append?");
+		chckbxAppend = new JCheckBox("Append new data to existing values?");
 		chckbxAppend.setSelected(true);
 		
 		chckbxIgnoreDuplicate = new JCheckBox("Ignore Duplicates?");
@@ -445,7 +470,8 @@ public class LoadPanel extends AbstractViewPanel {
 
 	private void updateComparison() {
 		String frameID = listFrames.getSelectedValue().toString();
-		textAreaOld.setText(controller.frameToString(frameID));
+		String originalFrameString = controller.frameToString(frameID);
+		textAreaOld.setText(originalFrameString);
 		
 		// select the frame edits which relate to this frame
 		ArrayList<AbstractFrameEdit> frameEditArray = batchEdits.getFrameEditsMap().get(frameID);
@@ -454,7 +480,20 @@ public class LoadPanel extends AbstractViewPanel {
 		Frame resultFrame = controller.updateLocalFrame(frameID, frameEditArray);
 		
 		// return print of the updated frame
-		textAreaNew.setText(controller.frameToString(resultFrame));
+		String updatedFrameString = controller.frameToString(resultFrame);
+		textAreaNew.setText(updatedFrameString);
+		int currentPosition = 0;
+		for (String line : updatedFrameString.split("\n")) {
+			if (!originalFrameString.contains(line)) {
+				DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+				try {
+					textAreaNew.getHighlighter().addHighlight(currentPosition, currentPosition + line.length(), highlightPainter);
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+			}
+			currentPosition += line.length()+1;
+		}
 	}
 	
 	

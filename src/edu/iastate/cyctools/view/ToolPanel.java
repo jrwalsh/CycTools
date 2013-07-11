@@ -27,6 +27,7 @@ public class ToolPanel extends AbstractViewPanel {
 	private JButton btnHome;
 	private final Action actionSetOrganism = new ActionSetOrganism();
 	private final Action action = new ActionHome();
+	private String lastSelectedOrganism;
 	
 	/**
 	 * Create the frame.
@@ -46,6 +47,7 @@ public class ToolPanel extends AbstractViewPanel {
     	
     	comboBoxOrganism.addItem("None Available");
 		comboBoxOrganism.setSelectedItem("None Available");
+		lastSelectedOrganism = "None Available";
 		
 		this.setVisible(false);
     }
@@ -105,7 +107,6 @@ public class ToolPanel extends AbstractViewPanel {
 		}
 	}
 
-
 	@Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals(DefaultController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
@@ -118,12 +119,20 @@ public class ToolPanel extends AbstractViewPanel {
 //				comboBoxOrganism.setEnabled(false);
 				this.setVisible(false);
 			} else if (evt.getNewValue() == State.MAIN_SCREEN) {
+				lastSelectedOrganism = comboBoxOrganism.getSelectedItem().toString();
 				if (comboBoxOrganism.getItemCount() > 0) {
 					comboBoxOrganism.removeAllItems();
 				}
 				for (String org : controller.getAvailableOrganisms()) {
 					comboBoxOrganism.addItem(org);
 				}
+				
+				try {
+					comboBoxOrganism.setSelectedItem(lastSelectedOrganism);
+				} catch (Exception e) {
+					//ignore
+				}
+				
 //				comboBoxOrganism.setEnabled(true);
 				btnBack.setEnabled(false);
 				btnForward.setEnabled(false);
