@@ -55,8 +55,8 @@ public class DefaultController implements PropertyChangeListener {
     	this.documentModel = documentModel;
     }
     
-    public void changeDocumentFile(File newFile) {
-    	this.documentModel.setFile(newFile);
+    public void changeDocumentFile(File newFile, String delimiter) {
+    	this.documentModel.setFile(newFile, delimiter);
     }
     
     public DocumentModel getDocumentModel() {
@@ -229,5 +229,9 @@ public class DefaultController implements PropertyChangeListener {
 		for (AbstractViewPanel view: registeredViews) {
             view.modelPropertyChange(evt);
         }
+	}
+
+	public String getSelectedOrganism() {
+		return dataAccess.getSelectedOrganism();
 	}
 }

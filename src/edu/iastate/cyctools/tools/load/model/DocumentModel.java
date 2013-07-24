@@ -17,13 +17,13 @@ import javax.swing.table.TableModel;
 public class DocumentModel extends AbstractModel {
     private File file;
     private TableModel tableModel;
-    private String delimiter = ","; //TODO add file delimiter property set/get
+    private String delimiter;
     
     public DocumentModel() {
     }
     
     public void initDefault() {
-        setFile(null);
+        setFile(null, ",");
         setTableModel(null);
     }
     
@@ -31,10 +31,11 @@ public class DocumentModel extends AbstractModel {
     public File getFile() {
         return file;
     }
-
-    public void setFile(File file) {
+    
+    public void setFile(File file, String delimiter) {
         File oldFile = this.file;
         this.file = file;
+        this.delimiter = delimiter;
         
         readFile();
         
@@ -53,7 +54,10 @@ public class DocumentModel extends AbstractModel {
 
     // Utilities
     private void readFile() {
-    	if (file == null) return;
+    	if (file == null || !file.exists() || !file.canRead()) {
+    		file = null;
+    		return;
+    	}
     	
 		BufferedReader reader = null;
 		try {

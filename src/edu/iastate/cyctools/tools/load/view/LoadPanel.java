@@ -21,6 +21,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -34,6 +35,7 @@ import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.model.BatchEditModel;
 import edu.iastate.cyctools.tools.load.util.KeyValue;
+import edu.iastate.cyctools.view.MainCardPanel;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.PtoolsErrorException;
 
@@ -52,13 +54,7 @@ import javax.swing.JTextPane;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
-	// Selectable Options
 	private FileAdaptor selectedAdaptor;
-	private String fileType;
-	private String multipleValueDelimiter;
-	private boolean append;
-	private boolean ignoreDuplicates;
-	
 	DefaultController controller;
 	private JTable tableSpreadSheet;
 	private CardLayout cardLayout;
@@ -85,7 +81,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private JTextField textFilePath;
 	private JComboBox<KeyValue> cmbFormat;
 	private JComboBox<AdaptorKeyValue> cmbAdaptor;
-	private JTextField textField;
+	private JTextField textMultipleValueDelimiter;
 	private final Action actionBack2 = new ActionBack2();
 	
 	/**
@@ -262,9 +258,9 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		JLabel lblNewLabel_3 = new JLabel("Multiple value delimiter");
 		
-		textField = new JTextField();
-		textField.setText("$");
-		textField.setColumns(10);
+		textMultipleValueDelimiter = new JTextField();
+		textMultipleValueDelimiter.setText("$");
+		textMultipleValueDelimiter.setColumns(10);
 		
 		JLabel lblNewLabel_4 = new JLabel("Append values or overwrite existing");
 		
@@ -294,7 +290,7 @@ public class LoadPanel extends AbstractViewPanel {
 							.addContainerGap(169, Short.MAX_VALUE))
 						.addGroup(gl_optionsPanel.createSequentialGroup()
 							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING, false)
-								.addComponent(textField, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
+								.addComponent(textMultipleValueDelimiter, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
 								.addComponent(chckbxAppend, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 							.addContainerGap())))
 		);
@@ -312,7 +308,7 @@ public class LoadPanel extends AbstractViewPanel {
 						.addComponent(lblNewLabel_1))
 					.addGap(18)
 					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(textMultipleValueDelimiter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(lblNewLabel_3))
 					.addGap(13)
 					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
@@ -330,7 +326,7 @@ public class LoadPanel extends AbstractViewPanel {
         
 		Vector<AdaptorKeyValue> modelAdaptor = new Vector<AdaptorKeyValue>();
 		modelAdaptor.addElement( new AdaptorKeyValue(new SimpleInterpreter(), "Standard CSV: Column header determines slot label"));
-		modelAdaptor.addElement( new AdaptorKeyValue(null, "Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label")); //TODO implement the annotation adaptor
+		modelAdaptor.addElement( new AdaptorKeyValue(null, "Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label")); //TODO implement the generic annotation adaptor
 		modelAdaptor.addElement( new AdaptorKeyValue(new MaizeAdaptor(), "MaizeGDB Custom: frameID, goTerm, pubMedID, evCode, timeStampString (dd-mm-yyyy hh-mm-ss), curator"));
         cmbAdaptor = new JComboBox<AdaptorKeyValue>(modelAdaptor);
         
@@ -469,8 +465,22 @@ public class LoadPanel extends AbstractViewPanel {
     
 
 	private void updateComparison() {
-		String frameID = listFrames.getSelectedValue().toString();
+		String frameID = "";
+		try {
+			frameID = listFrames.getSelectedValue().toString();
+		} catch (NullPointerException e) {
+			return;  // Ignore request to compare frame if no frame is selected (or list is empty)
+		}
+		
 		String originalFrameString = controller.frameToString(frameID);
+		
+		if (originalFrameString == null || originalFrameString.equalsIgnoreCase("")) {
+			String message = "Frame " + frameID + " does not exist in database " + controller.getSelectedOrganism();
+			textAreaOld.setText(message);
+			textAreaNew.setText(message);
+			return;
+		}
+		
 		textAreaOld.setText(originalFrameString);
 		
 		// select the frame edits which relate to this frame
@@ -514,10 +524,9 @@ public class LoadPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Browse local files");
 		}
 		public void actionPerformed(ActionEvent e) {
-			final JFileChooser fileChooser = new JFileChooser();
+			JFileChooser fileChooser = new JFileChooser();
 			if (fileChooser.showOpenDialog((Component) e.getSource()) == JFileChooser.APPROVE_OPTION) {
 				textFilePath.setText(fileChooser.getSelectedFile().getAbsolutePath());
-				controller.changeDocumentFile(fileChooser.getSelectedFile());
 			}
 		}
 	}
@@ -563,15 +572,17 @@ public class LoadPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Open file");
 		}
 		public void actionPerformed(ActionEvent e) {
+			File file = new File(textFilePath.getText());
+			
+			String fileDelimiter = ",";
+			if (((KeyValue)cmbFormat.getSelectedItem()).getKey() == 1) fileDelimiter = ","; 
+			else if (((KeyValue)cmbFormat.getSelectedItem()).getKey() == 2) fileDelimiter = "\t";
+			
+			controller.changeDocumentFile(file, fileDelimiter);
 			if (controller.getDocumentModel().getFile() == null) {
 				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Please select an input file", "File error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
-			fileType = ((KeyValue)cmbFormat.getSelectedItem()).getValue();
-			multipleValueDelimiter = textField.getText();
-			append = chckbxAppend.getModel().isSelected();
-			ignoreDuplicates = chckbxIgnoreDuplicate.getModel().isSelected();
 			
 			cardLayout.show(contentPane, "FilePanel");
 		}
@@ -584,9 +595,11 @@ public class LoadPanel extends AbstractViewPanel {
 		}
 		public void actionPerformed(ActionEvent e) {
 			cardLayout.show(contentPane, "PreviewPanel");
-			
 			try {
 				selectedAdaptor = ((AdaptorKeyValue)cmbAdaptor.getSelectedItem()).getKey();
+				selectedAdaptor.setMultipleValueDelimiter(textMultipleValueDelimiter.getText());
+				selectedAdaptor.setAppend(chckbxAppend.getModel().isSelected());
+				selectedAdaptor.setIgnoreDuplicates(chckbxIgnoreDuplicate.getModel().isSelected());
 			} catch (Exception exception) {
 				System.out.println("Error selecting adaptor, unknown adaptor.");
 			}
@@ -619,8 +632,35 @@ public class LoadPanel extends AbstractViewPanel {
 		}
 	}
 	
+	private void resetForm() {
+		cardLayout.show(contentPane, "OptionsPanel");
+		selectedAdaptor = null;
+		tableSpreadSheet.setModel(new DefaultTableModel());
+		listFrames.setModel(new DefaultListModel());
+		textAreaOld.setText("");
+		textAreaNew.setText("");
+		textFrameEdits.setText("");
+		textSuccess.setText("");
+		textFail.setText("");
+		textConverted.setText("");
+		textLog.setText("");
+		batchEdits = null;
+		chckbxAppend.setSelected(true);
+		chckbxIgnoreDuplicate.setSelected(true);
+		cmbFormat.setSelectedIndex(0);
+		cmbAdaptor.setSelectedIndex(0);
+		
+		textFilePath.setText("");
+		textMultipleValueDelimiter.setText("$");
+	}
+	
 	@Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
+		if (evt.getPropertyName().equals(DefaultController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
+			if (evt.getNewValue() == State.LOAD) {
+				resetForm();
+			}
+		}
 		if (evt.getPropertyName().equals(DefaultController.DOCUMENT_TABLEMODEL_PROPERTY) && evt.getNewValue() != null) {
 			DefaultTableModel dtm = (DefaultTableModel)evt.getNewValue();
 			tableSpreadSheet.setModel(dtm);

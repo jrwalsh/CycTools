@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
@@ -101,6 +102,10 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		}
 	}
 	
+	public String getSelectedOrganism() {
+		return this.currentOrganism;
+	}
+	
 	// Get all organisms available at the current connection
 	public ArrayList<String> getAvailableOrganisms() {
 		ArrayList<String> orgIDs = new ArrayList<String>();
@@ -122,8 +127,8 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		
 		try {
 			ArrayList slots = conn.getFrameSlots(frameID);
-			for(int k=0;k<slots.size();k++) {
-				String slotName = (String)slots.get(k);
+			TreeSet<String> slotSet = new TreeSet<String>(slots);
+			for (String slotName : slotSet) {
 				ArrayList slotValues = conn.getSlotValues(frameID,slotName);
 				printString += slotName+" ("+JavacycConnection.countLists(slotValues)+")\n";
 				for(Object slotValue : slotValues) {
@@ -171,9 +176,9 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		printString += "\n"+frame.getLocalID()+"\n";
 		
 		try {
-			ArrayList slots = frame.getSlotLabels();
-			for(int k=0;k<slots.size();k++) {
-				String slotName = (String)slots.get(k);
+			ArrayList slots = frame.getLocalSlotLabels();
+			TreeSet<String> slotSet = new TreeSet<String>(slots);
+			for (String slotName : slotSet) {
 				ArrayList slotValues = frame.getSlotValues(slotName);
 				printString += slotName+" ("+JavacycConnection.countLists(slotValues)+")\n";
 				for(Object slotValue : slotValues) {
@@ -527,6 +532,7 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	
 	public Frame updateLocalFrame(String frameID, ArrayList<AbstractFrameEdit> frameUpdates) throws PtoolsErrorException {
 		Frame frame = Frame.load(conn, frameID);
+		frame.update();
 		for (AbstractFrameEdit frameUpdate : frameUpdates) {
 			frameUpdate.commitLocal(frame, conn);
 		}
