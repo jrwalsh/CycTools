@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
+import edu.iastate.cyctools.CycDataBaseAccess.Item;
 import edu.iastate.cyctools.DefaultStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
@@ -17,6 +18,8 @@ import edu.iastate.cyctools.view.StatusPanel;
 import edu.iastate.cyctools.view.ToolPanel;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
+import edu.iastate.javacyco.OrgStruct;
+import edu.iastate.javacyco.Organism;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 public class DefaultController implements PropertyChangeListener {
@@ -124,7 +127,7 @@ public class DefaultController implements PropertyChangeListener {
     
     
     // Queries
-    public ArrayList<String> getAvailableOrganisms() {
+    public ArrayList<OrgStruct> getAvailableOrganisms() {
     	return dataAccess.getAvailableOrganisms();
     }
     
@@ -233,5 +236,19 @@ public class DefaultController implements PropertyChangeListener {
 
 	public String getSelectedOrganism() {
 		return dataAccess.getSelectedOrganism();
+	}
+
+	public String getOrganismCommonName(String organism) {
+		JavacycConnection conn = dataAccess.getConnection();
+		Organism org;
+		String orgCommonName = "";
+		try {
+			org = conn.getOrganism();
+			orgCommonName = org.getCommonName();
+		} catch (PtoolsErrorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return orgCommonName;
 	}
 }

@@ -93,12 +93,15 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	
 	// Change selected organism
 	public void selectOrganism(String organism) {
-		if (getAvailableOrganisms().contains(organism)) {
+		ArrayList<String> organisms = new ArrayList<String>();
+		for (OrgStruct org : getAvailableOrganisms()) organisms.add(org.getLocalID());
+		
+		if (organisms.contains(organism)) {
 			this.currentOrganism = organism;
 			conn.selectOrganism(organism);
 		} else {
 			conn.selectOrganism(defaultOrganism);
-			System.err.println("Error: Could not find requested organism, attempting to select default organism.");
+			System.err.println("Error: Could not find requested organism: " + organism + ", attempting to select default organism: " + defaultOrganism);
 		}
 	}
 	
@@ -107,17 +110,27 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	}
 	
 	// Get all organisms available at the current connection
-	public ArrayList<String> getAvailableOrganisms() {
-		ArrayList<String> orgIDs = new ArrayList<String>();
+	public ArrayList<OrgStruct> getAvailableOrganisms() {
 		try {
-			for (OrgStruct org : conn.allOrgs()) {
-				orgIDs.add(org.getLocalID());
-			}
+			return conn.allOrgs();
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		}
-		return orgIDs;
+		return new ArrayList<OrgStruct>();
 	}
+	
+//	// Get all organisms available at the current connection
+//	public ArrayList<String> getAvailableOrganisms() {
+//		ArrayList<String> orgs = new ArrayList<String>();
+//		try {
+//			for (OrgStruct org : conn.allOrgs()) {
+//				orgs.add(org.getLocalID());
+//			}
+//		} catch (PtoolsErrorException e) {
+//			e.printStackTrace();
+//		}
+//		return orgs;
+//	}
 	
 	// Convert a frame into a printable string
 	public String frameToString(String frameID) {
@@ -661,7 +674,8 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		}
 	}
 
-	class Item {
+	//TODO this type of construct is commonly needed for displaying frame data in a combo box, since the program needs the frame id but users want to see the common name.  Make this more universally accessible.
+	public class Item {
 		private String id;
 		private String description;
 		
