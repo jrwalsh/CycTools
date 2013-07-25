@@ -1,6 +1,7 @@
 package edu.iastate.cyctools.tools.load.model;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.TreeSet;
 
@@ -14,22 +15,18 @@ import edu.iastate.javacyco.PtoolsErrorException;
 
 public class BatchEditModel extends AbstractModel {
 	private ArrayList<AbstractFrameEdit> frameEdits;
-	private ArrayList<AbstractFrameEdit> successfulEdits;
-	private ArrayList<AbstractFrameEdit> failedEdits;
-	private HashMap<String, ArrayList<AbstractFrameEdit>> frameEditsMap;
+	private HashMap<String, ArrayList<AbstractFrameEdit>> frameEditsMap;  // Provides a way to index frameEdits which relate to a particular frame;
 	private TreeSet<String> frameIDSet;
 	private TreeSet<Integer> lines;
 	private TreeSet<Integer> linesProcessed;
-	private int frameEditsProcessed;
-	private int failed;
-	private int succeeded;
-	private String reportLog;
+	private ArrayList<Event> eventLog;
     
     public BatchEditModel(ArrayList<AbstractFrameEdit> frameEditList) {
     	initDefault();
     	this.frameEdits = frameEditList;
     	
     	frameEditsMap = new HashMap<String, ArrayList<AbstractFrameEdit>>();
+    	frameIDSet = new TreeSet<String>();
 		for (AbstractFrameEdit frameEdit : frameEdits) {
 			for (int row : frameEdit.getAssociatedRows()) {
 				lines.add(new Integer(row));
@@ -44,23 +41,14 @@ public class BatchEditModel extends AbstractModel {
 				frameEditArray.add(frameEdit);
 				frameEditsMap.put(frameEdit.getFrameID(), frameEditArray);
 			}
-		}
-		
-		frameIDSet = new TreeSet<String>();
-		for (AbstractFrameEdit frameEdit : frameEdits) {
 			frameIDSet.add(frameEdit.getFrameID());
 		}
     }
     
     public void initDefault() {
-    	successfulEdits = new ArrayList<AbstractFrameEdit>();
-    	failedEdits = new ArrayList<AbstractFrameEdit>();
     	linesProcessed = new TreeSet<Integer>();
     	lines = new TreeSet<Integer>();
-    	frameEditsProcessed = 0;
-    	failed = 0;
-    	succeeded = 0;
-    	reportLog = "";
+    	eventLog = new ArrayList<Event>();
     }
 
     // Accessors
@@ -80,23 +68,19 @@ public class BatchEditModel extends AbstractModel {
     	return lines.size();
     }
     
-    public String getLog() {
-    	return reportLog;
+    public ArrayList<Event> getEventLog() {
+    	return eventLog;
     }
     
     public void commitAll(JavacycConnection conn) {
-    	reportLog += "Converted " + lines.size() + " lines of updates into " + frameEdits.size() + " individual updates.\n";
-		reportLog += "Processing individual updates...\n";
+    	System.out.println("Converted " + lines.size() + " lines of updates into " + frameEdits.size() + " individual updates spanning across " + frameIDSet.size() + " frames.\n");
+    	System.out.println("Processing individual updates...\n");
 		
     	for (AbstractFrameEdit frameEdit : frameEdits) {
-    		int oldFrameEditsProcessed = frameEditsProcessed;
-    		int oldSucceeded = succeeded;
-        	int oldFailed = failed;
         	int oldLinesProcessed = linesProcessed.size();
     		boolean result = false;
     		
     		try {
-    			frameEditsProcessed++;
     			for (int row : frameEdit.getAssociatedRows()) {
     				linesProcessed.add(new Integer(row));
     			}
@@ -106,19 +90,47 @@ public class BatchEditModel extends AbstractModel {
 			}
     		
     		if (result) {
-    			succeeded++;
-    			successfulEdits.add(frameEdit);
-    			reportLog += "Successfully committed update to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString() + "\n";
+    			Event event = new Event(new Date(), Status.SUCCESS, "Successfully committed update to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString());
+    			eventLog.add(event);
     		} else {
-    			failed++;
-    			failedEdits.add(frameEdit);
-    			reportLog += "Failed commit to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString() + "\n";
+    			Event event = new Event(new Date(), Status.FAIL, "Failed commit to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString());
+    			eventLog.add(event);
     		}
-    		
-        	firePropertyChange(DefaultController.REPORT_PROPERTY_FRAME_EDITS_PROCESSED, oldFrameEditsProcessed, frameEditsProcessed);
-        	firePropertyChange(DefaultController.REPORT_PROPERTY_FRAME_EDITS_SUCCESS, oldSucceeded, succeeded);
-        	firePropertyChange(DefaultController.REPORT_PROPERTY_FRAME_EDITS_FAIL, oldFailed, failed);
 		}
+    }
+    
+    @SuppressWarnings("unused")
+    public class Event {
+    	private Date timestamp;
+    	private Status status;
+    	private String event;
+    	
+    	public Event(Date timestamp, Status status, String event) {
+    		this.timestamp = timestamp;
+    		this.status = status;
+    		this.event = event;
+    	}
+    	
+		public Date getTimeStamp() {
+    		return timestamp;
+    	}
+    	
+    	public Status getStatus() {
+    		return status;
+    	}
+    	
+    	public String getEvent() {
+    		return event;
+    	}
+    	
+    	@Override
+    	public String toString() {
+    		return timestamp.toString() + "\t" + status.toString() + "\t" + event; 
+    	}
+    }
+    
+    public enum Status {
+    	SUCCESS, FAIL;
     }
 }
     

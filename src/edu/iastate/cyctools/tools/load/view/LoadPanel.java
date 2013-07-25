@@ -21,7 +21,10 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -32,10 +35,11 @@ import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleInterpreter;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
+import edu.iastate.cyctools.tools.load.model.BatchEditModel.Event;
+import edu.iastate.cyctools.tools.load.model.BatchEditModel.Status;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.model.BatchEditModel;
 import edu.iastate.cyctools.tools.load.util.KeyValue;
-import edu.iastate.cyctools.view.MainCardPanel;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.PtoolsErrorException;
 
@@ -51,6 +55,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.JTextPane;
+import javax.swing.JTabbedPane;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
@@ -59,17 +64,16 @@ public class LoadPanel extends AbstractViewPanel {
 	private JTable tableSpreadSheet;
 	private CardLayout cardLayout;
 	private JPanel contentPane;
-	private JList listFrames;
+	private JList<String> listFrames;
 	private JTextArea textAreaOld;
 	private JTextPane textAreaNew;
-	private JTextArea textFrameEdits;
-	private JTextArea textSuccess;
-	private JTextArea textFail;
-	private JTextArea textConverted;
 	private JTextArea textLog;
+	private JTextArea textArea;
+	private JTextArea textArea_1;
 	private BatchEditModel batchEdits;
 	private JCheckBox chckbxAppend;
 	private JCheckBox chckbxIgnoreDuplicate;
+	private JTabbedPane tabbedPane;
 	
 	private final Action actionBrowse = new ActionBrowse();
 	private final Action actionUpload = new ActionUpload();
@@ -83,6 +87,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private JComboBox<AdaptorKeyValue> cmbAdaptor;
 	private JTextField textMultipleValueDelimiter;
 	private final Action actionBack2 = new ActionBack2();
+	private final Action actionSaveLog = new ActionSaveLog();
 	
 	/**
 	 * Create the frame.
@@ -189,7 +194,7 @@ public class LoadPanel extends AbstractViewPanel {
 						.addComponent(btnBack2))
 					.addContainerGap())
 		);
-		listFrames = new JList(new DefaultListModel());
+		listFrames = new JList<String>(new DefaultListModel<String>());
 		listFrames.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
 				updateComparison();
@@ -359,107 +364,61 @@ public class LoadPanel extends AbstractViewPanel {
         );
         filePanel.setLayout(gl_filePanel);
         
-        JScrollPane scrollPane_3 = new JScrollPane();
-        
-        JPanel panel_1 = new JPanel();
-        
         JLabel lblSummaryResults = new JLabel("Summary Results");
+        
+        tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+        
+        JButton btnNewButton = new JButton("Save Log");
+        btnNewButton.setAction(actionSaveLog);
         
         GroupLayout gl_reviewPanel = new GroupLayout(reviewPanel);
         gl_reviewPanel.setHorizontalGroup(
         	gl_reviewPanel.createParallelGroup(Alignment.LEADING)
         		.addGroup(gl_reviewPanel.createSequentialGroup()
+        			.addContainerGap()
         			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.LEADING)
+        				.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 773, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(lblSummaryResults)
         				.addGroup(gl_reviewPanel.createSequentialGroup()
-        					.addContainerGap()
         					.addComponent(btnRevert)
         					.addPreferredGap(ComponentPlacement.RELATED)
-        					.addComponent(btnSave))
-        				.addGroup(gl_reviewPanel.createSequentialGroup()
-        					.addGap(12)
-        					.addComponent(scrollPane_3, GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE))
-        				.addGroup(gl_reviewPanel.createSequentialGroup()
-        					.addContainerGap()
-        					.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 399, GroupLayout.PREFERRED_SIZE))
-        				.addGroup(gl_reviewPanel.createSequentialGroup()
-        					.addContainerGap()
-        					.addComponent(lblSummaryResults)))
-        			.addContainerGap())
+        					.addComponent(btnSave)
+        					.addPreferredGap(ComponentPlacement.UNRELATED)
+        					.addComponent(btnNewButton)))
+        			.addGap(17))
         );
         gl_reviewPanel.setVerticalGroup(
         	gl_reviewPanel.createParallelGroup(Alignment.TRAILING)
         		.addGroup(gl_reviewPanel.createSequentialGroup()
         			.addGap(14)
         			.addComponent(lblSummaryResults)
-        			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(panel_1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(scrollPane_3, GroupLayout.PREFERRED_SIZE, 178, GroupLayout.PREFERRED_SIZE)
-        			.addGap(18)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+        			.addGap(7)
         			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.BASELINE)
         				.addComponent(btnRevert)
-        				.addComponent(btnSave))
+        				.addComponent(btnSave)
+        				.addComponent(btnNewButton))
         			.addContainerGap())
         );
         
-        textConverted = new JTextArea();
-        textConverted.setEditable(false);
-        
-        JLabel lblTotalFrameEdits = new JLabel("Total Frame Edits Processed");
-        
-        JLabel lblSuccessfulUpdates = new JLabel("Successful Updates");
-        
-        JLabel lblFailedUpdates = new JLabel("Failed Updates");
-        
-        textFrameEdits = new JTextArea();
-        textFrameEdits.setEditable(false);
-        textSuccess = new JTextArea();
-        textSuccess.setEditable(false);
-        textFail = new JTextArea();
-        textFail.setEditable(false);
-        GroupLayout gl_panel_1 = new GroupLayout(panel_1);
-        gl_panel_1.setHorizontalGroup(
-        	gl_panel_1.createParallelGroup(Alignment.LEADING)
-        		.addGroup(gl_panel_1.createSequentialGroup()
-        			.addContainerGap()
-        			.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-        				.addComponent(textConverted, GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
-        				.addGroup(gl_panel_1.createSequentialGroup()
-        					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-        						.addComponent(lblTotalFrameEdits)
-        						.addComponent(lblSuccessfulUpdates)
-        						.addComponent(lblFailedUpdates))
-        					.addGap(18)
-        					.addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING, false)
-        						.addComponent(textFail, GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE)
-        						.addComponent(textSuccess, GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE)
-        						.addComponent(textFrameEdits))
-        					.addPreferredGap(ComponentPlacement.RELATED, 98, Short.MAX_VALUE)))
-        			.addContainerGap())
-        );
-        gl_panel_1.setVerticalGroup(
-        	gl_panel_1.createParallelGroup(Alignment.LEADING)
-        		.addGroup(gl_panel_1.createSequentialGroup()
-        			.addContainerGap()
-        			.addComponent(textConverted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(lblTotalFrameEdits)
-        				.addComponent(textFrameEdits, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(lblSuccessfulUpdates)
-        				.addComponent(textSuccess, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addGroup(gl_panel_1.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(lblFailedUpdates)
-        				.addComponent(textFail, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        			.addContainerGap(25, Short.MAX_VALUE))
-        );
-        panel_1.setLayout(gl_panel_1);
+        JScrollPane scrollPane_3 = new JScrollPane();
+        tabbedPane.addTab("All Events", null, scrollPane_3, null);
         
         textLog = new JTextArea();
         scrollPane_3.setViewportView(textLog);
+        
+        JScrollPane scrollPane_4 = new JScrollPane();
+        tabbedPane.addTab("Successful Imports", null, scrollPane_4, null);
+        
+        textArea = new JTextArea();
+        scrollPane_4.setViewportView(textArea);
+        
+        JScrollPane scrollPane_5 = new JScrollPane();
+        tabbedPane.addTab("Failed Imports", null, scrollPane_5, null);
+        
+        textArea_1 = new JTextArea();
+        scrollPane_5.setViewportView(textArea_1);
         reviewPanel.setLayout(gl_reviewPanel);
 	}
     
@@ -511,7 +470,7 @@ public class LoadPanel extends AbstractViewPanel {
 		batchEdits = new BatchEditModel(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()));
 		batchEdits.addPropertyChangeListener(controller);
 		
-		DefaultListModel listModel = (DefaultListModel) listFrames.getModel();
+		DefaultListModel<String> listModel = (DefaultListModel<String>) listFrames.getModel();
 		for (String frameID : batchEdits.getFrameIDSet()) {
 			listModel.addElement(frameID);
 		}
@@ -538,9 +497,31 @@ public class LoadPanel extends AbstractViewPanel {
 		}
 		public void actionPerformed(ActionEvent e) {
 			cardLayout.show(contentPane, "ReviewPanel");
-			textConverted.setText("Converted " + batchEdits.getLines() + " lines of updates into " + batchEdits.getFrameEdits().size() + " individual updates.");
 			batchEdits.commitAll(controller.getConnection());
-			textLog.setText(batchEdits.getLog());
+			
+			String allEventLog = "";
+			String successEventLog = "";
+			String failedEventLog = "";
+			int events = 0;
+			int successfulEvents = 0;
+			int failedEvents = 0;
+			for (Event event : batchEdits.getEventLog()) {
+				allEventLog += event.toString() + "\n";
+				events++;
+				if (event.getStatus() == Status.SUCCESS) {
+					successEventLog += event.toString() + "\n";
+					successfulEvents++;
+				} else {
+					failedEventLog += event.toString() + "\n";
+					failedEvents++;
+				}
+			}
+			textLog.setText(allEventLog);
+			textArea.setText(successEventLog);
+			textArea_1.setText(failedEventLog);
+			tabbedPane.setTitleAt(0, "All Events (" + events + ")");
+			tabbedPane.setTitleAt(1, "Successful Imports (" + successfulEvents + ")");
+			tabbedPane.setTitleAt(2, "Failed Imports (" + failedEvents + ")");
 		}
 	}
 	
@@ -636,19 +617,22 @@ public class LoadPanel extends AbstractViewPanel {
 		cardLayout.show(contentPane, "OptionsPanel");
 		selectedAdaptor = null;
 		tableSpreadSheet.setModel(new DefaultTableModel());
-		listFrames.setModel(new DefaultListModel());
+		listFrames.setModel(new DefaultListModel<String>());
 		textAreaOld.setText("");
 		textAreaNew.setText("");
-		textFrameEdits.setText("");
-		textSuccess.setText("");
-		textFail.setText("");
-		textConverted.setText("");
 		textLog.setText("");
 		batchEdits = null;
 		chckbxAppend.setSelected(true);
 		chckbxIgnoreDuplicate.setSelected(true);
 		cmbFormat.setSelectedIndex(0);
 		cmbAdaptor.setSelectedIndex(0);
+		
+		textLog.setText("");
+		textArea.setText("");
+		textArea_1.setText("");
+		tabbedPane.setTitleAt(0, "All Events");
+		tabbedPane.setTitleAt(1, "Successful Imports");
+		tabbedPane.setTitleAt(2, "Failed Imports");
 		
 		textFilePath.setText("");
 		textMultipleValueDelimiter.setText("$");
@@ -664,27 +648,6 @@ public class LoadPanel extends AbstractViewPanel {
 		if (evt.getPropertyName().equals(DefaultController.DOCUMENT_TABLEMODEL_PROPERTY) && evt.getNewValue() != null) {
 			DefaultTableModel dtm = (DefaultTableModel)evt.getNewValue();
 			tableSpreadSheet.setModel(dtm);
-			revalidate();
-			repaint();
-		}
-		
-		if (evt.getPropertyName().equals(DefaultController.REPORT_PROPERTY_FRAME_EDITS_PROCESSED) && evt.getNewValue() != null) {
-			String value = (String)evt.getNewValue().toString();
-			textFrameEdits.setText("" + value);
-			revalidate();
-			repaint();
-		}
-		
-		if (evt.getPropertyName().equals(DefaultController.REPORT_PROPERTY_FRAME_EDITS_SUCCESS) && evt.getNewValue() != null) {
-			String value = (String)evt.getNewValue().toString();
-			textSuccess.setText("" + value);
-			revalidate();
-			repaint();
-		}
-		
-		if (evt.getPropertyName().equals(DefaultController.REPORT_PROPERTY_FRAME_EDITS_FAIL) && evt.getNewValue() != null) {
-			String value = (String)evt.getNewValue().toString();
-			textFail.setText("" + value);
 			revalidate();
 			repaint();
 		}
@@ -711,4 +674,42 @@ public class LoadPanel extends AbstractViewPanel {
 			return value;
 		}
 	}
+	
+	private class ActionSaveLog extends AbstractAction {
+		public ActionSaveLog() {
+			putValue(NAME, "Save Log");
+			putValue(SHORT_DESCRIPTION, "Save import log files");
+		}
+		public void actionPerformed(ActionEvent e) {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setCurrentDirectory(new java.io.File("."));
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			fileChooser.setAcceptAllFileFilterUsed(false);
+		    
+			if (fileChooser.showOpenDialog((Component) e.getSource()) == JFileChooser.APPROVE_OPTION) {
+				printString(new File(fileChooser.getSelectedFile() + File.separator + "eventLog.txt"), textLog.getText());
+				printString(new File(fileChooser.getSelectedFile() + File.separator + "successLog.txt"), textArea.getText());
+				printString(new File(fileChooser.getSelectedFile() + File.separator + "failLog.txt"), textArea_1.getText());
+				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Files saved", "Success", JOptionPane.PLAIN_MESSAGE);
+			}
+		}
+	}
+	
+	// Offers buffered printing using File class for interoperability of file paths between OS.  Uses default encoding.
+	private void printString(File fileName, String text) {
+		BufferedWriter writer = null;
+		try {
+			writer = new BufferedWriter(new FileWriter(fileName));
+			writer.write(text);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+		    try {
+		        if (writer != null)
+		        writer.close( );
+		    } catch (IOException e) {
+		    	e.printStackTrace();
+		    }
+		}
+ 	}
 }
