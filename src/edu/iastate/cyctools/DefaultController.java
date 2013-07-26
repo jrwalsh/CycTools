@@ -1,11 +1,15 @@
 package edu.iastate.cyctools;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
 
 import edu.iastate.cyctools.CycDataBaseAccess.Item;
@@ -30,6 +34,7 @@ public class DefaultController implements PropertyChangeListener {
 	public ToolPanel toolPanel;
 	public StatusPanel statusPanel;
 	private DocumentModel documentModel;
+	private WindowAdapter winAdaptor;
 	
 	public static String DOCUMENT_FILEPATH_PROPERTY = "FilePath";
 	public static String DOCUMENT_TABLEMODEL_PROPERTY = "TableModel";
@@ -114,6 +119,28 @@ public class DefaultController implements PropertyChangeListener {
     			JOptionPane.showMessageDialog(mainJFrame, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
     		}
     	}
+    }
+    
+    public void lockDatabaseOperation() {
+    	state.setState(State.LOCK_DATABASE);
+    	mainJFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    	winAdaptor = new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if(JOptionPane.showConfirmDialog(mainJFrame, "Are you sure ?") == JOptionPane.OK_OPTION){
+                	mainJFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                	mainJFrame.setVisible(false);
+                	mainJFrame.dispose();
+                }
+            }
+        };
+    	mainJFrame.addWindowListener(winAdaptor);
+    }
+    
+    public void unlockDatabaseOperation() {
+    	state.setState(State.UNLOCK_DATABASE);
+    	mainJFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    	mainJFrame.removeWindowListener(winAdaptor);
     }
     
     public void disconnect() {

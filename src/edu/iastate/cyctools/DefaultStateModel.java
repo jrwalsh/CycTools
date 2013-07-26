@@ -24,7 +24,7 @@ public class DefaultStateModel extends AbstractModel {
     }
     
     public enum State {
-    	NOVALUE, MAIN_SCREEN, NOT_CONNECTED, FRAMEBROWSE, EXPORT, SEARCH, STRUCTURE_EXPORT, DATABASE_COMPARE, LOAD;
+    	NOVALUE, MAIN_SCREEN, NOT_CONNECTED, FRAMEBROWSE, EXPORT, SEARCH, STRUCTURE_EXPORT, DATABASE_COMPARE, LOAD, LOCK_DATABASE, UNLOCK_DATABASE;
     	
     	public static State value(String state) {
 	        try {

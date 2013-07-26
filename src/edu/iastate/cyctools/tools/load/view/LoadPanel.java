@@ -121,6 +121,7 @@ public class LoadPanel extends AbstractViewPanel {
     	JPanel filePanel = new JPanel();
     	JPanel previewPanel = new JPanel();
     	JPanel reviewPanel = new JPanel();
+    	JPanel finalPanel = new JPanel();
     	
         JButton btnBrowse = new JButton("Browse");
         btnBrowse.setAction(actionBrowse);
@@ -149,6 +150,12 @@ public class LoadPanel extends AbstractViewPanel {
 		add(optionsPanel, "OptionsPanel");
 		add(filePanel, "FilePanel");
 		add(previewPanel, "PreviewPanel");
+		add(reviewPanel, "ReviewPanel");
+		add(finalPanel, "FinalPanel");
+		
+		JButton button = new JButton("Save Log");
+		button.setAction(actionSaveLog);
+		finalPanel.add(button);
 		
 		JButton btnBack2 = new JButton("Back");
 		btnBack2.setAction(actionBack2);
@@ -243,7 +250,6 @@ public class LoadPanel extends AbstractViewPanel {
 		splitPane.setDividerLocation(250);
 		
 		previewPanel.setLayout(gl_previewPanel);
-		add(reviewPanel, "ReviewPanel");
 		
 		textFilePath = new JTextField();
 		textFilePath.setEditable(false);
@@ -381,9 +387,6 @@ public class LoadPanel extends AbstractViewPanel {
         
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         
-        JButton btnNewButton = new JButton("Save Log");
-        btnNewButton.setAction(actionSaveLog);
-        
         GroupLayout gl_reviewPanel = new GroupLayout(reviewPanel);
         gl_reviewPanel.setHorizontalGroup(
         	gl_reviewPanel.createParallelGroup(Alignment.LEADING)
@@ -395,9 +398,7 @@ public class LoadPanel extends AbstractViewPanel {
         				.addGroup(gl_reviewPanel.createSequentialGroup()
         					.addComponent(btnRevert)
         					.addPreferredGap(ComponentPlacement.RELATED)
-        					.addComponent(btnSave)
-        					.addPreferredGap(ComponentPlacement.UNRELATED)
-        					.addComponent(btnNewButton)))
+        					.addComponent(btnSave)))
         			.addGap(17))
         );
         gl_reviewPanel.setVerticalGroup(
@@ -410,8 +411,7 @@ public class LoadPanel extends AbstractViewPanel {
         			.addGap(7)
         			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.BASELINE)
         				.addComponent(btnRevert)
-        				.addComponent(btnSave)
-        				.addComponent(btnNewButton))
+        				.addComponent(btnSave))
         			.addContainerGap())
         );
         
@@ -505,10 +505,12 @@ public class LoadPanel extends AbstractViewPanel {
 	
 	private class ActionUpload extends AbstractAction {
 		public ActionUpload() {
-			putValue(NAME, "Upload");
+			putValue(NAME, "Update Database");
 			putValue(SHORT_DESCRIPTION, "Upload data table to database");
 		}
 		public void actionPerformed(ActionEvent e) {
+			controller.lockDatabaseOperation();
+			
 			cardLayout.show(contentPane, "ReviewPanel");
 			batchEdits.commitAll(controller.getConnection());
 			
@@ -540,22 +542,26 @@ public class LoadPanel extends AbstractViewPanel {
 	
 	private class ActionSave extends AbstractAction {
 		public ActionSave() {
+			putValue(SMALL_ICON, new ImageIcon("C:\\Users\\Jesse\\workspace\\CycTools\\Images\\accept\\1374877061_button_ok.png"));
 			putValue(NAME, "Save");
 			putValue(SHORT_DESCRIPTION, "Save changes to database");
 		}
 		public void actionPerformed(ActionEvent e) {
 			controller.saveDataBase();
-			cardLayout.show(contentPane, "OptionsPanel");
+			controller.unlockDatabaseOperation();
+			cardLayout.show(contentPane, "FinalPanel");
 		}
 	}
 	
 	private class ActionRevert extends AbstractAction {
 		public ActionRevert() {
-			putValue(NAME, "Revert");
+			putValue(SMALL_ICON, new ImageIcon("C:\\Users\\Jesse\\workspace\\CycTools\\Images\\accept\\1374877110_button_cancel.png"));
+			putValue(NAME, "Undo Changes");
 			putValue(SHORT_DESCRIPTION, "Revert changes to database");
 		}
 		public void actionPerformed(ActionEvent e) {
 			controller.revertDataBase();
+			controller.unlockDatabaseOperation();
 			cardLayout.show(contentPane, "OptionsPanel");
 		}
 	}

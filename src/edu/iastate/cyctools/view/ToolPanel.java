@@ -33,8 +33,8 @@ public class ToolPanel extends AbstractViewPanel {
 	DefaultController controller;
 	private JComboBox<Item> comboBoxOrganism;
 	private JButton btnHome;
-	private final Action actionSetOrganism = new ActionSetOrganism();
-	private final Action action = new ActionHome();
+	public final Action actionSetOrganism = new ActionSetOrganism();
+	public final Action action = new ActionHome();
 	private Entry<String, String> lastSelectedOrganism;
 	
 	/**
@@ -129,6 +129,16 @@ public class ToolPanel extends AbstractViewPanel {
 			} else {
 				btnHome.setEnabled(true);
 			}
+			
+			if (evt.getNewValue() == State.LOCK_DATABASE) {
+				action.setEnabled(false);
+				actionSetOrganism.setEnabled(false);
+			}
+			
+			if (evt.getNewValue() == State.UNLOCK_DATABASE) {
+				action.setEnabled(true);
+				actionSetOrganism.setEnabled(true);
+			} 
 		}
 	}
     
