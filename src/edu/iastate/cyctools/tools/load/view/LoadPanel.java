@@ -1,5 +1,6 @@
 package edu.iastate.cyctools.tools.load.view;
 
+import javax.imageio.ImageIO;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
@@ -17,6 +18,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -56,6 +58,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.JTextPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ImageIcon;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
@@ -270,6 +273,11 @@ public class LoadPanel extends AbstractViewPanel {
 		JLabel lblNewLabel_4 = new JLabel("Append values or overwrite existing");
 		
 		JLabel lblNewLabel_5 = new JLabel("Check if this value exists before importing");
+		
+		JLabel lblNewLabel_2 = new JLabel("");
+		lblNewLabel_2.setOpaque(true);
+		lblNewLabel_2.setIcon(new ImageIcon("C:\\Users\\Jesse\\workspace\\CycTools\\Images\\test.png"));
+		
 		GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
 		gl_optionsPanel.setHorizontalGroup(
 			gl_optionsPanel.createParallelGroup(Alignment.LEADING)
@@ -283,26 +291,31 @@ public class LoadPanel extends AbstractViewPanel {
 						.addComponent(lblNewLabel))
 					.addGap(18)
 					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_optionsPanel.createSequentialGroup()
-							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_optionsPanel.createSequentialGroup()
-									.addComponent(btnBrowse)
-									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, 341, GroupLayout.PREFERRED_SIZE))
-								.addComponent(cmbFormat, GroupLayout.PREFERRED_SIZE, 259, GroupLayout.PREFERRED_SIZE)
-								.addComponent(chckbxIgnoreDuplicate, GroupLayout.DEFAULT_SIZE, 417, Short.MAX_VALUE)
-								.addComponent(btnOpen))
-							.addContainerGap(169, Short.MAX_VALUE))
+						.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
+							.addGroup(gl_optionsPanel.createSequentialGroup()
+								.addComponent(btnBrowse)
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, 341, GroupLayout.PREFERRED_SIZE))
+							.addComponent(cmbFormat, GroupLayout.PREFERRED_SIZE, 259, GroupLayout.PREFERRED_SIZE)
+							.addComponent(chckbxIgnoreDuplicate, GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE)
+							.addComponent(btnOpen))
 						.addGroup(gl_optionsPanel.createSequentialGroup()
 							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING, false)
 								.addComponent(textMultipleValueDelimiter, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-								.addComponent(chckbxAppend, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-							.addContainerGap())))
+								.addComponent(chckbxAppend, Alignment.LEADING))
+							.addPreferredGap(ComponentPlacement.RELATED, 211, GroupLayout.PREFERRED_SIZE)))
+					.addGap(158))
+				.addGroup(gl_optionsPanel.createSequentialGroup()
+					.addGap(66)
+					.addComponent(lblNewLabel_2)
+					.addContainerGap(81, Short.MAX_VALUE))
 		);
 		gl_optionsPanel.setVerticalGroup(
 			gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_optionsPanel.createSequentialGroup()
+				.addGroup(Alignment.TRAILING, gl_optionsPanel.createSequentialGroup()
 					.addContainerGap()
+					.addComponent(lblNewLabel_2, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
 					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btnBrowse)
 						.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -325,7 +338,7 @@ public class LoadPanel extends AbstractViewPanel {
 						.addComponent(lblNewLabel_5))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(btnOpen)
-					.addContainerGap(193, Short.MAX_VALUE))
+					.addGap(131))
 		);
 		optionsPanel.setLayout(gl_optionsPanel);
         
