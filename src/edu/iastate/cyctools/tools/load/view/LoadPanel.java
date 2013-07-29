@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.AbstractAction;
@@ -22,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -143,6 +145,8 @@ public class LoadPanel extends AbstractViewPanel {
         
         JScrollPane SpreadsheetScrollPane = new JScrollPane();
         tableSpreadSheet = new JTable();
+        JTableHeader th = tableSpreadSheet.getTableHeader();  
+        th.setFont(new Font("Serif", Font.BOLD, 15)); 
         SpreadsheetScrollPane.setViewportView(tableSpreadSheet);
         
         setLayout(new CardLayout(0, 0));
@@ -168,6 +172,12 @@ public class LoadPanel extends AbstractViewPanel {
 		JSplitPane splitPane = new JSplitPane();
 		
 		JLabel lblPreviewChanges = new JLabel("<html><h3>Preview Changes</h3></html>");
+		
+		JLabel lblFramesToBe = new JLabel("Frames to be Updated");
+		
+		JLabel lblExistingFrameData = new JLabel("Existing Frame Data");
+		
+		JLabel lblFrameDataAfter = new JLabel("Frame Data after Update");
 		GroupLayout gl_previewPanel = new GroupLayout(previewPanel);
 		gl_previewPanel.setHorizontalGroup(
 			gl_previewPanel.createParallelGroup(Alignment.LEADING)
@@ -175,26 +185,38 @@ public class LoadPanel extends AbstractViewPanel {
 					.addGroup(gl_previewPanel.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_previewPanel.createSequentialGroup()
 							.addContainerGap()
-							.addGroup(gl_previewPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(Alignment.TRAILING, gl_previewPanel.createSequentialGroup()
-									.addComponent(btnBack2)
-									.addPreferredGap(ComponentPlacement.RELATED, 660, Short.MAX_VALUE)
-									.addComponent(btnUpload))
+							.addGroup(gl_previewPanel.createParallelGroup(Alignment.TRAILING)
 								.addGroup(gl_previewPanel.createSequentialGroup()
+									.addComponent(btnBack2)
+									.addPreferredGap(ComponentPlacement.RELATED, 608, Short.MAX_VALUE)
+									.addComponent(btnUpload))
+								.addGroup(Alignment.LEADING, gl_previewPanel.createSequentialGroup()
 									.addComponent(panel, GroupLayout.PREFERRED_SIZE, 216, GroupLayout.PREFERRED_SIZE)
 									.addPreferredGap(ComponentPlacement.RELATED)
 									.addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE))))
 						.addGroup(gl_previewPanel.createSequentialGroup()
 							.addGap(303)
-							.addComponent(lblPreviewChanges, GroupLayout.PREFERRED_SIZE, 129, GroupLayout.PREFERRED_SIZE)))
+							.addComponent(lblPreviewChanges, GroupLayout.PREFERRED_SIZE, 129, GroupLayout.PREFERRED_SIZE))
+						.addGroup(gl_previewPanel.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(lblFramesToBe, GroupLayout.PREFERRED_SIZE, 214, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(lblExistingFrameData, GroupLayout.PREFERRED_SIZE, 247, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(lblFrameDataAfter, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)))
 					.addContainerGap())
 		);
 		gl_previewPanel.setVerticalGroup(
-			gl_previewPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_previewPanel.createSequentialGroup()
+			gl_previewPanel.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_previewPanel.createSequentialGroup()
 					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addComponent(lblPreviewChanges)
-					.addGap(26)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_previewPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblExistingFrameData)
+						.addComponent(lblFrameDataAfter)
+						.addComponent(lblFramesToBe))
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_previewPanel.createParallelGroup(Alignment.TRAILING, false)
 						.addComponent(splitPane)
 						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE))
@@ -223,9 +245,6 @@ public class LoadPanel extends AbstractViewPanel {
 			gl_panel.createParallelGroup(Alignment.TRAILING)
 				.addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
 		);
-		
-		JLabel lblFramesToBe = new JLabel("Frames to be Updated");
-		scrollPane.setColumnHeaderView(lblFramesToBe);
 		panel.setLayout(gl_panel);
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
@@ -235,18 +254,12 @@ public class LoadPanel extends AbstractViewPanel {
 		textAreaOld.setEditable(false);
 		scrollPane_1.setViewportView(textAreaOld);
 		
-		JLabel lblExistingFrameData = new JLabel("Existing Frame Data");
-		scrollPane_1.setColumnHeaderView(lblExistingFrameData);
-		
 		JScrollPane scrollPane_2 = new JScrollPane();
 		splitPane.setRightComponent(scrollPane_2);
 		
 		textAreaNew = new JTextPane();
 		textAreaNew.setEditable(false);
 		scrollPane_2.setViewportView(textAreaNew);
-		
-		JLabel lblFrameDataAfter = new JLabel("Frame Data after Update");
-		scrollPane_2.setColumnHeaderView(lblFrameDataAfter);
 		splitPane.setDividerLocation(250);
 		
 		previewPanel.setLayout(gl_previewPanel);
@@ -393,12 +406,13 @@ public class LoadPanel extends AbstractViewPanel {
         		.addGroup(gl_reviewPanel.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.LEADING)
-        				.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 773, GroupLayout.PREFERRED_SIZE)
         				.addComponent(lblSummaryResults)
-        				.addGroup(gl_reviewPanel.createSequentialGroup()
-        					.addComponent(btnRevert)
-        					.addPreferredGap(ComponentPlacement.RELATED)
-        					.addComponent(btnSave)))
+        				.addGroup(gl_reviewPanel.createParallelGroup(Alignment.TRAILING, false)
+        					.addGroup(gl_reviewPanel.createSequentialGroup()
+        						.addComponent(btnSave)
+        						.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        						.addComponent(btnRevert))
+        					.addComponent(tabbedPane, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 773, GroupLayout.PREFERRED_SIZE)))
         			.addGap(17))
         );
         gl_reviewPanel.setVerticalGroup(
