@@ -5,9 +5,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TreeSet;
 
-import javax.swing.DefaultListModel;
-
-import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractModel;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
@@ -77,8 +74,7 @@ public class BatchEditModel extends AbstractModel {
     	System.out.println("Processing individual updates...\n");
 		
     	for (AbstractFrameEdit frameEdit : frameEdits) {
-        	int oldLinesProcessed = linesProcessed.size();
-    		boolean result = false;
+        	boolean result = false;
     		
     		try {
     			for (int row : frameEdit.getAssociatedRows()) {
@@ -99,7 +95,6 @@ public class BatchEditModel extends AbstractModel {
 		}
     }
     
-    @SuppressWarnings("unused")
     public class Event {
     	private Date timestamp;
     	private Status status;

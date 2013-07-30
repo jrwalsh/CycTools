@@ -4,7 +4,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.GroupLayout;
 import javax.swing.JTextField;
 import javax.swing.JButton;
-import javax.swing.JTextArea;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import java.awt.Dimension;

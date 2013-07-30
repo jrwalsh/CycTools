@@ -3,7 +3,7 @@ package edu.iastate.cyctools.view;
 import java.beans.PropertyChangeEvent;
 
 import edu.iastate.cyctools.DefaultController;
-import edu.iastate.cyctools.DefaultStateModel.State;
+import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 
 import javax.swing.AbstractAction;
@@ -150,7 +150,7 @@ public class SelectPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Open the Frame Browser screen.");
 		}
 		public void actionPerformed(ActionEvent e) {
-			controller.setState(State.FRAMEBROWSE);
+			controller.setState(State.SHOW_FRAMEBROWSE);
 		}
 	}
 	
@@ -160,7 +160,7 @@ public class SelectPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Open the export screen.");
 		}
 		public void actionPerformed(ActionEvent e) {
-			controller.setState(State.EXPORT);
+			controller.setState(State.SHOW_EXPORT);
 		}
 	}
 	
@@ -170,7 +170,7 @@ public class SelectPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Open the search screen.");
 		}
 		public void actionPerformed(ActionEvent e) {
-			controller.setState(State.SEARCH);
+			controller.setState(State.SHOW_SEARCH);
 		}
 	}
 	
@@ -180,7 +180,7 @@ public class SelectPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Export underlying PGDB Class and Instance structure.");
 		}
 		public void actionPerformed(ActionEvent e) {
-			controller.setState(State.STRUCTURE_EXPORT);
+			controller.setState(State.SHOW_STRUCTURE_EXPORT);
 		}
 	}
 	
@@ -190,7 +190,7 @@ public class SelectPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Compare two PGDB databases frame by frame.");
 		}
 		public void actionPerformed(ActionEvent e) {
-			controller.setState(State.DATABASE_COMPARE);
+			controller.setState(State.SHOW_DATABASE_COMPARE);
 		}
 	}
 	
@@ -200,7 +200,7 @@ public class SelectPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Load spreadsheet file into database");
 		}
 		public void actionPerformed(ActionEvent e) {
-			controller.setState(State.LOAD);
+			controller.setState(State.SHOW_IMPORT);
 		}
 	}
 	

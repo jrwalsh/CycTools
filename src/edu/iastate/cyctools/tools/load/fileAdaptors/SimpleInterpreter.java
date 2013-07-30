@@ -16,7 +16,7 @@ public class SimpleInterpreter implements FileAdaptor {
 	public SimpleInterpreter() {
 		append = true;
 		ignoreDuplicates = true;
-		multipleValueDelimiter = "$";//TODO convert multiple value entries into arrays before insert
+		multipleValueDelimiter = "$";
 	}
 	
 	// Assumes one frame per row

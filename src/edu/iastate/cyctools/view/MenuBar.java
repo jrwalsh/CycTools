@@ -1,7 +1,7 @@
 package edu.iastate.cyctools.view;
 
 import edu.iastate.cyctools.DefaultController;
-import edu.iastate.cyctools.DefaultStateModel.State;
+import edu.iastate.cyctools.InternalStateModel.State;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;

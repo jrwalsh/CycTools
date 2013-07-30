@@ -43,7 +43,6 @@ public class LoginPanel extends AbstractViewPanel {
     	//Add self as property change event listener of the controller
     	controller.addView(this);
     	
-    	
     	MenuPopupUtil.installContextMenu(txtHost);
     	MenuPopupUtil.installContextMenu(txtPort);
     	MenuPopupUtil.installContextMenu(txtUser);

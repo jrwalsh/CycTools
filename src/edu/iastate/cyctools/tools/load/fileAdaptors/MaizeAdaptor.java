@@ -14,10 +14,12 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 // Designed for the MaizeGDB teams curation updates.  To be designed to handle their specifically formated input file.
+@SuppressWarnings("unchecked")
 public class MaizeAdaptor implements FileAdaptor {
 	private boolean append;
 	private boolean ignoreDuplicates;
-	private String multipleValueDelimiter;
+	@SuppressWarnings("unused")
+	private String multipleValueDelimiter; //Contains this parameter to conform to the interface, but this custom adaptor does not allow multiple values in a column
 	
 	public MaizeAdaptor() {
 		append = true;
@@ -57,7 +59,6 @@ public class MaizeAdaptor implements FileAdaptor {
 		Object[] header = new String[]{"FRAMEID", "GO-TERM", "Citation"};
 		ArrayList<Object[]> dataArray = new ArrayList<Object[]>();
 		
-		int row = 0;
 		for (Frame frame : frames) {
 			String frameID = frame.getLocalID();
 			ArrayList<String> goTerms = (ArrayList<String>) frame.getSlotValues("GO-TERMS");
@@ -66,16 +67,13 @@ public class MaizeAdaptor implements FileAdaptor {
 				for (String citation : citations) {
 					String decodedCitation = decodeCitationTimeStamp(citation, conn);
 					dataArray.add(new String[]{frameID, goTerm, decodedCitation});
-					row++;
 				}
 				if (citations.isEmpty()) {
 					dataArray.add(new String[]{frameID, goTerm, ""});
-					row++;
 				}
 			}
 			if (goTerms.isEmpty()) {
 				dataArray.add(new String[]{frameID, "", ""});
-				row++;
 			}
 		}
 		

@@ -6,6 +6,7 @@ import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
+@SuppressWarnings("unchecked")
 public class SlotUpdate extends AbstractFrameDataEdit {
 	private String slotLabel;
 	private ArrayList<String> slotValues;

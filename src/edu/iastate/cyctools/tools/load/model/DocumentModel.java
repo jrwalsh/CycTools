@@ -3,7 +3,6 @@ package edu.iastate.cyctools.tools.load.model;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractModel;
 
-import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;

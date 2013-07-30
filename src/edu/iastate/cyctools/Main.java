@@ -30,7 +30,7 @@ public class Main {
 		// DataAccess object initialized through the loginPanel
 		
 		// Model
-		DefaultStateModel state = new DefaultStateModel();
+		InternalStateModel state = new InternalStateModel();
 		state.initDefault();
 		
 		// Controller

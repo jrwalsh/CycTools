@@ -3,7 +3,7 @@ package edu.iastate.cyctools.view;
 import java.beans.PropertyChangeEvent;
 
 import edu.iastate.cyctools.DefaultController;
-import edu.iastate.cyctools.DefaultStateModel.State;
+import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 
 import java.awt.CardLayout;
@@ -49,31 +49,31 @@ public class MainCardPanel extends AbstractViewPanel {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.loginCard);
 			}
-			else if (evt.getNewValue() == State.MAIN_SCREEN) {
+			else if (evt.getNewValue() == State.SHOW_MAIN_SCREEN) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.selectCard);
 			}
-			else if (evt.getNewValue() == State.FRAMEBROWSE) {
+			else if (evt.getNewValue() == State.SHOW_FRAMEBROWSE) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.frameBrowseCard);
 			}
-			else if (evt.getNewValue() == State.EXPORT) {
+			else if (evt.getNewValue() == State.SHOW_EXPORT) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.exportCard);
 			}
-			else if (evt.getNewValue() == State.SEARCH) {
+			else if (evt.getNewValue() == State.SHOW_SEARCH) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.searchCard);
 			}
-			else if (evt.getNewValue() == State.STRUCTURE_EXPORT) {
+			else if (evt.getNewValue() == State.SHOW_STRUCTURE_EXPORT) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.structureExportCard);
 			}
-			else if (evt.getNewValue() == State.DATABASE_COMPARE) {
+			else if (evt.getNewValue() == State.SHOW_DATABASE_COMPARE) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.databaseCompareCard);
 			}
-			else if (evt.getNewValue() == State.LOAD) {
+			else if (evt.getNewValue() == State.SHOW_IMPORT) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.loadCard);
 			}

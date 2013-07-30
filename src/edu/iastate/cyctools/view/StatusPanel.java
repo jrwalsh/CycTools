@@ -3,7 +3,7 @@ package edu.iastate.cyctools.view;
 import java.beans.PropertyChangeEvent;
 
 import edu.iastate.cyctools.DefaultController;
-import edu.iastate.cyctools.DefaultStateModel.State;
+import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 
 import javax.swing.JLabel;
@@ -60,7 +60,7 @@ public class StatusPanel extends AbstractViewPanel {
 	public void modelPropertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals(DefaultController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
 			if (evt.getNewValue() == State.NOT_CONNECTED) lblStatus.setText("Not Connected");
-			else if (evt.getNewValue() == State.MAIN_SCREEN) lblStatus.setText("Connected");
+			else if (evt.getNewValue() == State.SHOW_MAIN_SCREEN) lblStatus.setText("Connected");
 		}
 	}
 }

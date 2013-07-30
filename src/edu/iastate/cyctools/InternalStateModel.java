@@ -2,10 +2,10 @@ package edu.iastate.cyctools;
 
 import edu.iastate.cyctools.externalSourceCode.AbstractModel;
 
-public class DefaultStateModel extends AbstractModel {
+public class InternalStateModel extends AbstractModel {
 	private State state;
     
-    public DefaultStateModel() {
+    public InternalStateModel() {
     	initDefault();
     }
     
@@ -24,7 +24,7 @@ public class DefaultStateModel extends AbstractModel {
     }
     
     public enum State {
-    	NOVALUE, MAIN_SCREEN, NOT_CONNECTED, FRAMEBROWSE, EXPORT, SEARCH, STRUCTURE_EXPORT, DATABASE_COMPARE, LOAD, LOCK_DATABASE, UNLOCK_DATABASE;
+    	NOVALUE, NOT_CONNECTED, SHOW_MAIN_SCREEN, SHOW_FRAMEBROWSE, SHOW_EXPORT, SHOW_SEARCH, SHOW_STRUCTURE_EXPORT, SHOW_DATABASE_COMPARE, SHOW_IMPORT, LOCK_DATABASE, UNLOCK_DATABASE;
     	
     	public static State value(String state) {
 	        try {

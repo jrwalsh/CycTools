@@ -7,6 +7,7 @@ import javax.swing.table.TableModel;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.SlotUpdate;
 
+//TODO finish this class and test
 public class NewRegulation implements FileAdaptor {
 	private boolean append;
 	private boolean ignoreDuplicates;

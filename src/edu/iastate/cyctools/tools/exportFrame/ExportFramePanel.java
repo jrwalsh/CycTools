@@ -8,7 +8,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
 import edu.iastate.cyctools.DefaultController;
-import edu.iastate.cyctools.DefaultStateModel.State;
+import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
 import edu.iastate.javacyco.Frame;
@@ -146,7 +146,7 @@ public class ExportFramePanel extends AbstractViewPanel {
     
 	@Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
-		if (evt.getNewValue() == State.EXPORT) {
+		if (evt.getNewValue() == State.SHOW_EXPORT) {
 			expandedNodes = new ArrayList<String>();
 			try {
 				DefaultMutableTreeNode top = new DefaultMutableTreeNode("FRAMES");

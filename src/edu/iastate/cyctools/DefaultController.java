@@ -2,7 +2,6 @@ package edu.iastate.cyctools;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -12,8 +11,7 @@ import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
 
-import edu.iastate.cyctools.CycDataBaseAccess.Item;
-import edu.iastate.cyctools.DefaultStateModel.State;
+import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
@@ -23,12 +21,10 @@ import edu.iastate.cyctools.view.ToolPanel;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.OrgStruct;
-import edu.iastate.javacyco.Organism;
-import edu.iastate.javacyco.PtoolsErrorException;
 
 public class DefaultController implements PropertyChangeListener {
 	private CycDataBaseAccess dataAccess;
-	private DefaultStateModel state;
+	private InternalStateModel state;
 	private ArrayList<AbstractViewPanel> registeredViews;
 	public static JFrame mainJFrame;
 	public ToolPanel toolPanel;
@@ -43,7 +39,7 @@ public class DefaultController implements PropertyChangeListener {
 	public static String REPORT_PROPERTY_FRAME_EDITS_SUCCESS = "FrameEditsSuccess";
 	public static String REPORT_PROPERTY_FRAME_EDITS_FAIL = "FrameEditsFail";
 	
-    public DefaultController(DefaultStateModel state) {
+    public DefaultController(InternalStateModel state) {
     	this.dataAccess = null;
     	this.documentModel = null;
     	this.state = state;
@@ -90,34 +86,27 @@ public class DefaultController implements PropertyChangeListener {
     
     // Actions
     public void showMainScreen() {
-    	state.setState(State.MAIN_SCREEN);
+    	state.setState(State.SHOW_MAIN_SCREEN);
     }
     
     public void setState(State state) {
+    	// Changing program state propagates this change to all DefaultController listeners.  Listeners are responsible for complying with the current state of the program.
     	this.state.setState(state);
     }
     
     public void connect(String host, int port, String userName, String password) {
     	try {
     		dataAccess = new CycDataBaseAccess(host, port, userName, password);
-    		state.setState(State.MAIN_SCREEN);
+    		if (dataAccess.testConnection()) state.setState(State.SHOW_MAIN_SCREEN);
+    		else {
+    			dataAccess = null;
+        		state.setState(State.NOT_CONNECTED);
+        		CycToolsError.showError("Unable to connect to server", "Unable to connect");
+    		}
     	} catch (Exception e) {
     		dataAccess = null;
     		state.setState(State.NOT_CONNECTED);
-    		
-    		if (e.getMessage().equalsIgnoreCase("Unknown host")) {
-    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nCould not determine host", "Connection error", JOptionPane.ERROR_MESSAGE);
-    		} else if (e.getMessage().equalsIgnoreCase("Connection timed out")) {
-    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nServer not available", "Connection error", JOptionPane.ERROR_MESSAGE);
-    		} else if (e.getMessage().equalsIgnoreCase("Read timed out")) {
-    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nServer found, but connection timed out. Possibly requires user login.", "Connection error", JOptionPane.ERROR_MESSAGE);
-    		} else if (e.getMessage().equalsIgnoreCase("Problem connecting to remote socket")) {
-    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nJavaCycServer is not accessible", "Connection error", JOptionPane.ERROR_MESSAGE);
-    		} else if (e.getMessage().equalsIgnoreCase("Problem logging in to remote server")) {
-    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage() + "\nIncorrect username and password", "Login error", JOptionPane.ERROR_MESSAGE);
-    		} else {
-    			JOptionPane.showMessageDialog(mainJFrame, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
-    		}
+    		CycToolsError.checkForConnectionError(e);
     	}
     }
     
@@ -127,7 +116,7 @@ public class DefaultController implements PropertyChangeListener {
     	winAdaptor = new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                if(JOptionPane.showConfirmDialog(mainJFrame, "Are you sure ?") == JOptionPane.OK_OPTION){
+                if(JOptionPane.showConfirmDialog(mainJFrame, "The changes to the databae have not been saved yet!  Do you want to quit without saving changes?") == JOptionPane.OK_OPTION){
                 	mainJFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 	mainJFrame.setVisible(false);
                 	mainJFrame.dispose();
@@ -167,83 +156,40 @@ public class DefaultController implements PropertyChangeListener {
     }
     
     public ArrayList<String> substringSearch(String text, String type) {
-    	try {
-			return dataAccess.substringSearch(text, type);
-		} catch (PtoolsErrorException e) {
-			return new ArrayList<String>();
-		}
+		return dataAccess.substringSearch(text, type);
     }
     
     public ArrayList<Frame> getFramesOfType(String type) {
-		try {
-			return dataAccess.getFramesOfType(type);
-		} catch (PtoolsErrorException e) {
-			e.printStackTrace();
-			return new ArrayList<Frame>();
-		}
+		return dataAccess.getFramesOfType(type);
 	}
     
     public int printFramesToXML(String path, String type) {
-		try {
-			return dataAccess.printFramesToXML(path, type);
-		} catch (PtoolsErrorException e) {
-			e.printStackTrace();
-			return -1;
-		}
+		return dataAccess.printFramesToXML(path, type);
 	}
     
     public int printFramesToCSV(String path, String type) {
-		try {
-			return dataAccess.printFramesToCSV(path, type);
-		} catch (PtoolsErrorException e) {
-			e.printStackTrace();
-			return -1;
-		}
+		return dataAccess.printFramesToCSV(path, type);
 	}
     
     public DefaultTableModel getSearchResultsTable(String text, String type) {
-		try {
-			return dataAccess.getSearchResultsTable(text, type);
-		} catch (PtoolsErrorException e) {
-			//TODO State failed search
-			return new DefaultTableModel();
-		}
+		return dataAccess.getSearchResultsTable(text, type);
 	}
     
     public ArrayList<String> getPGDBChildrenOfFrame(String rootGFPtype) {
-		try {
-			return dataAccess.getPGDBChildrenOfFrame(rootGFPtype);
-		} catch (PtoolsErrorException e) {
-			//TODO State failed
-			return new ArrayList<String>();
-		}
+		return dataAccess.getPGDBChildrenOfFrame(rootGFPtype);
 	}
     
 	public DefaultTableModel getPGDBStructure(String rootGFPtype, boolean includeInstances, boolean directionForward) {
-		try {
-			return dataAccess.getPGDBStructureTable(rootGFPtype, includeInstances, directionForward);
-		} catch (PtoolsErrorException e) {
-			//TODO State failed
-			return new DefaultTableModel();
-		}
+		return dataAccess.getPGDBStructureTable(rootGFPtype, includeInstances, directionForward);
 	}
 	
 	public void submitTable(FileAdaptor interpreter) {
     	ArrayList<AbstractFrameEdit> frameUpdates = interpreter.tableToFrameUpdates(documentModel.getTableModel());
-		try {
-			dataAccess.commitFrameUpdates(frameUpdates);
-		} catch (PtoolsErrorException e) {
-			e.printStackTrace();
-		}
+		dataAccess.commitFrameUpdates(frameUpdates);
 	}
 	
 	public Frame updateLocalFrame(String frameID, ArrayList<AbstractFrameEdit> frameUpdates) {
-		try {
-			return dataAccess.updateLocalFrame(frameID, frameUpdates);
-		} catch (PtoolsErrorException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return dataAccess.updateLocalFrame(frameID, frameUpdates);
 	}
     
 	public void revertDataBase() {
@@ -253,29 +199,19 @@ public class DefaultController implements PropertyChangeListener {
 	public void saveDataBase() {
 		dataAccess.saveDataBase();
 	}
+	
+	public String getSelectedOrganism() {
+		return dataAccess.getSelectedOrganism();
+	}
+
+	public String getOrganismCommonName(String organismID) {
+		return dataAccess.getOrganismCommonName(organismID);
+	}
     
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		for (AbstractViewPanel view: registeredViews) {
             view.modelPropertyChange(evt);
         }
-	}
-
-	public String getSelectedOrganism() {
-		return dataAccess.getSelectedOrganism();
-	}
-
-	public String getOrganismCommonName(String organism) {
-		JavacycConnection conn = dataAccess.getConnection();
-		Organism org;
-		String orgCommonName = "";
-		try {
-			org = conn.getOrganism();
-			orgCommonName = org.getCommonName();
-		} catch (PtoolsErrorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return orgCommonName;
 	}
 }

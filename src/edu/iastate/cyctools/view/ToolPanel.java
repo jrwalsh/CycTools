@@ -5,9 +5,8 @@ import java.beans.PropertyChangeEvent;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import edu.iastate.cyctools.CycDataBaseAccess.Item;
 import edu.iastate.cyctools.DefaultController;
-import edu.iastate.cyctools.DefaultStateModel.State;
+import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.externalSourceCode.KeyValueComboboxModel;
 import edu.iastate.javacyco.OrgStruct;
@@ -24,14 +23,13 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JList;
-import javax.swing.LayoutStyle.ComponentPlacement;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public class ToolPanel extends AbstractViewPanel {
 	public final static String noOrganism = "None Available";
 	
 	DefaultController controller;
-	private JComboBox<Item> comboBoxOrganism;
+	private JComboBox comboBoxOrganism;
 	private JButton btnHome;
 	public final Action actionSetOrganism = new ActionSetOrganism();
 	public final Action action = new ActionHome();
@@ -103,7 +101,7 @@ public class ToolPanel extends AbstractViewPanel {
 			if (evt.getNewValue() == State.NOT_CONNECTED) {
 				comboBoxOrganism.setModel(new KeyValueComboboxModel());
 				this.setVisible(false);
-			} else if (evt.getNewValue() == State.MAIN_SCREEN) {
+			} else if (evt.getNewValue() == State.SHOW_MAIN_SCREEN) {
 				try {
 					lastSelectedOrganism = (Map.Entry<String, String>)comboBoxOrganism.getSelectedItem();
 				} catch (NullPointerException e) {

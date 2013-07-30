@@ -1,6 +1,5 @@
 package edu.iastate.cyctools.tools.load.view;
 
-import javax.imageio.ImageIO;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
@@ -9,6 +8,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -19,7 +19,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import java.awt.event.ActionEvent;
-import java.awt.image.BufferedImage;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -30,10 +29,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Vector;
-
 import edu.iastate.cyctools.DefaultController;
-import edu.iastate.cyctools.DefaultStateModel.State;
+import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
@@ -43,7 +40,6 @@ import edu.iastate.cyctools.tools.load.model.BatchEditModel.Event;
 import edu.iastate.cyctools.tools.load.model.BatchEditModel.Status;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.model.BatchEditModel;
-import edu.iastate.cyctools.tools.load.util.KeyValue;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.PtoolsErrorException;
 
@@ -88,8 +84,8 @@ public class LoadPanel extends AbstractViewPanel {
 	private final Action actionBack = new ActionBack();
 	private final Action actionPreview = new ActionPreview();
 	private JTextField textFilePath;
-	private JComboBox<KeyValue> cmbFormat;
-	private JComboBox<AdaptorKeyValue> cmbAdaptor;
+	private JComboBox<String> cmbFormat;
+	private JComboBox<String> cmbAdaptor;
 	private JTextField textMultipleValueDelimiter;
 	private final Action actionBack2 = new ActionBack2();
 	private final Action actionSaveLog = new ActionSaveLog();
@@ -268,10 +264,10 @@ public class LoadPanel extends AbstractViewPanel {
 		textFilePath.setEditable(false);
 		textFilePath.setColumns(10);
 		
-		Vector<KeyValue> modelFormat = new Vector<KeyValue>();
-        modelFormat.addElement( new KeyValue(1, "Comma-separated values (CSV)"));
-        modelFormat.addElement( new KeyValue(2, "Tab-delimited file (tab)"));
-        cmbFormat = new JComboBox<KeyValue>(modelFormat);
+		DefaultComboBoxModel<String> modelFormat = new DefaultComboBoxModel<String>();
+        modelFormat.addElement("Comma-separated values (CSV)");
+        modelFormat.addElement("Tab-delimited file (tab)");
+        cmbFormat = new JComboBox<String>(modelFormat);
 		
 		chckbxAppend = new JCheckBox("Append new data to existing values?");
 		chckbxAppend.setSelected(true);
@@ -361,11 +357,11 @@ public class LoadPanel extends AbstractViewPanel {
 		);
 		optionsPanel.setLayout(gl_optionsPanel);
         
-		Vector<AdaptorKeyValue> modelAdaptor = new Vector<AdaptorKeyValue>();
-		modelAdaptor.addElement( new AdaptorKeyValue(new SimpleInterpreter(), "Standard CSV: Column header determines slot label"));
-		modelAdaptor.addElement( new AdaptorKeyValue(null, "Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label")); //TODO implement the generic annotation adaptor
-		modelAdaptor.addElement( new AdaptorKeyValue(new MaizeAdaptor(), "MaizeGDB Custom: frameID, goTerm, pubMedID, evCode, timeStampString (dd-mm-yyyy hh-mm-ss), curator"));
-        cmbAdaptor = new JComboBox<AdaptorKeyValue>(modelAdaptor);
+		DefaultComboBoxModel<String> modelAdaptor = new DefaultComboBoxModel<String>();
+		modelAdaptor.addElement("Standard CSV: Column header determines slot label");
+        modelAdaptor.addElement("Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label");
+        modelAdaptor.addElement("MaizeGDB Custom: frameID, goTerm, pubMedID, evCode, timeStampString (dd-mm-yyyy hh-mm-ss), curator");
+        cmbAdaptor = new JComboBox<String>(modelAdaptor);
         
         GroupLayout gl_filePanel = new GroupLayout(filePanel);
         gl_filePanel.setHorizontalGroup(
@@ -589,8 +585,10 @@ public class LoadPanel extends AbstractViewPanel {
 			File file = new File(textFilePath.getText());
 			
 			String fileDelimiter = ",";
-			if (((KeyValue)cmbFormat.getSelectedItem()).getKey() == 1) fileDelimiter = ","; 
-			else if (((KeyValue)cmbFormat.getSelectedItem()).getKey() == 2) fileDelimiter = "\t";
+			if (cmbFormat.getSelectedIndex() == 0) fileDelimiter = ",";
+			else if (cmbFormat.getSelectedIndex() == 1) fileDelimiter = "\t";
+//			if (((KeyValue)cmbFormat.getSelectedItem()).getKey() == 1) fileDelimiter = ","; 
+//			else if (((KeyValue)cmbFormat.getSelectedItem()).getKey() == 2) fileDelimiter = "\t";
 			
 			controller.changeDocumentFile(file, fileDelimiter);
 			if (controller.getDocumentModel().getFile() == null) {
@@ -610,7 +608,10 @@ public class LoadPanel extends AbstractViewPanel {
 		public void actionPerformed(ActionEvent e) {
 			cardLayout.show(contentPane, "PreviewPanel");
 			try {
-				selectedAdaptor = ((AdaptorKeyValue)cmbAdaptor.getSelectedItem()).getKey();
+				if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleInterpreter();
+				else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = null; //TODO add annotation adaptor
+				else if (cmbAdaptor.getSelectedIndex() == 2) selectedAdaptor = new MaizeAdaptor();
+				
 				selectedAdaptor.setMultipleValueDelimiter(textMultipleValueDelimiter.getText());
 				selectedAdaptor.setAppend(chckbxAppend.getModel().isSelected());
 				selectedAdaptor.setIgnoreDuplicates(chckbxIgnoreDuplicate.getModel().isSelected());
@@ -674,7 +675,7 @@ public class LoadPanel extends AbstractViewPanel {
 	@Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals(DefaultController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
-			if (evt.getNewValue() == State.LOAD) {
+			if (evt.getNewValue() == State.SHOW_IMPORT) {
 				resetForm();
 			}
 		}
@@ -683,28 +684,6 @@ public class LoadPanel extends AbstractViewPanel {
 			tableSpreadSheet.setModel(dtm);
 			revalidate();
 			repaint();
-		}
-	}
-
-	private class AdaptorKeyValue {
-		private FileAdaptor key;
-		private String value;
-
-		public AdaptorKeyValue(FileAdaptor key, String value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		public FileAdaptor getKey() {
-			return key;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		public String toString() {
-			return value;
 		}
 	}
 	
