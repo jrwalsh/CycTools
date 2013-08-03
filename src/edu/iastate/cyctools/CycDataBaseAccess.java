@@ -132,6 +132,8 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	
 	// Convert a frame into a printable string.  Prints all values in local copy of the frame
 	public String frameToString(Frame frame) {
+		if (frame == null) return null;
+		
 		String printString = "";
 		printString += "\n"+frame.getLocalID()+"\n";
 		try {
@@ -154,22 +156,23 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 					}
 				}
 			}
-
-			if(!conn.getFrameType(frame.getLocalID()).toUpperCase().equals(":CLASS"))
-			{
-				printString += "~~THE FOLLOWING ARE NOT SLOTS~~\n~GFP SUPERCLASSES: \n";
-				for(Object t : conn.getInstanceAllTypes(frame.getLocalID())) {
-					printString += "\t"+(String)t+"\n";
+			
+			if (conn.frameExists(frame.getLocalID())) { // Can only print frame type information if the frame exists in the database
+				if(!conn.getFrameType(frame.getLocalID()).toUpperCase().equals(":CLASS")) {
+					printString += "~~THE FOLLOWING ARE NOT SLOTS~~\n~GFP SUPERCLASSES: \n";
+					for(Object t : conn.getInstanceAllTypes(frame.getLocalID())) {
+						printString += "\t"+(String)t+"\n";
+					}
+					printString += "~DIRECT GFP SUPERCLASSES: \n";
+					for(Object t : conn.getInstanceDirectTypes(frame.getLocalID()))
+					{
+						printString += "\t"+(String)t+"\n";
+					}
 				}
-				printString += "~DIRECT GFP SUPERCLASSES: \n";
-				for(Object t : conn.getInstanceDirectTypes(frame.getLocalID()))
-				{
-					printString += "\t"+(String)t+"\n";
-				}
+			
+				printString += "~CLASSIFIED AS\n\t"+Frame.load(conn, frame.getLocalID()).getClass().getName()+"\n";
+				printString += "~LOADED FROM\n\t"+Frame.load(conn, frame.getLocalID()).getOrganism().getLocalID()+" "+Frame.load(conn, frame.getLocalID()).getOrganism().getSpecies()+"\n";
 			}
-		
-			printString += "~CLASSIFIED AS\n\t"+Frame.load(conn, frame.getLocalID()).getClass().getName()+"\n";
-			printString += "~LOADED FROM\n\t"+Frame.load(conn, frame.getLocalID()).getOrganism().getLocalID()+" "+Frame.load(conn, frame.getLocalID()).getOrganism().getSpecies()+"\n";
 			
 			return printString;
 		}
@@ -526,7 +529,7 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 			frame = Frame.load(conn, frameID);
 			frame.update();
 			for (AbstractFrameEdit frameUpdate : frameUpdates) {
-				frameUpdate.commitLocal(frame, conn);
+				frameUpdate.commitLocal(frame);
 			}
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();

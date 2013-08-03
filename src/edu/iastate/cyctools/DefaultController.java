@@ -109,9 +109,9 @@ public class DefaultController implements PropertyChangeListener {
     		CycToolsError.checkForConnectionError(e);
     	}
     }
-    
+
     public void lockDatabaseOperation() {
-    	state.setState(State.LOCK_DATABASE);
+    	toolPanel.lockToolBar();
     	mainJFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     	winAdaptor = new WindowAdapter() {
             @Override
@@ -127,7 +127,7 @@ public class DefaultController implements PropertyChangeListener {
     }
     
     public void unlockDatabaseOperation() {
-    	state.setState(State.UNLOCK_DATABASE);
+    	toolPanel.unLockToolBar();
     	mainJFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     	mainJFrame.removeWindowListener(winAdaptor);
     }
@@ -207,7 +207,15 @@ public class DefaultController implements PropertyChangeListener {
 	public String getOrganismCommonName(String organismID) {
 		return dataAccess.getOrganismCommonName(organismID);
 	}
+	
+	public void lockToolBarOrganismSelect() {
+		toolPanel.lockToolBarOrganismSelect();
+	}
     
+	public void unLockToolBarOrganismSelect() {
+		toolPanel.unLockToolBarOrganismSelect();
+	}
+	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		for (AbstractViewPanel view: registeredViews) {

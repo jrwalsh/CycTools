@@ -80,7 +80,7 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 	}
 	
 	@Override
-	public Frame commitLocal(Frame frame, JavacycConnection conn) throws PtoolsErrorException {
+	public Frame commitLocal(Frame frame) throws PtoolsErrorException {
 		ArrayList<String> newValues = new ArrayList<String>();
 		if (append) {
 			newValues.addAll(frame.getAnnotations(slotLabel, slotValue, annotationLabel));
@@ -105,5 +105,13 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 	@Override
 	protected ArrayList<String> getRemoteValues(JavacycConnection conn) throws PtoolsErrorException {
 		return (ArrayList<String>) conn.getValueAnnots(frameID, slotLabel, slotValue, annotationLabel);
+	}
+
+	@Override
+	public boolean modifiesFrame(JavacycConnection conn, Frame aFrame) throws PtoolsErrorException {
+		Frame frameToModify = aFrame.copy(aFrame.getLocalID());
+		commitLocal(frameToModify);
+		boolean isModified = !aFrame.equalBySlotValues(frameToModify); // If the frames are not equal, a change has been made to the database.
+		return isModified;
 	}
 }

@@ -88,15 +88,15 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 	
 	// Catches all "special" cases for slot updates, such as GO-TERMS
 	@Override
-	public Frame commitLocal(Frame frame, JavacycConnection conn) throws PtoolsErrorException {
+	public Frame commitLocal(Frame frame) throws PtoolsErrorException {
 //		// GO-TERMS are a special case, as pathway tools can automatically import information for them if told to do so.
 //		if (slotLabel.equalsIgnoreCase("GO-TERMS")) {
 //			conn.importGOTerms(getValues());
 //		}
 		
 		ArrayList<String> newValues = new ArrayList<String>();
-		if (append) {
-			newValues.addAll(frame.getSlotValues(slotLabel));
+		if (append && frame.hasSlot(slotLabel)) {
+			newValues.addAll(frame.getSlotValues(slotLabel));//TODO what if the slot value is actually an array?
 		}
 		
 		if (ignoreDuplicates) {
@@ -119,4 +119,23 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 	protected ArrayList<String> getRemoteValues(JavacycConnection conn) throws PtoolsErrorException {
 		return (ArrayList<String>) conn.getSlotValues(frameID, slotLabel);
 	}
+
+	@Override
+	public boolean modifiesFrame(JavacycConnection conn, Frame aFrame) throws PtoolsErrorException {
+		Frame frameToModify = aFrame.copy(aFrame.getLocalID());
+		commitLocal(frameToModify);
+		boolean isModified = !aFrame.equalBySlotValues(frameToModify); // If the frames are not equal, a change has been made to the database.
+		return isModified;
+	}
+	
+//	@Override
+//	public boolean modifiesKB(JavacycConnection conn) throws PtoolsErrorException {
+//		Frame frame = Frame.load(conn, frameID);
+//		frame.update();
+//		
+//		Frame frameToModify = frame.copy(frame.getLocalID());
+//		commitLocal(frameToModify);
+//		boolean isModified = !frame.equalBySlotValues(frameToModify); // If the frames are not equal, a change has been made to the database.
+//		return isModified;
+//	}
 }

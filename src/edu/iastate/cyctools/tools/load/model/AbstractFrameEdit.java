@@ -35,6 +35,7 @@ public abstract class AbstractFrameEdit {
 		return conn.frameExists(frameID);
 	}
 	
+	public abstract boolean modifiesFrame(JavacycConnection conn, Frame aFrame) throws PtoolsErrorException;
 	public abstract boolean commit(JavacycConnection conn) throws PtoolsErrorException;
-	public abstract Frame commitLocal(Frame frame, JavacycConnection conn) throws PtoolsErrorException;
+	public abstract Frame commitLocal(Frame frame) throws PtoolsErrorException;
 }

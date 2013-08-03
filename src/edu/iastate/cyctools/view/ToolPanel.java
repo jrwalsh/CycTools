@@ -95,6 +95,24 @@ public class ToolPanel extends AbstractViewPanel {
 		setLayout(groupLayout);
 	}
     
+    public void lockToolBar() {
+    	action.setEnabled(false);
+		actionSetOrganism.setEnabled(false);
+	}
+	
+	public void unLockToolBar() {
+		action.setEnabled(true);
+		actionSetOrganism.setEnabled(true);
+	}
+	
+	public void lockToolBarOrganismSelect() {
+		actionSetOrganism.setEnabled(false);
+	}
+    
+	public void unLockToolBarOrganismSelect() {
+		actionSetOrganism.setEnabled(true);
+	}
+    
     @Override
 	public void modelPropertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName().equals(DefaultController.BROWSER_STATE_PROPERTY) && evt.getNewValue() != null) {
@@ -128,15 +146,23 @@ public class ToolPanel extends AbstractViewPanel {
 				btnHome.setEnabled(true);
 			}
 			
-			if (evt.getNewValue() == State.LOCK_DATABASE) {
-				action.setEnabled(false);
-				actionSetOrganism.setEnabled(false);
-			}
-			
-			if (evt.getNewValue() == State.UNLOCK_DATABASE) {
-				action.setEnabled(true);
-				actionSetOrganism.setEnabled(true);
-			} 
+//			if (evt.getNewValue() == State.LOCK) {
+//				action.setEnabled(false);
+//				actionSetOrganism.setEnabled(false);
+//			}
+//			
+//			if (evt.getNewValue() == State.UNLOCK) {
+//				action.setEnabled(true);
+//				actionSetOrganism.setEnabled(true);
+//			}
+//			
+//			if (evt.getNewValue() == State.LOCK_DATABASE) {
+//				actionSetOrganism.setEnabled(false);
+//			}
+//			
+//			if (evt.getNewValue() == State.UNLOCK_DATABASE) {
+//				actionSetOrganism.setEnabled(true);
+//			} 
 		}
 	}
     
@@ -158,6 +184,7 @@ public class ToolPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Return to select menu");
 		}
 		public void actionPerformed(ActionEvent e) {
+			controller.unlockDatabaseOperation();
 			controller.showMainScreen();
 		}
 	}

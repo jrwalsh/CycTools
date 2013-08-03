@@ -28,18 +28,17 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import edu.iastate.cyctools.CycToolsError;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleInterpreter;
-import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
-import edu.iastate.cyctools.tools.load.model.BatchEditModel.Event;
-import edu.iastate.cyctools.tools.load.model.BatchEditModel.Status;
+import edu.iastate.cyctools.tools.load.model.BatchUpdate.Event;
+import edu.iastate.cyctools.tools.load.model.BatchUpdate.Status;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
-import edu.iastate.cyctools.tools.load.model.BatchEditModel;
+import edu.iastate.cyctools.tools.load.model.BatchUpdate;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.PtoolsErrorException;
 
@@ -57,6 +56,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.JTextPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ImageIcon;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
@@ -66,15 +67,23 @@ public class LoadPanel extends AbstractViewPanel {
 	private CardLayout cardLayout;
 	private JPanel contentPane;
 	private JList<String> listFrames;
-	private JTextArea textAreaOld;
+	private JTextPane textAreaOld;
 	private JTextPane textAreaNew;
 	private JTextArea textLog;
 	private JTextArea textArea;
 	private JTextArea textArea_1;
-	private BatchEditModel batchEdits;
+	private BatchUpdate batchEdits;
 	private JCheckBox chckbxAppend;
 	private JCheckBox chckbxIgnoreDuplicate;
 	private JTabbedPane tabbedPane;
+	private JTextField textFilePath;
+	private JComboBox<String> cmbFormat;
+	private JComboBox<String> cmbAdaptor;
+	private JTextField textMultipleValueDelimiter;
+	private JCheckBox chckbxFilter;
+	DefaultListModel<String> allFramesWithImports;
+	DefaultListModel<String> framesWhichModifyKB;
+	
 	
 	private final Action actionBrowse = new ActionBrowse();
 	private final Action actionUpload = new ActionUpload();
@@ -83,10 +92,6 @@ public class LoadPanel extends AbstractViewPanel {
 	private final Action actionOpen = new ActionOpen();
 	private final Action actionBack = new ActionBack();
 	private final Action actionPreview = new ActionPreview();
-	private JTextField textFilePath;
-	private JComboBox<String> cmbFormat;
-	private JComboBox<String> cmbAdaptor;
-	private JTextField textMultipleValueDelimiter;
 	private final Action actionBack2 = new ActionBack2();
 	private final Action actionSaveLog = new ActionSaveLog();
 	
@@ -163,43 +168,41 @@ public class LoadPanel extends AbstractViewPanel {
 		JButton btnUpload = new JButton("Upload");
 		btnUpload.setAction(actionUpload);
 		
-		JPanel panel = new JPanel();
-		
-		JSplitPane splitPane = new JSplitPane();
-		
 		JLabel lblPreviewChanges = new JLabel("<html><h3>Preview Changes</h3></html>");
 		
-		JLabel lblFramesToBe = new JLabel("Frames to be Updated");
+		chckbxFilter = new JCheckBox("Show only frames which are altered");
+		chckbxFilter.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				if (chckbxFilter.isSelected()) {
+					framesWhichModifyKB = batchEdits.framesWhichModifyKB(controller.getConnection());
+					if (framesWhichModifyKB.isEmpty()) framesWhichModifyKB.addElement("No Frames will modify KB");
+					listFrames.setModel(framesWhichModifyKB);
+				} else {
+					listFrames.setModel(allFramesWithImports);
+				}
+			}
+		});
 		
-		JLabel lblExistingFrameData = new JLabel("Existing Frame Data");
+		JSplitPane splitPane_1 = new JSplitPane();
 		
-		JLabel lblFrameDataAfter = new JLabel("Frame Data after Update");
 		GroupLayout gl_previewPanel = new GroupLayout(previewPanel);
 		gl_previewPanel.setHorizontalGroup(
 			gl_previewPanel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_previewPanel.createSequentialGroup()
 					.addGroup(gl_previewPanel.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_previewPanel.createSequentialGroup()
-							.addContainerGap()
-							.addGroup(gl_previewPanel.createParallelGroup(Alignment.TRAILING)
-								.addGroup(gl_previewPanel.createSequentialGroup()
-									.addComponent(btnBack2)
-									.addPreferredGap(ComponentPlacement.RELATED, 608, Short.MAX_VALUE)
-									.addComponent(btnUpload))
-								.addGroup(Alignment.LEADING, gl_previewPanel.createSequentialGroup()
-									.addComponent(panel, GroupLayout.PREFERRED_SIZE, 216, GroupLayout.PREFERRED_SIZE)
-									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE))))
-						.addGroup(gl_previewPanel.createSequentialGroup()
 							.addGap(303)
 							.addComponent(lblPreviewChanges, GroupLayout.PREFERRED_SIZE, 129, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_previewPanel.createSequentialGroup()
+							.addGap(10)
+							.addComponent(btnBack2)
+							.addPreferredGap(ComponentPlacement.UNRELATED)
+							.addComponent(chckbxFilter)
+							.addPreferredGap(ComponentPlacement.RELATED, 405, Short.MAX_VALUE)
+							.addComponent(btnUpload))
+						.addGroup(gl_previewPanel.createSequentialGroup()
 							.addContainerGap()
-							.addComponent(lblFramesToBe, GroupLayout.PREFERRED_SIZE, 214, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(lblExistingFrameData, GroupLayout.PREFERRED_SIZE, 247, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(lblFrameDataAfter, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)))
+							.addComponent(splitPane_1, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)))
 					.addContainerGap())
 		);
 		gl_previewPanel.setVerticalGroup(
@@ -207,21 +210,18 @@ public class LoadPanel extends AbstractViewPanel {
 				.addGroup(gl_previewPanel.createSequentialGroup()
 					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addComponent(lblPreviewChanges)
+					.addGap(26)
+					.addComponent(splitPane_1, GroupLayout.PREFERRED_SIZE, 286, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_previewPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblExistingFrameData)
-						.addComponent(lblFrameDataAfter)
-						.addComponent(lblFramesToBe))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_previewPanel.createParallelGroup(Alignment.TRAILING, false)
-						.addComponent(splitPane)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_previewPanel.createParallelGroup(Alignment.TRAILING)
-						.addComponent(btnUpload)
-						.addComponent(btnBack2))
-					.addContainerGap())
+						.addComponent(btnBack2)
+						.addComponent(chckbxFilter)
+						.addComponent(btnUpload))
+					.addGap(31))
 		);
+		
+		JPanel panel = new JPanel();
+		splitPane_1.setLeftComponent(panel);
 		listFrames = new JList<String>(new DefaultListModel<String>());
 		listFrames.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
@@ -241,14 +241,26 @@ public class LoadPanel extends AbstractViewPanel {
 			gl_panel.createParallelGroup(Alignment.TRAILING)
 				.addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
 		);
+		
+		JLabel lblFramesToBe = new JLabel("Frames to be Updated");
+		lblFramesToBe.setFont(new Font("Arial", Font.BOLD, 16));
+		lblFramesToBe.setAlignmentX(Component.CENTER_ALIGNMENT);
+		scrollPane.setColumnHeaderView(lblFramesToBe);
 		panel.setLayout(gl_panel);
+		
+		JSplitPane splitPane = new JSplitPane();
+		splitPane_1.setRightComponent(splitPane);
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
 		splitPane.setLeftComponent(scrollPane_1);
 		
-		textAreaOld = new JTextArea();
+		textAreaOld = new JTextPane();
 		textAreaOld.setEditable(false);
 		scrollPane_1.setViewportView(textAreaOld);
+		
+		JLabel lblExistingFrameData = new JLabel("Existing Frame Data");
+		lblExistingFrameData.setFont(new Font("Arial", Font.BOLD, 16));
+		scrollPane_1.setColumnHeaderView(lblExistingFrameData);
 		
 		JScrollPane scrollPane_2 = new JScrollPane();
 		splitPane.setRightComponent(scrollPane_2);
@@ -256,6 +268,10 @@ public class LoadPanel extends AbstractViewPanel {
 		textAreaNew = new JTextPane();
 		textAreaNew.setEditable(false);
 		scrollPane_2.setViewportView(textAreaNew);
+		
+		JLabel lblFrameDataAfter = new JLabel("Frame Data after Update");
+		lblFrameDataAfter.setFont(new Font("Arial", Font.BOLD, 16));
+		scrollPane_2.setColumnHeaderView(lblFrameDataAfter);
 		splitPane.setDividerLocation(250);
 		
 		previewPanel.setLayout(gl_previewPanel);
@@ -454,25 +470,21 @@ public class LoadPanel extends AbstractViewPanel {
 			return;  // Ignore request to compare frame if no frame is selected (or list is empty)
 		}
 		
-		String originalFrameString = controller.frameToString(frameID);
+		Frame originalFrame = batchEdits.getFrameByID(frameID);
+		String originalFrameString = controller.frameToString(originalFrame);//controller.frameToString(frameID);
 		
-		if (originalFrameString == null || originalFrameString.equalsIgnoreCase("")) {
+		if (originalFrame == null || originalFrameString == null || originalFrameString.equalsIgnoreCase("")) {
 			String message = "Frame " + frameID + " does not exist in database " + controller.getSelectedOrganism();
 			textAreaOld.setText(message);
-			textAreaNew.setText(message);
-			return;
-		}
-		
-		textAreaOld.setText(originalFrameString);
-		
-		// select the frame edits which relate to this frame
-		ArrayList<AbstractFrameEdit> frameEditArray = batchEdits.getFrameEditsMap().get(frameID);
+			originalFrame = new Frame(controller.getConnection(), frameID);
+			originalFrameString = controller.frameToString(originalFrame);
+		} else textAreaOld.setText(originalFrameString);
 		
 		// apply frame edits to local copy of frame
-		Frame resultFrame = controller.updateLocalFrame(frameID, frameEditArray);
+		Frame updatedFrame = batchEdits.updateLocalFrame(originalFrame);//controller.updateLocalFrame(frameID, frameEditArray);
 		
 		// return print of the updated frame
-		String updatedFrameString = controller.frameToString(resultFrame);
+		String updatedFrameString = controller.frameToString(updatedFrame);
 		textAreaNew.setText(updatedFrameString);
 		int currentPosition = 0;
 		for (String line : updatedFrameString.split("\n")) {
@@ -489,14 +501,17 @@ public class LoadPanel extends AbstractViewPanel {
 	}
 	
 	
-	private void populateListOfFrames() throws PtoolsErrorException {
-		batchEdits = new BatchEditModel(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()));
+	private void openPreviewPanel() throws PtoolsErrorException {
+		controller.lockToolBarOrganismSelect();
+		textAreaOld.setText("");
+		textAreaNew.setText("");
+		cardLayout.show(contentPane, "PreviewPanel");
+		batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()));
 		batchEdits.addPropertyChangeListener(controller);
 		
-		DefaultListModel<String> listModel = (DefaultListModel<String>) listFrames.getModel();
-		for (String frameID : batchEdits.getFrameIDSet()) {
-			listModel.addElement(frameID);
-		}
+		batchEdits.downloadFrames(controller.getConnection());
+		allFramesWithImports = batchEdits.getFrameIDsModel();
+		listFrames.setModel(allFramesWithImports);
 	}
     
     
@@ -522,7 +537,7 @@ public class LoadPanel extends AbstractViewPanel {
 			controller.lockDatabaseOperation();
 			
 			cardLayout.show(contentPane, "ReviewPanel");
-			batchEdits.commitAll(controller.getConnection());
+			batchEdits.commitToKB(controller.getConnection());
 			
 			String allEventLog = "";
 			String successEventLog = "";
@@ -587,8 +602,6 @@ public class LoadPanel extends AbstractViewPanel {
 			String fileDelimiter = ",";
 			if (cmbFormat.getSelectedIndex() == 0) fileDelimiter = ",";
 			else if (cmbFormat.getSelectedIndex() == 1) fileDelimiter = "\t";
-//			if (((KeyValue)cmbFormat.getSelectedItem()).getKey() == 1) fileDelimiter = ","; 
-//			else if (((KeyValue)cmbFormat.getSelectedItem()).getKey() == 2) fileDelimiter = "\t";
 			
 			controller.changeDocumentFile(file, fileDelimiter);
 			if (controller.getDocumentModel().getFile() == null) {
@@ -599,14 +612,13 @@ public class LoadPanel extends AbstractViewPanel {
 			cardLayout.show(contentPane, "FilePanel");
 		}
 	}
-	
+
 	private class ActionPreview extends AbstractAction {
 		public ActionPreview() {
 			putValue(NAME, "Preview");
 			putValue(SHORT_DESCRIPTION, "Preview file before import");
 		}
 		public void actionPerformed(ActionEvent e) {
-			cardLayout.show(contentPane, "PreviewPanel");
 			try {
 				if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleInterpreter();
 				else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = null; //TODO add annotation adaptor
@@ -616,11 +628,12 @@ public class LoadPanel extends AbstractViewPanel {
 				selectedAdaptor.setAppend(chckbxAppend.getModel().isSelected());
 				selectedAdaptor.setIgnoreDuplicates(chckbxIgnoreDuplicate.getModel().isSelected());
 			} catch (Exception exception) {
-				System.out.println("Error selecting adaptor, unknown adaptor.");
+				CycToolsError.showError("Error selecting adaptor, un-implemented adaptor.", "Error");
+				return;
 			}
 			
 			try {
-				populateListOfFrames();
+				openPreviewPanel();
 			} catch (PtoolsErrorException e1) {
 				e1.printStackTrace();
 			}
@@ -643,6 +656,7 @@ public class LoadPanel extends AbstractViewPanel {
 			putValue(SHORT_DESCRIPTION, "Back");
 		}
 		public void actionPerformed(ActionEvent e) {
+			controller.unLockToolBarOrganismSelect();
 			cardLayout.show(contentPane, "FilePanel");
 		}
 	}

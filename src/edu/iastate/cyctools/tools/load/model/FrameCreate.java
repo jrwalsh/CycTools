@@ -27,9 +27,16 @@ public class FrameCreate extends AbstractFrameEdit {
 	}
 
 	@Override
-	public Frame commitLocal(Frame frame, JavacycConnection conn)
-			throws PtoolsErrorException {
+	public Frame commitLocal(Frame frame) throws PtoolsErrorException {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public boolean modifiesFrame(JavacycConnection conn, Frame aFrame)
+			throws PtoolsErrorException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
