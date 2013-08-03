@@ -1,7 +1,9 @@
 package edu.iastate.cyctools.tools.frameView;
 
 import javax.swing.border.EmptyBorder;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -11,14 +13,18 @@ import javax.swing.JScrollPane;
 import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
+
+import java.awt.Component;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import javax.swing.GroupLayout.Alignment;
 
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
+import edu.iastate.cyctools.externalSourceCode.KeyValueComboboxModel;
 import edu.iastate.cyctools.externalSourceCode.MenuPopupUtil;
 import edu.iastate.javacyco.*;
+
 import java.awt.event.ActionListener;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JComboBox;
@@ -51,12 +57,22 @@ public class FrameViewPanel extends AbstractViewPanel {
     	MenuPopupUtil.installContextMenu(txtEnterFrameid);
     	MenuPopupUtil.installContextMenu(textArea);
     	
-    	cmbType.addItem(Compound.GFPtype);
-    	cmbType.addItem(Gene.GFPtype);
-    	cmbType.addItem(Pathway.GFPtype);
-    	cmbType.addItem(Protein.GFPtype);
-    	cmbType.addItem(Regulation.GFPtype);
-    	cmbType.addItem(Reaction.GFPtype);
+    	KeyValueComboboxModel model = new KeyValueComboboxModel();
+    	model.put(Compound.GFPtype, "Compounds");
+    	model.put(Gene.GFPtype, "Genes");
+    	model.put(Pathway.GFPtype, "Pathways");
+    	model.put(Protein.GFPtype, "Proteins");
+    	model.put(Regulation.GFPtype, "Regulation");
+    	model.put(Reaction.GFPtype, "Reactions");
+    	cmbType.setModel(model);
+    	cmbType.setRenderer(new DefaultListCellRenderer() {
+	        @Override
+	        public Component getListCellRendererComponent(final JList list, Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
+	        	if (value != null) value = value.toString().substring(value.toString().indexOf("=")+1, value.toString().length());
+	            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	        }
+	    });
+    	cmbType.setSelectedIndex(0);
     }
     
     private void initComponents() {
