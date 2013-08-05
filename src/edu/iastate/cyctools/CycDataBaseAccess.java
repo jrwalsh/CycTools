@@ -181,16 +181,13 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		}
 	}
 
-	public ArrayList<String> substringSearch(String text, String type) {
-		ArrayList<String> resultIDs = new ArrayList<String>();
+	public ArrayList<Frame> substringSearch(String text, String type) {
 		try {
-			for (Frame resultFrame : conn.search(text, type)) {
-				resultIDs.add(resultFrame.getLocalID());
-			}
+			return conn.search(text, type);
 		} catch (PtoolsErrorException e) {
 			e.printStackTrace();
 		}
-		return resultIDs;
+		return new ArrayList<Frame>();
 	}
 	
 	public ArrayList<String> getPGDBChildrenOfFrame(String classFrameID) {

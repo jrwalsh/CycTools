@@ -4,7 +4,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JTextArea;
@@ -17,8 +16,12 @@ import javax.swing.Action;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
+import java.util.ArrayList;
+import java.util.Map.Entry;
+
 import javax.swing.GroupLayout.Alignment;
 
+import edu.iastate.cyctools.CycToolsError;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.externalSourceCode.KeyValueComboboxModel;
@@ -29,7 +32,7 @@ import java.awt.event.ActionListener;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JComboBox;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public class FrameViewPanel extends AbstractViewPanel {
 	DefaultController controller;
 	private final Action actionSubmit = new ActionSubmit();
@@ -37,7 +40,7 @@ public class FrameViewPanel extends AbstractViewPanel {
 	private JTextArea textArea;
 	private JTextField txtEnterFrameid;
 	private JButton button;
-	private JComboBox<String> cmbType;
+	private JComboBox cmbType;
 	
 	/**
 	 * Create the frame.
@@ -62,7 +65,7 @@ public class FrameViewPanel extends AbstractViewPanel {
     	model.put(Gene.GFPtype, "Genes");
     	model.put(Pathway.GFPtype, "Pathways");
     	model.put(Protein.GFPtype, "Proteins");
-    	model.put(Regulation.GFPtype, "Regulation");
+//    	model.put(Regulation.GFPtype, "Regulation"); // Not an indexed frame type, cannot be searched with substringsearch
     	model.put(Reaction.GFPtype, "Reactions");
     	cmbType.setModel(model);
     	cmbType.setRenderer(new DefaultListCellRenderer() {
@@ -102,7 +105,7 @@ public class FrameViewPanel extends AbstractViewPanel {
 		scrollPane.setPreferredSize(new Dimension(800, 300));
 		scrollPane.setViewportView(textArea);
 		
-		cmbType = new JComboBox<String>();
+		cmbType = new JComboBox();
 		
 		GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
@@ -142,28 +145,28 @@ public class FrameViewPanel extends AbstractViewPanel {
 		}
 		
 		public void actionPerformed(ActionEvent e) {
-			String result = "";//controller.frameToString(txtEnterFrameid.getText());
-//			if (result == null || result.isEmpty()) {
-				Object[] possibilities = controller.substringSearch(txtEnterFrameid.getText(), (String)cmbType.getSelectedItem()).toArray();
-				if (possibilities.length > 0) {
-					String s = (String)JOptionPane.showInputDialog(
-										DefaultController.mainJFrame,
-					                    "Select from the below possible search results",
-					                    "Search Results",
-					                    JOptionPane.PLAIN_MESSAGE,
-					                    null,
-					                    possibilities,
-					                    "ham");
-					if ((s != null) && (s.length() > 0)) {
-						result = controller.frameToString(s);
-					} else {
-						// Cancelled
-					}
-				} else {
-					JOptionPane.showMessageDialog(DefaultController.mainJFrame, "No search results found");
+			String searchValue = txtEnterFrameid.getText();
+			String selectedFrameType = ((Entry<String, String>)cmbType.getSelectedItem()).getKey();
+			
+			Frame exactMatch;
+			try {
+				exactMatch = controller.getConnection().frameExists(searchValue) ? Frame.load(controller.getConnection(), searchValue) : null;
+			} catch (PtoolsErrorException e1) {
+				exactMatch = null;
+			}
+			ArrayList<Frame> matchingFrames = controller.substringSearch(searchValue, selectedFrameType);
+			
+			String result = "";
+			if (matchingFrames.size() > 0 || exactMatch != null) {
+				SearchResultDialog dialog = SearchResultDialog.showResults(DefaultController.mainJFrame, exactMatch, matchingFrames);
+				String selectedFrameID = dialog.getSelection();
+				if (selectedFrameID != null) {
+					result = controller.frameToString(selectedFrameID);
+					textArea.setText(result);
 				}
-//			}
-			textArea.setText(result);
+			} else {
+				CycToolsError.showWarning("No search results found", "");
+			}
 		}
 	}
 	

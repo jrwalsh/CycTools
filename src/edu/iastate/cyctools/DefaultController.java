@@ -155,7 +155,7 @@ public class DefaultController implements PropertyChangeListener {
     	return dataAccess.frameToString(frame);
     }
     
-    public ArrayList<String> substringSearch(String text, String type) {
+    public ArrayList<Frame> substringSearch(String text, String type) {
 		return dataAccess.substringSearch(text, type);
     }
     
