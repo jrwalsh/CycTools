@@ -6,6 +6,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter.Highlight;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
@@ -24,10 +25,19 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.LinkedList;
+import java.util.List;
+
+import difflib.Delta;
+import difflib.DiffUtils;
+import difflib.Patch;
 import edu.iastate.cyctools.CycToolsError;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.InternalStateModel.State;
@@ -58,6 +68,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import java.awt.event.ActionListener;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
@@ -83,7 +94,10 @@ public class LoadPanel extends AbstractViewPanel {
 	private JCheckBox chckbxFilter;
 	DefaultListModel<String> allFramesWithImports;
 	DefaultListModel<String> framesWhichModifyKB;
-	
+	private Patch patch;
+	private int currentDelta;
+	private List<String> original;
+	private List<String> revised;
 	
 	private final Action actionBrowse = new ActionBrowse();
 	private final Action actionUpload = new ActionUpload();
@@ -94,6 +108,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private final Action actionPreview = new ActionPreview();
 	private final Action actionBack2 = new ActionBack2();
 	private final Action actionSaveLog = new ActionSaveLog();
+	private final Action actionNextDiff = new ActionNextDiff();
 	
 	/**
 	 * Create the frame.
@@ -185,6 +200,9 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		JSplitPane splitPane_1 = new JSplitPane();
 		
+		JButton btnNextDiff = new JButton("New button");
+		btnNextDiff.setAction(actionNextDiff);
+		
 		GroupLayout gl_previewPanel = new GroupLayout(previewPanel);
 		gl_previewPanel.setHorizontalGroup(
 			gl_previewPanel.createParallelGroup(Alignment.LEADING)
@@ -198,7 +216,9 @@ public class LoadPanel extends AbstractViewPanel {
 							.addComponent(btnBack2)
 							.addPreferredGap(ComponentPlacement.UNRELATED)
 							.addComponent(chckbxFilter)
-							.addPreferredGap(ComponentPlacement.RELATED, 405, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 298, Short.MAX_VALUE)
+							.addComponent(btnNextDiff)
+							.addGap(18)
 							.addComponent(btnUpload))
 						.addGroup(gl_previewPanel.createSequentialGroup()
 							.addContainerGap()
@@ -216,7 +236,8 @@ public class LoadPanel extends AbstractViewPanel {
 					.addGroup(gl_previewPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btnBack2)
 						.addComponent(chckbxFilter)
-						.addComponent(btnUpload))
+						.addComponent(btnUpload)
+						.addComponent(btnNextDiff))
 					.addGap(31))
 		);
 		
@@ -307,46 +328,47 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		JLabel lblNewLabel_2 = new JLabel("");
 		lblNewLabel_2.setOpaque(true);
-		lblNewLabel_2.setIcon(new ImageIcon("C:\\Users\\Jesse\\workspace\\CycTools\\Images\\test.png"));
+		lblNewLabel_2.setIcon(new ImageIcon("C:\\Users\\Jesse\\workspace\\CycTools\\Images\\test2.png"));
 		
 		GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
 		gl_optionsPanel.setHorizontalGroup(
 			gl_optionsPanel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_optionsPanel.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING)
-						.addComponent(lblNewLabel_5)
-						.addComponent(lblNewLabel_4)
-						.addComponent(lblNewLabel_3)
-						.addComponent(lblNewLabel_1)
-						.addComponent(lblNewLabel))
-					.addGap(18)
 					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-							.addGroup(gl_optionsPanel.createSequentialGroup()
-								.addComponent(btnBrowse)
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, 341, GroupLayout.PREFERRED_SIZE))
-							.addComponent(cmbFormat, GroupLayout.PREFERRED_SIZE, 259, GroupLayout.PREFERRED_SIZE)
-							.addComponent(chckbxIgnoreDuplicate, GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE)
-							.addComponent(btnOpen))
 						.addGroup(gl_optionsPanel.createSequentialGroup()
-							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING, false)
-								.addComponent(textMultipleValueDelimiter, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-								.addComponent(chckbxAppend, Alignment.LEADING))
-							.addPreferredGap(ComponentPlacement.RELATED, 211, GroupLayout.PREFERRED_SIZE)))
-					.addGap(158))
-				.addGroup(gl_optionsPanel.createSequentialGroup()
-					.addGap(66)
-					.addComponent(lblNewLabel_2)
-					.addContainerGap(81, Short.MAX_VALUE))
+							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING)
+								.addComponent(lblNewLabel_5)
+								.addComponent(lblNewLabel_4)
+								.addComponent(lblNewLabel_3)
+								.addComponent(lblNewLabel_1)
+								.addComponent(lblNewLabel))
+							.addGap(18)
+							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
+									.addGroup(gl_optionsPanel.createSequentialGroup()
+										.addComponent(btnBrowse)
+										.addPreferredGap(ComponentPlacement.RELATED)
+										.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, 341, GroupLayout.PREFERRED_SIZE))
+									.addComponent(cmbFormat, GroupLayout.PREFERRED_SIZE, 259, GroupLayout.PREFERRED_SIZE)
+									.addComponent(chckbxIgnoreDuplicate, GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)
+									.addComponent(btnOpen))
+								.addGroup(gl_optionsPanel.createSequentialGroup()
+									.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING, false)
+										.addComponent(textMultipleValueDelimiter, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
+										.addComponent(chckbxAppend, Alignment.LEADING))
+									.addPreferredGap(ComponentPlacement.RELATED, 222, GroupLayout.PREFERRED_SIZE)))
+							.addGap(158))
+						.addGroup(Alignment.TRAILING, gl_optionsPanel.createSequentialGroup()
+							.addComponent(lblNewLabel_2, GroupLayout.PREFERRED_SIZE, 743, GroupLayout.PREFERRED_SIZE)
+							.addContainerGap())))
 		);
 		gl_optionsPanel.setVerticalGroup(
-			gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_optionsPanel.createSequentialGroup()
+			gl_optionsPanel.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_optionsPanel.createSequentialGroup()
 					.addContainerGap()
 					.addComponent(lblNewLabel_2, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
 					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btnBrowse)
 						.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -461,11 +483,48 @@ public class LoadPanel extends AbstractViewPanel {
         reviewPanel.setLayout(gl_reviewPanel);
 	}
     
+    private static List<String> textToLines(String text) {
+		List<String> lines = new LinkedList<String>();
+		String line = "";
+		BufferedReader in = null;
+		try {
+		        in = new BufferedReader(new StringReader(text));
+		        while ((line = in.readLine()) != null) {
+		                lines.add(line);
+		        }
+		} catch (IOException e) {
+		        e.printStackTrace();
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return lines;
+        
+//        List<String> lines = new LinkedList<String>();
+//        
+//        if (text != null) {
+//        	for (String line : text.split("\n")) lines.add(line + "\n");
+//        }
+//        return lines;
+    }
 
 	private void updateComparison() {
 		String frameID = "";
+		original = null;
+		revised = null;
+		currentDelta = 0;
+		patch = null;
+		actionNextDiff.setEnabled(false);
 		try {
 			frameID = listFrames.getSelectedValue().toString();
+			if (frameID.equalsIgnoreCase("No Frames will modify KB")) {
+				textAreaOld.setText("");
+				textAreaNew.setText("");
+				return; // This is the place holder for an empty list
+			}
 		} catch (NullPointerException e) {
 			return;  // Ignore request to compare frame if no frame is selected (or list is empty)
 		}
@@ -479,6 +538,7 @@ public class LoadPanel extends AbstractViewPanel {
 			originalFrame = new Frame(controller.getConnection(), frameID);
 			originalFrameString = controller.frameToString(originalFrame);
 		} else textAreaOld.setText(originalFrameString);
+		original = textToLines(originalFrameString);
 		
 		// apply frame edits to local copy of frame
 		Frame updatedFrame = batchEdits.updateLocalFrame(originalFrame);//controller.updateLocalFrame(frameID, frameEditArray);
@@ -486,17 +546,72 @@ public class LoadPanel extends AbstractViewPanel {
 		// return print of the updated frame
 		String updatedFrameString = controller.frameToString(updatedFrame);
 		textAreaNew.setText(updatedFrameString);
-		int currentPosition = 0;
-		for (String line : updatedFrameString.split("\n")) {
-			if (!originalFrameString.contains(line)) {
-				DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-				try {
-					textAreaNew.getHighlighter().addHighlight(currentPosition, currentPosition + line.length(), highlightPainter);
-				} catch (BadLocationException e) {
-					e.printStackTrace();
+		revised  = textToLines(updatedFrameString);
+		
+		currentDelta = 0;
+		patch = DiffUtils.diff(original, revised);
+		actionNextDiff.setEnabled(true);
+		
+		highlightDiffs();
+	}
+	
+	private void highlightDiffs() {
+		// Highlight diffs
+//		int currentPosition = 0;
+//		for (String line : updatedFrameString.split("\n")) {
+//			if (!originalFrameString.contains(line)) {
+//				DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+//				try {
+//					textAreaNew.getHighlighter().addHighlight(currentPosition, currentPosition + line.length(), highlightPainter);
+//				} catch (BadLocationException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			currentPosition += line.length()+1;
+//		}
+		textAreaOld.getHighlighter().removeAllHighlights();
+		textAreaNew.getHighlighter().removeAllHighlights();
+		
+		for (Delta delta : patch.getDeltas()) {
+			// Highlight the original text
+			int originalPosition = 0;
+			for (String line : original) {
+				if (delta.getOriginal().getLines() != null && delta.getOriginal().getLines().size() > 0 && line.equals(delta.getOriginal().getLines().get(0))) {
+					originalPosition += delta.getOriginal().getPosition();
+					
+					DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+					try {
+						int length = 0;
+						for (Object s : delta.getOriginal().getLines()) length += s.toString().length();
+						textAreaOld.getHighlighter().addHighlight(originalPosition, originalPosition + length, highlightPainter);
+					} catch (BadLocationException ble) {
+						ble.printStackTrace();
+					}
+					
+				} else {
+					originalPosition += line.length();
 				}
 			}
-			currentPosition += line.length()+1;
+			
+			// Highlight the revised text
+			int revisedPosition = 0;
+			for (String line : revised) {
+				if (delta.getRevised().getLines() != null && delta.getRevised().getLines().size() > 0 && line.equals(delta.getRevised().getLines().get(0))) {
+					revisedPosition += delta.getRevised().getPosition();
+					
+					DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+					try {
+						int length = 0;
+						for (Object s : delta.getRevised().getLines()) length += s.toString().length();
+						textAreaNew.getHighlighter().addHighlight(revisedPosition, revisedPosition + length+1, highlightPainter);
+					} catch (BadLocationException ble) {
+						ble.printStackTrace();
+					}
+					
+				} else {
+					revisedPosition += line.length();
+				}
+			}
 		}
 	}
 	
@@ -717,6 +832,78 @@ public class LoadPanel extends AbstractViewPanel {
 				printString(new File(fileChooser.getSelectedFile() + File.separator + "successLog.txt"), textArea.getText());
 				printString(new File(fileChooser.getSelectedFile() + File.separator + "failLog.txt"), textArea_1.getText());
 				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Files saved", "Success", JOptionPane.PLAIN_MESSAGE);
+			}
+		}
+	}
+	
+	private class ActionNextDiff extends AbstractAction {
+		public ActionNextDiff() {
+			putValue(NAME, "Next Diff");
+			putValue(SHORT_DESCRIPTION, "Some short description");
+		}
+		public void actionPerformed(ActionEvent e) {
+			try {
+				highlightDiffs();
+				Delta delta = patch.getDeltas().get(currentDelta);
+				
+				// Highlight the original text
+				int originalPosition = 0;
+//				textAreaOld.getHighlighter().removeAllHighlights();
+				for (String line : original) {
+					if (delta.getOriginal().getLines() != null && delta.getOriginal().getLines().size() > 0 && line.equals(delta.getOriginal().getLines().get(0))) {
+						originalPosition += delta.getOriginal().getPosition();
+						
+						DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+						try {
+							int length = 0;
+							for (Object s : delta.getOriginal().getLines()) length += s.toString().length();
+							
+							//Remove previous highlight
+							for (Highlight h : textAreaOld.getHighlighter().getHighlights()) if (h.getStartOffset() == originalPosition) textAreaOld.getHighlighter().removeHighlight(h);
+							
+							textAreaOld.getHighlighter().addHighlight(originalPosition, originalPosition + length, highlightPainter);
+							textAreaOld.scrollRectToVisible(textAreaOld.modelToView(originalPosition + length));
+						} catch (BadLocationException ble) {
+							ble.printStackTrace();
+						}
+						
+					} else {
+						originalPosition += line.length();
+					}
+				}
+				
+				// Highlight the revised text
+				int revisedPosition = 0;
+//				textAreaNew.getHighlighter().removeAllHighlights();
+				for (String line : revised) {
+					if (delta.getRevised().getLines() != null && delta.getRevised().getLines().size() > 0 && line.equals(delta.getRevised().getLines().get(0))) {
+						revisedPosition += delta.getRevised().getPosition();
+						
+						DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+						try {
+							int length = 0;
+							for (Object s : delta.getRevised().getLines()) length += s.toString().length();
+							
+							//Remove previous highlight
+							for (Highlight h : textAreaNew.getHighlighter().getHighlights()) if (h.getStartOffset() == revisedPosition) textAreaNew.getHighlighter().removeHighlight(h);
+							
+							textAreaNew.getHighlighter().addHighlight(revisedPosition, revisedPosition + length+1, highlightPainter);
+							textAreaNew.scrollRectToVisible(textAreaNew.modelToView(revisedPosition + length));
+						} catch (BadLocationException ble) {
+							ble.printStackTrace();
+						}
+						
+					} else {
+						revisedPosition += line.length();
+					}
+				}
+				
+				currentDelta++;
+			} catch (Exception exception) {
+				currentDelta = 0;
+				textAreaOld.getHighlighter().removeAllHighlights();
+				textAreaNew.getHighlighter().removeAllHighlights();
+				CycToolsError.showWarning("Reached end of text, will continue searching from the beginning.", "End of file");
 			}
 		}
 	}
