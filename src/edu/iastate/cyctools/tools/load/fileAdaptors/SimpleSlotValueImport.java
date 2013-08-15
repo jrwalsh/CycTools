@@ -8,21 +8,20 @@ import javax.swing.table.TableModel;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.SlotUpdate;
 
-public class SimpleInterpreter implements FileAdaptor {
+public class SimpleSlotValueImport implements FileAdaptor {
 	private boolean append;
 	private boolean ignoreDuplicates;
 	private String multipleValueDelimiter;
 
-	public SimpleInterpreter() {
+	public SimpleSlotValueImport() {
 		append = true;
 		ignoreDuplicates = true;
 		multipleValueDelimiter = "$";
 	}
 	
 	// Assumes one frame per row
-	// Assumes one value per cell
 	// Assumes only slot updates, no annotation updates
-	// Assumes slot label is column header
+	// Assumes column header is slot label
 	// Assumes frameID is in first column
 	public ArrayList<AbstractFrameEdit> tableToFrameUpdates(TableModel tb) {
 		ArrayList<AbstractFrameEdit> frameUpdates = new ArrayList<AbstractFrameEdit>();
@@ -45,7 +44,7 @@ public class SimpleInterpreter implements FileAdaptor {
 					}
 				} else values.add(columnValue);
 				
-				frameUpdates.add(new SlotUpdate(frameID, slotLabel, values, append, ignoreDuplicates, new int[] {rowIndex}));
+				frameUpdates.add(new SlotUpdate(frameID, slotLabel, values, append, ignoreDuplicates, new int[] {rowIndex + 1}));
 			}
 		}
 		return frameUpdates;

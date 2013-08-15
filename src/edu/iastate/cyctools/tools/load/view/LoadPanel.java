@@ -44,7 +44,8 @@ import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
-import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleInterpreter;
+import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleAnnotationValueImport;
+import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleSlotValueImport;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Event;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Status;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
@@ -735,8 +736,8 @@ public class LoadPanel extends AbstractViewPanel {
 		}
 		public void actionPerformed(ActionEvent e) {
 			try {
-				if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleInterpreter();
-				else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = null; //TODO add annotation adaptor
+				if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleSlotValueImport();
+				else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = new SimpleAnnotationValueImport();
 				else if (cmbAdaptor.getSelectedIndex() == 2) selectedAdaptor = new MaizeAdaptor();
 				
 				selectedAdaptor.setMultipleValueDelimiter(textMultipleValueDelimiter.getText());
