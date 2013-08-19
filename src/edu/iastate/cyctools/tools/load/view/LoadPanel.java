@@ -663,6 +663,19 @@ public class LoadPanel extends AbstractViewPanel {
 	
 	
 	private void openPreviewPanel() throws PtoolsErrorException {
+		if (controller.isKBModified(controller.getSelectedOrganism())) {
+			int n = JOptionPane.showConfirmDialog(
+					controller.mainJFrame,
+			    "The selected database is already in a modified state. \n" +
+				"Recommend saving or undoing changes to this database \n" +
+			    "before making additional changes. \n\n" +
+				"Do you wish to continue anyway?",
+			    "Database in Modified State",
+			    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (n == 1) {
+				return;
+			}
+		}
 		controller.lockToolBarOrganismSelect();
 		textAreaOld.setText("");
 		textAreaNew.setText("");

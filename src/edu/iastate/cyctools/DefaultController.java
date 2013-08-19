@@ -222,4 +222,8 @@ public class DefaultController implements PropertyChangeListener {
             view.modelPropertyChange(evt);
         }
 	}
+
+	public boolean isKBModified(String kb) {
+		return dataAccess.isCurrentKBModified(kb);
+	}
 }

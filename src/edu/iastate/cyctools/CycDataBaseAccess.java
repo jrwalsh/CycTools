@@ -671,4 +671,13 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 			}
 		}
 	}
+
+	public boolean isCurrentKBModified(String kb) {
+		try {
+			return conn.isModified(kb);
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 }

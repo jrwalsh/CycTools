@@ -24,6 +24,8 @@ public class MenuBar extends JMenuBar {
 	private final Action actionExit = new ActionExit();
 	private JMenuItem mntmAbout;
 	private final Action actionAbout = new ActionAbout();
+	private JMenuItem mntmRevertKb;
+	private final Action actionRevertKB = new ActionRevertKB();
 
 	/**
 	 * Create the frame.
@@ -51,6 +53,10 @@ public class MenuBar extends JMenuBar {
 		
 		mnEdit = new JMenu("Edit");
 		add(mnEdit);
+		
+		mntmRevertKb = new JMenuItem("Revert KB");
+		mntmRevertKb.setAction(actionRevertKB);
+		mnEdit.add(mntmRevertKb);
 		
 		mnAbout = new JMenu("About");
 		add(mnAbout);
@@ -86,6 +92,26 @@ public class MenuBar extends JMenuBar {
 		}
 		public void actionPerformed(ActionEvent e) {
 			JOptionPane.showMessageDialog(DefaultController.mainJFrame, "This program was written by Jesse Walsh", "About", JOptionPane.INFORMATION_MESSAGE);
+		}
+	}
+	private class ActionRevertKB extends AbstractAction {
+		public ActionRevertKB() {
+			putValue(NAME, "Revert KB");
+			putValue(SHORT_DESCRIPTION, "Undo all changes to this KB since last save.");
+		}
+		public void actionPerformed(ActionEvent e) {
+			int n = JOptionPane.showConfirmDialog(DefaultController.mainJFrame,
+					"Reverting a database will undo all changes since the last save. This will undo all changes to KB\n" + 
+					controller.getSelectedOrganism() + "\n\n" + 
+					"Do you wish to continue?",
+					"Revert KB",
+					JOptionPane.YES_NO_CANCEL_OPTION,
+					JOptionPane.WARNING_MESSAGE);
+			if (n == 0) {
+				controller.revertDataBase();
+				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Database reverted to previous version.", "Database revert performed", JOptionPane.INFORMATION_MESSAGE);
+				controller.toolPanel.refreshOrganismList();
+			}
 		}
 	}
 }

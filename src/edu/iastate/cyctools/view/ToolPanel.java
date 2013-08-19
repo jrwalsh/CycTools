@@ -64,7 +64,12 @@ public class ToolPanel extends AbstractViewPanel {
 		comboBoxOrganism.setRenderer(new DefaultListCellRenderer() {
 	        @Override
 	        public Component getListCellRendererComponent(final JList list, Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
-	        	if (value != null) value = value.toString().replace("=", ": ");
+	        	if (value != null) {
+	        		value = value.toString().replace("=", ": ");
+	        		if (value.toString().contains(":") && controller.isKBModified(value.toString().substring(0, value.toString().indexOf(":")))) {
+	        			value = "*" + value.toString();
+	        		}
+	        	}
 	            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 	        }
 	    });
@@ -120,28 +125,7 @@ public class ToolPanel extends AbstractViewPanel {
 				comboBoxOrganism.setModel(new KeyValueComboboxModel());
 				this.setVisible(false);
 			} else if (evt.getNewValue() == State.SHOW_MAIN_SCREEN) {
-				try {
-					lastSelectedOrganism = (Map.Entry<String, String>)comboBoxOrganism.getSelectedItem();
-				} catch (NullPointerException e) {
-					lastSelectedOrganism = null;
-				}
-				
-				KeyValueComboboxModel model = new KeyValueComboboxModel();
-				for (OrgStruct org : controller.getAvailableOrganisms()) {
-					model.put(org.getLocalID(), org.getSpecies());
-				}
-				comboBoxOrganism.setModel(model);
-				if (comboBoxOrganism.getItemCount() > 0) comboBoxOrganism.setSelectedIndex(0);
-				
-				try {
-					if (lastSelectedOrganism != null)
-						comboBoxOrganism.setSelectedItem(lastSelectedOrganism);
-				} catch (Exception e) {
-					//ignore
-				}
-				
-				btnHome.setEnabled(false);
-				this.setVisible(true);
+				refreshOrganismList();
 			} else {
 				btnHome.setEnabled(true);
 			}
@@ -187,5 +171,33 @@ public class ToolPanel extends AbstractViewPanel {
 			controller.unlockDatabaseOperation();
 			controller.showMainScreen();
 		}
+	}
+
+	public void refreshOrganismList() {
+		try {
+			lastSelectedOrganism = (Map.Entry<String, String>)comboBoxOrganism.getSelectedItem();
+		} catch (NullPointerException e) {
+			lastSelectedOrganism = null;
+		}
+		
+		KeyValueComboboxModel model = new KeyValueComboboxModel();
+		for (OrgStruct org : controller.getAvailableOrganisms()) {
+//			if (controller.isKBModified(org.getLocalID())) {
+//				model.put(org.getLocalID(), "*" + org.getSpecies());
+//			} else model.put(org.getLocalID(), org.getSpecies());
+			model.put(org.getLocalID(), org.getSpecies());
+		}
+		comboBoxOrganism.setModel(model);
+		if (comboBoxOrganism.getItemCount() > 0) comboBoxOrganism.setSelectedIndex(0);
+		
+		try {
+			if (lastSelectedOrganism != null)
+				comboBoxOrganism.setSelectedItem(lastSelectedOrganism);
+		} catch (Exception e) {
+			//ignore
+		}
+		
+		btnHome.setEnabled(false);
+		this.setVisible(true);
 	}
 }
