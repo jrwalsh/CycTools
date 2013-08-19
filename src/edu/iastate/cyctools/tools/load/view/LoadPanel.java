@@ -1,5 +1,6 @@
 package edu.iastate.cyctools.tools.load.view;
 
+import javax.imageio.ImageIO;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
@@ -24,6 +25,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
 import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -70,6 +72,9 @@ import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
@@ -176,7 +181,33 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		JButton button = new JButton("Save Log");
 		button.setAction(actionSaveLog);
-		finalPanel.add(button);
+		
+		JLabel lblNewLabel_7 = new JLabel("");
+		lblNewLabel_7.setAlignmentX(Component.CENTER_ALIGNMENT);
+		lblNewLabel_7.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step5.png")));
+		GroupLayout gl_finalPanel = new GroupLayout(finalPanel);
+		gl_finalPanel.setHorizontalGroup(
+			gl_finalPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_finalPanel.createSequentialGroup()
+					.addGroup(gl_finalPanel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_finalPanel.createSequentialGroup()
+							.addGap(361)
+							.addComponent(button))
+						.addGroup(gl_finalPanel.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(lblNewLabel_7, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)))
+					.addContainerGap())
+		);
+		gl_finalPanel.setVerticalGroup(
+			gl_finalPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, gl_finalPanel.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(lblNewLabel_7)
+					.addPreferredGap(ComponentPlacement.RELATED, 212, Short.MAX_VALUE)
+					.addComponent(button)
+					.addGap(105))
+		);
+		finalPanel.setLayout(gl_finalPanel);
 		
 		JButton btnBack2 = new JButton("Back");
 		btnBack2.setAction(actionBack2);
@@ -184,7 +215,9 @@ public class LoadPanel extends AbstractViewPanel {
 		JButton btnUpload = new JButton("Upload");
 		btnUpload.setAction(actionUpload);
 		
-		JLabel lblPreviewChanges = new JLabel("<html><h3>Preview Changes</h3></html>");
+		JLabel lblPreviewChanges = new JLabel("");
+		lblPreviewChanges.setAlignmentX(Component.CENTER_ALIGNMENT);
+		lblPreviewChanges.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step3.png")));
 		
 		chckbxFilter = new JCheckBox("Show only frames which are altered");
 		chckbxFilter.addChangeListener(new ChangeListener() {
@@ -210,28 +243,28 @@ public class LoadPanel extends AbstractViewPanel {
 				.addGroup(gl_previewPanel.createSequentialGroup()
 					.addGroup(gl_previewPanel.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_previewPanel.createSequentialGroup()
-							.addGap(303)
-							.addComponent(lblPreviewChanges, GroupLayout.PREFERRED_SIZE, 129, GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_previewPanel.createSequentialGroup()
 							.addGap(10)
 							.addComponent(btnBack2)
 							.addPreferredGap(ComponentPlacement.UNRELATED)
 							.addComponent(chckbxFilter)
-							.addPreferredGap(ComponentPlacement.RELATED, 298, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 312, Short.MAX_VALUE)
 							.addComponent(btnNextDiff)
 							.addGap(18)
 							.addComponent(btnUpload))
 						.addGroup(gl_previewPanel.createSequentialGroup()
 							.addContainerGap()
-							.addComponent(splitPane_1, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)))
+							.addComponent(splitPane_1, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE))
+						.addGroup(gl_previewPanel.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(lblPreviewChanges, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)))
 					.addContainerGap())
 		);
 		gl_previewPanel.setVerticalGroup(
 			gl_previewPanel.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_previewPanel.createSequentialGroup()
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addContainerGap()
 					.addComponent(lblPreviewChanges)
-					.addGap(26)
+					.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addComponent(splitPane_1, GroupLayout.PREFERRED_SIZE, 286, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_previewPanel.createParallelGroup(Alignment.BASELINE)
@@ -328,8 +361,9 @@ public class LoadPanel extends AbstractViewPanel {
 		JLabel lblNewLabel_5 = new JLabel("Check if this value exists before importing");
 		
 		JLabel lblNewLabel_2 = new JLabel("");
+		lblNewLabel_2.setAlignmentX(Component.CENTER_ALIGNMENT);
 		lblNewLabel_2.setOpaque(true);
-		lblNewLabel_2.setIcon(new ImageIcon("C:\\Users\\Jesse\\workspace\\CycTools\\Images\\test2.png"));
+		lblNewLabel_2.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step1.png")));
 		
 		GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
 		gl_optionsPanel.setHorizontalGroup(
@@ -337,6 +371,9 @@ public class LoadPanel extends AbstractViewPanel {
 				.addGroup(gl_optionsPanel.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_optionsPanel.createSequentialGroup()
+							.addComponent(lblNewLabel_2, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)
+							.addContainerGap())
 						.addGroup(gl_optionsPanel.createSequentialGroup()
 							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING)
 								.addComponent(lblNewLabel_5)
@@ -352,17 +389,14 @@ public class LoadPanel extends AbstractViewPanel {
 										.addPreferredGap(ComponentPlacement.RELATED)
 										.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, 341, GroupLayout.PREFERRED_SIZE))
 									.addComponent(cmbFormat, GroupLayout.PREFERRED_SIZE, 259, GroupLayout.PREFERRED_SIZE)
-									.addComponent(chckbxIgnoreDuplicate, GroupLayout.DEFAULT_SIZE, 425, Short.MAX_VALUE)
+									.addComponent(chckbxIgnoreDuplicate, GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE)
 									.addComponent(btnOpen))
 								.addGroup(gl_optionsPanel.createSequentialGroup()
 									.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING, false)
 										.addComponent(textMultipleValueDelimiter, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
 										.addComponent(chckbxAppend, Alignment.LEADING))
-									.addPreferredGap(ComponentPlacement.RELATED, 222, GroupLayout.PREFERRED_SIZE)))
-							.addGap(158))
-						.addGroup(Alignment.TRAILING, gl_optionsPanel.createSequentialGroup()
-							.addComponent(lblNewLabel_2, GroupLayout.PREFERRED_SIZE, 743, GroupLayout.PREFERRED_SIZE)
-							.addContainerGap())))
+									.addPreferredGap(ComponentPlacement.RELATED, 211, GroupLayout.PREFERRED_SIZE)))
+							.addGap(158))))
 		);
 		gl_optionsPanel.setVerticalGroup(
 			gl_optionsPanel.createParallelGroup(Alignment.TRAILING)
@@ -402,16 +436,23 @@ public class LoadPanel extends AbstractViewPanel {
         modelAdaptor.addElement("MaizeGDB Custom: frameID, goTerm, pubMedID, evCode, timeStampString (dd-mm-yyyy hh-mm-ss), curator");
         cmbAdaptor = new JComboBox<String>(modelAdaptor);
         
+        JLabel lblNewLabel_6 = new JLabel("");
+        lblNewLabel_6.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblNewLabel_6.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step2.png")));
+//        ImageIcon step2 = new ImageIcon(LoadPanel.class.getResource("/resources/step2.png"));
+//        lblNewLabel_6.setIcon(new ImageIcon(step2.getImage().getScaledInstance((int) (step2.getIconWidth()*.75),  (int) (step2.getIconHeight()*.75),  Image.SCALE_SMOOTH)));
+        
         GroupLayout gl_filePanel = new GroupLayout(filePanel);
         gl_filePanel.setHorizontalGroup(
-        	gl_filePanel.createParallelGroup(Alignment.TRAILING)
-        		.addGroup(gl_filePanel.createSequentialGroup()
+        	gl_filePanel.createParallelGroup(Alignment.LEADING)
+        		.addGroup(Alignment.TRAILING, gl_filePanel.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(gl_filePanel.createParallelGroup(Alignment.TRAILING)
-        				.addComponent(SpreadsheetScrollPane, GroupLayout.DEFAULT_SIZE, 777, Short.MAX_VALUE)
-        				.addGroup(gl_filePanel.createSequentialGroup()
+        				.addComponent(SpreadsheetScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1184, Short.MAX_VALUE)
+        				.addComponent(lblNewLabel_6, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 777, Short.MAX_VALUE)
+        				.addGroup(Alignment.LEADING, gl_filePanel.createSequentialGroup()
         					.addComponent(btnBack)
-        					.addPreferredGap(ComponentPlacement.RELATED, 258, Short.MAX_VALUE)
+        					.addPreferredGap(ComponentPlacement.RELATED, 665, Short.MAX_VALUE)
         					.addComponent(cmbAdaptor, GroupLayout.PREFERRED_SIZE, 375, GroupLayout.PREFERRED_SIZE)
         					.addGap(18)
         					.addComponent(btnPreview)))
@@ -421,7 +462,9 @@ public class LoadPanel extends AbstractViewPanel {
         	gl_filePanel.createParallelGroup(Alignment.TRAILING)
         		.addGroup(gl_filePanel.createSequentialGroup()
         			.addContainerGap()
-        			.addComponent(SpreadsheetScrollPane, GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
+        			.addComponent(lblNewLabel_6, GroupLayout.PREFERRED_SIZE, 54, GroupLayout.PREFERRED_SIZE)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addComponent(SpreadsheetScrollPane, GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addGroup(gl_filePanel.createParallelGroup(Alignment.BASELINE)
         				.addComponent(btnPreview)
@@ -431,7 +474,9 @@ public class LoadPanel extends AbstractViewPanel {
         );
         filePanel.setLayout(gl_filePanel);
         
-        JLabel lblSummaryResults = new JLabel("Summary Results");
+        JLabel lblSummaryResults = new JLabel("");
+        lblSummaryResults.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblSummaryResults.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step4.png")));
         
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         
@@ -441,22 +486,22 @@ public class LoadPanel extends AbstractViewPanel {
         		.addGroup(gl_reviewPanel.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.LEADING)
-        				.addComponent(lblSummaryResults)
         				.addGroup(gl_reviewPanel.createParallelGroup(Alignment.TRAILING, false)
         					.addGroup(gl_reviewPanel.createSequentialGroup()
         						.addComponent(btnSave)
         						.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         						.addComponent(btnRevert))
-        					.addComponent(tabbedPane, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 773, GroupLayout.PREFERRED_SIZE)))
+        					.addComponent(tabbedPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 773, Short.MAX_VALUE))
+        				.addComponent(lblSummaryResults, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         			.addGap(17))
         );
         gl_reviewPanel.setVerticalGroup(
         	gl_reviewPanel.createParallelGroup(Alignment.TRAILING)
         		.addGroup(gl_reviewPanel.createSequentialGroup()
-        			.addGap(14)
+        			.addContainerGap()
         			.addComponent(lblSummaryResults)
-        			.addPreferredGap(ComponentPlacement.UNRELATED)
-        			.addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+        			.addGap(14)
+        			.addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)
         			.addGap(7)
         			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.BASELINE)
         				.addComponent(btnRevert)
