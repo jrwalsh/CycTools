@@ -31,6 +31,8 @@ import edu.iastate.javacyco.*;
 import java.awt.event.ActionListener;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JComboBox;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public class FrameViewPanel extends AbstractViewPanel {
@@ -46,6 +48,12 @@ public class FrameViewPanel extends AbstractViewPanel {
 	 * Create the frame.
 	 */
 	public FrameViewPanel(DefaultController controller) {
+		addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentShown(ComponentEvent arg0) {
+				textArea.setText("");
+			}
+		});
 		this.controller = controller;
 		
 		initComponents();
@@ -145,6 +153,8 @@ public class FrameViewPanel extends AbstractViewPanel {
 		}
 		
 		public void actionPerformed(ActionEvent e) {
+			textArea.setText("");
+			
 			String searchValue = txtEnterFrameid.getText();
 			String selectedFrameType = ((Entry<String, String>)cmbType.getSelectedItem()).getKey();
 			
