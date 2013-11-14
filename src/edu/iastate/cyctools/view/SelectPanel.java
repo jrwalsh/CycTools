@@ -196,7 +196,7 @@ public class SelectPanel extends AbstractViewPanel {
 	
 	private class ActionLoad extends AbstractAction {
 		public ActionLoad() {
-			putValue(NAME, "<html><center>BioCyc Import<br /> Assistant</center></html>");
+			putValue(NAME, "<html><center>Import<br /> Assistant</center></html>");
 			putValue(SHORT_DESCRIPTION, "Load spreadsheet file into database");
 		}
 		public void actionPerformed(ActionEvent e) {

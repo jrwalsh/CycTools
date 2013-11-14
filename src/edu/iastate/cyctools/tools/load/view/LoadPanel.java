@@ -1,6 +1,5 @@
 package edu.iastate.cyctools.tools.load.view;
 
-import javax.imageio.ImageIO;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
@@ -25,12 +24,10 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Image;
 import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
@@ -71,10 +68,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
@@ -115,6 +108,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private final Action actionBack2 = new ActionBack2();
 	private final Action actionSaveLog = new ActionSaveLog();
 	private final Action actionNextDiff = new ActionNextDiff();
+	private JLabel txtAlwaysBackupThe;
 	
 	/**
 	 * Create the frame.
@@ -365,6 +359,9 @@ public class LoadPanel extends AbstractViewPanel {
 		lblNewLabel_2.setOpaque(true);
 		lblNewLabel_2.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step1.png")));
 		
+		txtAlwaysBackupThe = new JLabel();
+		txtAlwaysBackupThe.setText("Always backup the database file before modifying it!");
+		
 		GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
 		gl_optionsPanel.setHorizontalGroup(
 			gl_optionsPanel.createParallelGroup(Alignment.LEADING)
@@ -397,6 +394,10 @@ public class LoadPanel extends AbstractViewPanel {
 										.addComponent(chckbxAppend, Alignment.LEADING))
 									.addPreferredGap(ComponentPlacement.RELATED, 211, GroupLayout.PREFERRED_SIZE)))
 							.addGap(158))))
+				.addGroup(gl_optionsPanel.createSequentialGroup()
+					.addGap(23)
+					.addComponent(txtAlwaysBackupThe, GroupLayout.DEFAULT_SIZE, 767, Short.MAX_VALUE)
+					.addContainerGap())
 		);
 		gl_optionsPanel.setVerticalGroup(
 			gl_optionsPanel.createParallelGroup(Alignment.TRAILING)
@@ -426,7 +427,9 @@ public class LoadPanel extends AbstractViewPanel {
 						.addComponent(lblNewLabel_5))
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(btnOpen)
-					.addGap(131))
+					.addGap(59)
+					.addComponent(txtAlwaysBackupThe, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addGap(52))
 		);
 		optionsPanel.setLayout(gl_optionsPanel);
         
@@ -665,7 +668,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private void openPreviewPanel() throws PtoolsErrorException {
 		if (controller.isKBModified(controller.getSelectedOrganism())) {
 			int n = JOptionPane.showConfirmDialog(
-					controller.mainJFrame,
+					DefaultController.mainJFrame,
 			    "The selected database is already in a modified state. \n" +
 				"Recommend saving or undoing changes to this database \n" +
 			    "before making additional changes. \n\n" +
@@ -684,6 +687,7 @@ public class LoadPanel extends AbstractViewPanel {
 		batchEdits.addPropertyChangeListener(controller);
 		
 		batchEdits.downloadFrames(controller.getConnection());
+//		r
 		allFramesWithImports = batchEdits.getFrameIDsModel();
 		listFrames.setModel(allFramesWithImports);
 	}
