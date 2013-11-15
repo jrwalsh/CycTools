@@ -5,10 +5,15 @@ import edu.iastate.cyctools.InternalStateModel.State;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
 import java.awt.event.ActionEvent;
 
 @SuppressWarnings("serial")
@@ -26,6 +31,8 @@ public class MenuBar extends JMenuBar {
 	private final Action actionAbout = new ActionAbout();
 	private JMenuItem mntmRevertKb;
 	private final Action actionRevertKB = new ActionRevertKB();
+	private JMenuItem mntmOptions;
+	private final Action action = new ActionOptions();
 
 	/**
 	 * Create the frame.
@@ -53,6 +60,10 @@ public class MenuBar extends JMenuBar {
 		
 		mnEdit = new JMenu("Edit");
 		add(mnEdit);
+		
+		mntmOptions = new JMenuItem("Options");
+		mntmOptions.setAction(action);
+		mnEdit.add(mntmOptions);
 		
 		mntmRevertKb = new JMenuItem("Revert KB");
 		mntmRevertKb.setAction(actionRevertKB);
@@ -112,6 +123,36 @@ public class MenuBar extends JMenuBar {
 				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Database reverted to previous version.", "Database revert performed", JOptionPane.INFORMATION_MESSAGE);
 				controller.toolPanel.refreshOrganismList();
 			}
+		}
+	}
+	private class ActionOptions extends AbstractAction {
+		public ActionOptions() {
+			putValue(NAME, "Options");
+			putValue(SHORT_DESCRIPTION, "Edit Options");
+		}
+		public void actionPerformed(ActionEvent e) {
+			JTextField queryTimeOut = new JTextField(5);
+//			JTextField yField = new JTextField(5);
+			JPanel myPanel = new JPanel();
+			myPanel.add(new JLabel("Query TimeOut in Miliseconds"));
+			myPanel.add(queryTimeOut);
+//			myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+//			myPanel.add(new JLabel("y:"));
+//			myPanel.add(yField);
+			int result = JOptionPane.showConfirmDialog(null, myPanel, "Please enter new option values.", JOptionPane.OK_CANCEL_OPTION);
+			if (result == JOptionPane.OK_OPTION) {
+				try {
+					String queryTimeOutResult = queryTimeOut.getText();
+					int querytimeOutValue = Integer.parseInt(queryTimeOutResult);
+					controller.getConnection().setQueryTimeOutLength(querytimeOutValue);
+					JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Success.", "Valid Selection", JOptionPane.INFORMATION_MESSAGE);
+				} catch (Exception exception) {
+					JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Unable to change options.", "Invalid Selection", JOptionPane.WARNING_MESSAGE);
+				}
+//				System.out.println("y value: " + yField.getText());
+			}
+		      
+//			JOptionPane.showInputDialog(parentComponent, message, title, messageType, icon, selectionValues, initialSelectionValue)(DefaultController.mainJFrame, "Database reverted to previous version.", "Database revert performed", JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
 }

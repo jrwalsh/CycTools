@@ -97,6 +97,10 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 		return false;
 	}
 	
+	public void setTimeOut (int miliseconds) {
+		conn.setQueryTimeOutLength(miliseconds);
+	}
+	
 	// Change selected organism
 	public void selectOrganism(String organism) {
 		ArrayList<String> organisms = new ArrayList<String>();
