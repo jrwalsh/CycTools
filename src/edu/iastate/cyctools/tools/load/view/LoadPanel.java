@@ -9,6 +9,7 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter.Highlight;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
@@ -68,6 +69,13 @@ import javax.swing.JTabbedPane;
 import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import net.miginfocom.swing.MigLayout;
+import java.awt.GridLayout;
+import javax.swing.JRadioButton;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.awt.event.ActionListener;
 
 @SuppressWarnings("serial")
 public class LoadPanel extends AbstractViewPanel {
@@ -97,15 +105,13 @@ public class LoadPanel extends AbstractViewPanel {
 	private int currentDelta;
 	private List<String> original;
 	private List<String> revised;
+	private JRadioButton rdbtnProtein;
 	
 	private final Action actionBrowse = new ActionBrowse();
 	private final Action actionUpload = new ActionUpload();
 	private final Action actionSave = new ActionSave();
 	private final Action actionRevert = new ActionRevert();
-	private final Action actionOpen = new ActionOpen();
-	private final Action actionBack = new ActionBack();
 	private final Action actionPreview = new ActionPreview();
-	private final Action actionBack2 = new ActionBack2();
 	private final Action actionSaveLog = new ActionSaveLog();
 	private final Action actionNextDiff = new ActionNextDiff();
 	private JLabel txtAlwaysBackupThe;
@@ -135,16 +141,26 @@ public class LoadPanel extends AbstractViewPanel {
 		setName("SimpleBrowser");
 		contentPane = this;
     	
+		JPanel importTypePanel = new JPanel();
     	JPanel optionsPanel = new JPanel();
     	JPanel filePanel = new JPanel();
+    	JPanel searchPanel = new JPanel();
     	JPanel previewPanel = new JPanel();
     	JPanel reviewPanel = new JPanel();
     	JPanel finalPanel = new JPanel();
+    	
     	
         JButton btnBrowse = new JButton("Browse");
         btnBrowse.setAction(actionBrowse);
         
         JButton btnPreview = new JButton("Preview");
+        btnPreview.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		//TODO do the actual search of the identifiers before populating and showing the search panel
+        		// Also do the controller.lockToolBarOrganismSelect();
+        		cardLayout.show(contentPane, "SearchPanel");
+        	}
+        });
         btnPreview.setAction(actionPreview);
         
         JButton btnRevert = new JButton("Revert");
@@ -154,10 +170,30 @@ public class LoadPanel extends AbstractViewPanel {
         btnSave.setAction(actionSave);
         
         JButton btnOpen = new JButton("Open");
-		btnOpen.setAction(actionOpen);
+        btnOpen.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		File file = new File(textFilePath.getText());
+    			
+    			String fileDelimiter = ",";
+    			if (cmbFormat.getSelectedIndex() == 0) fileDelimiter = ",";
+    			else if (cmbFormat.getSelectedIndex() == 1) fileDelimiter = "\t";
+    			
+    			controller.changeDocumentFile(file, fileDelimiter);
+    			if (controller.getDocumentModel().getFile() == null) {
+    				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Please select an input file", "File error", JOptionPane.ERROR_MESSAGE);
+    				return;
+    			}
+    			
+    			cardLayout.show(contentPane, "FilePanel");
+        	}
+        });
 		
         JButton btnBack = new JButton("Back");
-        btnBack.setAction(actionBack);
+        btnBack.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		cardLayout.show(contentPane, "OptionsPanel");
+        	}
+        });
         
         JScrollPane SpreadsheetScrollPane = new JScrollPane();
         tableSpreadSheet = new JTable();
@@ -167,8 +203,187 @@ public class LoadPanel extends AbstractViewPanel {
         
         setLayout(new CardLayout(0, 0));
         cardLayout = (CardLayout)(this.getLayout());
+        add(importTypePanel, "ImportTypePanel");
+        
+        ButtonGroup group = new ButtonGroup();
+        GridBagLayout gbl_importTypePanel = new GridBagLayout();
+        gbl_importTypePanel.columnWidths = new int[]{73, 133, 75, 9, 69, 7, 81, 13, 61, 59, 139, 0};
+        gbl_importTypePanel.rowHeights = new int[]{23, 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        gbl_importTypePanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+        gbl_importTypePanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+        importTypePanel.setLayout(gbl_importTypePanel);
+        
+        JLabel lblPleaseSelectImport = new JLabel("Please select import type");
+        GridBagConstraints gbc_lblPleaseSelectImport = new GridBagConstraints();
+        gbc_lblPleaseSelectImport.insets = new Insets(0, 0, 5, 5);
+        gbc_lblPleaseSelectImport.gridx = 4;
+        gbc_lblPleaseSelectImport.gridy = 1;
+        importTypePanel.add(lblPleaseSelectImport, gbc_lblPleaseSelectImport);
+        
+        rdbtnProtein = new JRadioButton("|Proteins|");
+        group.add(rdbtnProtein);
+        GridBagConstraints gbc_radioButton = new GridBagConstraints();
+        gbc_radioButton.anchor = GridBagConstraints.NORTHWEST;
+        gbc_radioButton.insets = new Insets(0, 0, 5, 5);
+        gbc_radioButton.gridx = 3;
+        gbc_radioButton.gridy = 5;
+        importTypePanel.add(rdbtnProtein, gbc_radioButton);
+        JRadioButton rdbtnRNA = new JRadioButton("|RNAs|");
+        group.add(rdbtnRNA);
+        GridBagConstraints gbc_rdbtnRNA = new GridBagConstraints();
+        gbc_rdbtnRNA.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnRNA.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnRNA.gridx = 5;
+        gbc_rdbtnRNA.gridy = 5;
+        importTypePanel.add(rdbtnRNA, gbc_rdbtnRNA);
+        JRadioButton rdbtnEnzymeReaction = new JRadioButton("|Enzymatic-Reactions|");
+        group.add(rdbtnEnzymeReaction);
+        GridBagConstraints gbc_rdbtnEnzymeReaction = new GridBagConstraints();
+        gbc_rdbtnEnzymeReaction.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnEnzymeReaction.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnEnzymeReaction.gridx = 3;
+        gbc_rdbtnEnzymeReaction.gridy = 6;
+        importTypePanel.add(rdbtnEnzymeReaction, gbc_rdbtnEnzymeReaction);
+        JRadioButton rdbtnGOTerm = new JRadioButton("|Gene-Ontology-Terms|");
+        group.add(rdbtnGOTerm);
+        GridBagConstraints gbc_rdbtnGOTerm = new GridBagConstraints();
+        gbc_rdbtnGOTerm.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnGOTerm.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnGOTerm.gridx = 5;
+        gbc_rdbtnGOTerm.gridy = 6;
+        importTypePanel.add(rdbtnGOTerm, gbc_rdbtnGOTerm);
+        JRadioButton rdbtnCompound = new JRadioButton("|Compounds|");
+        group.add(rdbtnCompound);
+        GridBagConstraints gbc_rdbtnCompound = new GridBagConstraints();
+        gbc_rdbtnCompound.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnCompound.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnCompound.gridx = 3;
+        gbc_rdbtnCompound.gridy = 7;
+        importTypePanel.add(rdbtnCompound, gbc_rdbtnCompound);
+        JRadioButton rdbtnTU = new JRadioButton("|Transcription-Units|");
+        group.add(rdbtnTU);
+        GridBagConstraints gbc_rdbtnTU = new GridBagConstraints();
+        gbc_rdbtnTU.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnTU.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnTU.gridx = 5;
+        gbc_rdbtnTU.gridy = 7;
+        importTypePanel.add(rdbtnTU, gbc_rdbtnTU);
+        JRadioButton rdbtnReaction = new JRadioButton("|Reactions|");
+        group.add(rdbtnReaction);
+        GridBagConstraints gbc_rdbtnReaction = new GridBagConstraints();
+        gbc_rdbtnReaction.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnReaction.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnReaction.gridx = 3;
+        gbc_rdbtnReaction.gridy = 8;
+        importTypePanel.add(rdbtnReaction, gbc_rdbtnReaction);
+        JRadioButton rdbtnOrganism = new JRadioButton("|Organisms|");
+        group.add(rdbtnOrganism);
+        GridBagConstraints gbc_rdbtnOrganism = new GridBagConstraints();
+        gbc_rdbtnOrganism.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnOrganism.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnOrganism.gridx = 5;
+        gbc_rdbtnOrganism.gridy = 8;
+        importTypePanel.add(rdbtnOrganism, gbc_rdbtnOrganism);
+        JRadioButton rdbtnPathway = new JRadioButton("|Pathways|");
+        group.add(rdbtnPathway);
+        GridBagConstraints gbc_rdbtnPathway = new GridBagConstraints();
+        gbc_rdbtnPathway.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnPathway.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnPathway.gridx = 3;
+        gbc_rdbtnPathway.gridy = 9;
+        importTypePanel.add(rdbtnPathway, gbc_rdbtnPathway);
+        JRadioButton rdbtnExtSites = new JRadioButton("|Extragenic-Sites|");
+        group.add(rdbtnExtSites);
+        GridBagConstraints gbc_rdbtnExtSites = new GridBagConstraints();
+        gbc_rdbtnExtSites.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnExtSites.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnExtSites.gridx = 5;
+        gbc_rdbtnExtSites.gridy = 9;
+        importTypePanel.add(rdbtnExtSites, gbc_rdbtnExtSites);
+        JRadioButton rdbtnGenes = new JRadioButton("|All-Genes|");
+        group.add(rdbtnGenes);
+        GridBagConstraints gbc_rdbtnGenes = new GridBagConstraints();
+        gbc_rdbtnGenes.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnGenes.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnGenes.gridx = 3;
+        gbc_rdbtnGenes.gridy = 10;
+        importTypePanel.add(rdbtnGenes, gbc_rdbtnGenes);
+        JRadioButton rdbtnGrowthMedia = new JRadioButton("|Growth-Media|");
+        group.add(rdbtnGrowthMedia);
+        GridBagConstraints gbc_rdbtnGrowthMedia = new GridBagConstraints();
+        gbc_rdbtnGrowthMedia.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnGrowthMedia.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnGrowthMedia.gridx = 5;
+        gbc_rdbtnGrowthMedia.gridy = 10;
+        importTypePanel.add(rdbtnGrowthMedia, gbc_rdbtnGrowthMedia);
+        JRadioButton rdbtnGOTermAnnotations = new JRadioButton("GO-Term Annotations (proteins)");
+        group.add(rdbtnGOTermAnnotations);
+        GridBagConstraints gbc_rdbtnGOTermAnnotations = new GridBagConstraints();
+        gbc_rdbtnGOTermAnnotations.anchor = GridBagConstraints.NORTHWEST;
+        gbc_rdbtnGOTermAnnotations.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnGOTermAnnotations.gridx = 5;
+        gbc_rdbtnGOTermAnnotations.gridy = 11;
+        importTypePanel.add(rdbtnGOTermAnnotations, gbc_rdbtnGOTermAnnotations);
+        
+        JButton btnSelect = new JButton("Select");
+        btnSelect.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent arg0) {
+        		cardLayout.show(contentPane, "OptionsPanel");
+        	}
+        });
+        GridBagConstraints gbc_btnSelect = new GridBagConstraints();
+        gbc_btnSelect.insets = new Insets(0, 0, 5, 5);
+        gbc_btnSelect.gridx = 8;
+        gbc_btnSelect.gridy = 12;
+        importTypePanel.add(btnSelect, gbc_btnSelect);
+        
 		add(optionsPanel, "OptionsPanel");
 		add(filePanel, "FilePanel");
+		add(searchPanel, "SearchPanel");
+		searchPanel.setLayout(new MigLayout("", "[][grow][][][][][][][][][][][][][][][][][][][][][][][][]", "[][][grow][grow][][][][][][][][][]"));
+		
+		JLabel lblWeCurrentlyHave = new JLabel("We currently have identified xxx out of xxxx frames");
+		searchPanel.add(lblWeCurrentlyHave, "cell 8 2");
+		
+		JPanel panel_1 = new JPanel();
+		searchPanel.add(panel_1, "cell 1 3 24 8,grow");
+		panel_1.setLayout(new GridLayout(0, 1, 0, 0));
+		
+		JTabbedPane tabbedPane_1 = new JTabbedPane(JTabbedPane.TOP);
+		panel_1.add(tabbedPane_1);
+		
+		JButton btnBack_1 = new JButton("Back");
+		btnBack_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(contentPane, "FilePanel");
+			}
+		});
+		searchPanel.add(btnBack_1, "cell 0 12");
+		
+		JButton btnAccept = new JButton("Accept");
+		btnAccept.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleSlotValueImport();
+					else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = new SimpleAnnotationValueImport();
+					else if (cmbAdaptor.getSelectedIndex() == 2) selectedAdaptor = new MaizeAdaptor();
+					
+					selectedAdaptor.setMultipleValueDelimiter(textMultipleValueDelimiter.getText());
+					selectedAdaptor.setAppend(chckbxAppend.getModel().isSelected());
+					selectedAdaptor.setIgnoreDuplicates(chckbxIgnoreDuplicate.getModel().isSelected());
+				} catch (Exception exception) {
+					CycToolsError.showError("Error selecting adaptor, un-implemented adaptor.", "Error");
+					return;
+				}
+				
+				try {
+					openPreviewPanel();
+				} catch (PtoolsErrorException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		searchPanel.add(btnAccept, "cell 25 12");
 		add(previewPanel, "PreviewPanel");
 		add(reviewPanel, "ReviewPanel");
 		add(finalPanel, "FinalPanel");
@@ -204,9 +419,18 @@ public class LoadPanel extends AbstractViewPanel {
 		finalPanel.setLayout(gl_finalPanel);
 		
 		JButton btnBack2 = new JButton("Back");
-		btnBack2.setAction(actionBack2);
+		btnBack2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.unLockToolBarOrganismSelect();
+				cardLayout.show(contentPane, "SearchPanel");
+			}
+		});
 		
 		JButton btnUpload = new JButton("Upload");
+		btnUpload.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
 		btnUpload.setAction(actionUpload);
 		
 		JLabel lblPreviewChanges = new JLabel("");
@@ -362,6 +586,13 @@ public class LoadPanel extends AbstractViewPanel {
 		txtAlwaysBackupThe = new JLabel();
 		txtAlwaysBackupThe.setText("Always backup the database file before modifying it!");
 		
+		JButton btnBack_2 = new JButton("Back");
+		btnBack_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(contentPane, "ImportTypePanel");
+			}
+		});
+		
 		GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
 		gl_optionsPanel.setHorizontalGroup(
 			gl_optionsPanel.createParallelGroup(Alignment.LEADING)
@@ -396,7 +627,9 @@ public class LoadPanel extends AbstractViewPanel {
 							.addGap(158))))
 				.addGroup(gl_optionsPanel.createSequentialGroup()
 					.addGap(23)
-					.addComponent(txtAlwaysBackupThe, GroupLayout.DEFAULT_SIZE, 767, Short.MAX_VALUE)
+					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnBack_2)
+						.addComponent(txtAlwaysBackupThe, GroupLayout.DEFAULT_SIZE, 767, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		gl_optionsPanel.setVerticalGroup(
@@ -404,7 +637,7 @@ public class LoadPanel extends AbstractViewPanel {
 				.addGroup(gl_optionsPanel.createSequentialGroup()
 					.addContainerGap()
 					.addComponent(lblNewLabel_2, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
 					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btnBrowse)
 						.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -428,8 +661,10 @@ public class LoadPanel extends AbstractViewPanel {
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(btnOpen)
 					.addGap(59)
-					.addComponent(txtAlwaysBackupThe, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addGap(52))
+					.addComponent(txtAlwaysBackupThe)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnBack_2)
+					.addGap(23))
 		);
 		optionsPanel.setLayout(gl_optionsPanel);
         
@@ -683,7 +918,7 @@ public class LoadPanel extends AbstractViewPanel {
 		textAreaOld.setText("");
 		textAreaNew.setText("");
 		cardLayout.show(contentPane, "PreviewPanel");
-		batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()));
+		batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()), controller.getConnection());
 		batchEdits.addPropertyChangeListener(controller);
 		
 		batchEdits.downloadFrames(controller.getConnection());
@@ -769,78 +1004,19 @@ public class LoadPanel extends AbstractViewPanel {
 		}
 	}
 	
-	private class ActionOpen extends AbstractAction {
-		public ActionOpen() {
-			putValue(NAME, "Open");
-			putValue(SHORT_DESCRIPTION, "Open file");
-		}
-		public void actionPerformed(ActionEvent e) {
-			File file = new File(textFilePath.getText());
-			
-			String fileDelimiter = ",";
-			if (cmbFormat.getSelectedIndex() == 0) fileDelimiter = ",";
-			else if (cmbFormat.getSelectedIndex() == 1) fileDelimiter = "\t";
-			
-			controller.changeDocumentFile(file, fileDelimiter);
-			if (controller.getDocumentModel().getFile() == null) {
-				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Please select an input file", "File error", JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			
-			cardLayout.show(contentPane, "FilePanel");
-		}
-	}
-
 	private class ActionPreview extends AbstractAction {
 		public ActionPreview() {
 			putValue(NAME, "Preview");
 			putValue(SHORT_DESCRIPTION, "Preview file before import");
 		}
 		public void actionPerformed(ActionEvent e) {
-			try {
-				if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleSlotValueImport();
-				else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = new SimpleAnnotationValueImport();
-				else if (cmbAdaptor.getSelectedIndex() == 2) selectedAdaptor = new MaizeAdaptor();
-				
-				selectedAdaptor.setMultipleValueDelimiter(textMultipleValueDelimiter.getText());
-				selectedAdaptor.setAppend(chckbxAppend.getModel().isSelected());
-				selectedAdaptor.setIgnoreDuplicates(chckbxIgnoreDuplicate.getModel().isSelected());
-			} catch (Exception exception) {
-				CycToolsError.showError("Error selecting adaptor, un-implemented adaptor.", "Error");
-				return;
-			}
 			
-			try {
-				openPreviewPanel();
-			} catch (PtoolsErrorException e1) {
-				e1.printStackTrace();
-			}
-		}
-	}
-	
-	private class ActionBack extends AbstractAction {
-		public ActionBack() {
-			putValue(NAME, "Back");
-			putValue(SHORT_DESCRIPTION, "Back");
-		}
-		public void actionPerformed(ActionEvent e) {
-			cardLayout.show(contentPane, "OptionsPanel");
-		}
-	}
-	
-	private class ActionBack2 extends AbstractAction {
-		public ActionBack2() {
-			putValue(NAME, "Back");
-			putValue(SHORT_DESCRIPTION, "Back");
-		}
-		public void actionPerformed(ActionEvent e) {
-			controller.unLockToolBarOrganismSelect();
-			cardLayout.show(contentPane, "FilePanel");
 		}
 	}
 	
 	private void resetForm() {
-		cardLayout.show(contentPane, "OptionsPanel");
+		cardLayout.show(contentPane, "ImportTypePanel");
+		rdbtnProtein.setSelected(true);
 		selectedAdaptor = null;
 		tableSpreadSheet.setModel(new DefaultTableModel());
 		listFrames.setModel(new DefaultListModel<String>());

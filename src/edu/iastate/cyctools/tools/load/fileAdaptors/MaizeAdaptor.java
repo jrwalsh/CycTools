@@ -42,7 +42,7 @@ public class MaizeAdaptor implements FileAdaptor {
 			String timeStampString = (String) tb.getValueAt(rowIndex, 4);
 			String curator = (String) tb.getValueAt(rowIndex, 5);
 			
-			JavacycConnection conn = new JavacycConnection("jrwalsh.student.iastate.edu", 4444);
+			JavacycConnection conn = new JavacycConnection("jrwalsh.student.iastate.edu", 4444);//TODO attach the default connection object here
 			conn.selectOrganism("CORN");
 			String encodedTime = encodeTimeStampString(timeStampString, conn);
 			

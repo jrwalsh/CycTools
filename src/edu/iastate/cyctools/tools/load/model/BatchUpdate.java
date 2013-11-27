@@ -9,6 +9,9 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.ProgressMonitor;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractModel;
@@ -16,6 +19,7 @@ import edu.iastate.cyctools.tools.load.threadedTasks.DownloadFramesTask;
 import edu.iastate.cyctools.view.dialog.TranslucentGlassPane;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
+import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 // Contains a group of updates (AbstractFrameEdit).  Knows how to compare them to existing KB, commit them to KB, and report on the results of the commit.
@@ -32,9 +36,11 @@ public class BatchUpdate extends AbstractModel {
 	private TreeSet<Integer> linesProcessed;
 	private ArrayList<Event> eventLog;
     
-    public BatchUpdate(ArrayList<AbstractFrameEdit> frameEditList) {
+    public BatchUpdate(ArrayList<AbstractFrameEdit> frameEditList, JavacycConnection conn) {
     	initDefault();
     	this.frameEdits = frameEditList;
+    	
+    	//validateIdentifiers(conn); // Should just make conn a locked in global hook to the connection object, locked at creation of BatchUpdate
     	
     	frameEditsMap = new HashMap<String, ArrayList<AbstractFrameEdit>>();
     	frameIDSet = new TreeSet<String>();
@@ -60,6 +66,28 @@ public class BatchUpdate extends AbstractModel {
     	linesProcessed = new TreeSet<Integer>();
     	lines = new TreeSet<Integer>();
     	eventLog = new ArrayList<Event>();
+    }
+    
+    private void validateIdentifiers(JavacycConnection conn) {
+    	String frameType = Protein.GFPtype;
+    	ArrayList<String> validIdentifiers = new ArrayList<String>();
+    	for (AbstractFrameEdit frameEdit : frameEdits) {
+    		try {
+				if (conn.frameExists(frameEdit.getFrameID())) {
+					System.out.println("Found frame " + frameEdit.getFrameID() + " :: " + Frame.load(conn, frameEdit.getFrameID()).getCommonName());
+					validIdentifiers.add(frameEdit.getFrameID());
+				} else {
+					ArrayList<Frame> matches = conn.search(frameEdit.getFrameID(), frameType);
+					if (matches != null && matches.size() > 0) {
+						for (Frame match : matches) System.out.println("Possible Match: " + match.getLocalID());
+					} else {
+						System.out.println("No Matchs found for: " + frameEdit.getFrameID());
+					}
+				}
+			} catch (PtoolsErrorException e1) {
+				e1.printStackTrace();
+			}
+    	}
     }
 
     // Accessors

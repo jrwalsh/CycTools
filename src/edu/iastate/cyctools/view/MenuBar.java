@@ -2,6 +2,10 @@ package edu.iastate.cyctools.view;
 
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.InternalStateModel.State;
+import edu.iastate.javacyco.Frame;
+import edu.iastate.javacyco.JavacycConnection;
+import edu.iastate.javacyco.Protein;
+import edu.iastate.javacyco.PtoolsErrorException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -15,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 
 @SuppressWarnings("serial")
 public class MenuBar extends JMenuBar {
@@ -33,6 +38,8 @@ public class MenuBar extends JMenuBar {
 	private final Action actionRevertKB = new ActionRevertKB();
 	private JMenuItem mntmOptions;
 	private final Action action = new ActionOptions();
+	private JMenuItem mntmVerifyIdentifiers;
+	private final Action action_1 = new ActionVerify();
 
 	/**
 	 * Create the frame.
@@ -60,6 +67,10 @@ public class MenuBar extends JMenuBar {
 		
 		mnEdit = new JMenu("Edit");
 		add(mnEdit);
+		
+		mntmVerifyIdentifiers = new JMenuItem("Verify Identifiers");
+		mntmVerifyIdentifiers.setAction(action_1);
+		mnEdit.add(mntmVerifyIdentifiers);
 		
 		mntmOptions = new JMenuItem("Options");
 		mntmOptions.setAction(action);
@@ -153,6 +164,46 @@ public class MenuBar extends JMenuBar {
 			}
 		      
 //			JOptionPane.showInputDialog(parentComponent, message, title, messageType, icon, selectionValues, initialSelectionValue)(DefaultController.mainJFrame, "Database reverted to previous version.", "Database revert performed", JOptionPane.INFORMATION_MESSAGE);
+		}
+	}
+	private class ActionVerify extends AbstractAction {
+		public ActionVerify() {
+			putValue(NAME, "Verify Identifiers");
+			putValue(SHORT_DESCRIPTION, "Make sure identifiers are valid frame ID's, else initiate a search to find valid frame ID's");
+		}
+		public void actionPerformed(ActionEvent e) {
+			ArrayList<String> untestedIdentifiers = new ArrayList<String>();
+			ArrayList<String> validIdentifiers = new ArrayList<String>();
+			untestedIdentifiers.add("GDQC-104328-MONOMER");
+			untestedIdentifiers.add("GDQC-104349-MONOMER");
+			untestedIdentifiers.add("GDQC-104463-MONOMER");
+			untestedIdentifiers.add("GDQC-104578-MONOMER");
+			untestedIdentifiers.add("GDQC-104600-MONOMER");
+			
+			untestedIdentifiers.add("GRMZM2G070422_P01");
+			untestedIdentifiers.add("GRMZM2G163809_P02");
+			untestedIdentifiers.add("GRMZM2G068862_P01");
+			untestedIdentifiers.add("GRMZM2G044237_P03");
+			untestedIdentifiers.add("GRMZM2G097457_P01");
+			
+			JavacycConnection conn = controller.getConnection();
+			for (String untestedIdentifier : untestedIdentifiers) {
+				try {
+					if (conn.frameExists(untestedIdentifier)) {
+						System.out.println("Found frame " + untestedIdentifier + " :: " + Frame.load(conn, untestedIdentifier).getCommonName());
+						validIdentifiers.add(untestedIdentifier);
+					} else {
+						ArrayList<Frame> matches = conn.search(untestedIdentifier, Protein.GFPtype);
+						if (matches != null && matches.size() > 0) {
+							for (Frame match : matches) System.out.println("Possible Match: " + match.getLocalID());
+						} else {
+							System.out.println("No Matchs found for: " + untestedIdentifier);
+						}
+					}
+				} catch (PtoolsErrorException e1) {
+					e1.printStackTrace();
+				}
+			}
 		}
 	}
 }
