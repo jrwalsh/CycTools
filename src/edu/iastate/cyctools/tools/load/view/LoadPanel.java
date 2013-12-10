@@ -4,13 +4,16 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter.Highlight;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -24,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
@@ -32,6 +36,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,6 +48,7 @@ import edu.iastate.cyctools.CycToolsError;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
+import edu.iastate.cyctools.externalSourceCode.KeyValueComboboxModel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleAnnotationValueImport;
@@ -50,8 +57,14 @@ import edu.iastate.cyctools.tools.load.model.BatchUpdate.Event;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Status;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate;
+import edu.iastate.javacyco.Compound;
 import edu.iastate.javacyco.Frame;
+import edu.iastate.javacyco.Gene;
+import edu.iastate.javacyco.JavacycConnection;
+import edu.iastate.javacyco.Pathway;
+import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
+import edu.iastate.javacyco.Reaction;
 
 import java.awt.CardLayout;
 import javax.swing.JComboBox;
@@ -77,7 +90,7 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public class LoadPanel extends AbstractViewPanel {
 	private FileAdaptor selectedAdaptor;
 	DefaultController controller;
@@ -106,6 +119,11 @@ public class LoadPanel extends AbstractViewPanel {
 	private List<String> original;
 	private List<String> revised;
 	private JRadioButton rdbtnProtein;
+	private String importType;
+	private ButtonGroup groupImportType;
+	private HashMap<String, ArrayList<Frame>> searchResults;
+	private JTextArea textArea_2;
+	private JComboBox cmbImportType = new JComboBox();
 	
 	private final Action actionBrowse = new ActionBrowse();
 	private final Action actionUpload = new ActionUpload();
@@ -114,7 +132,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private final Action actionPreview = new ActionPreview();
 	private final Action actionSaveLog = new ActionSaveLog();
 	private final Action actionNextDiff = new ActionNextDiff();
-	private JLabel txtAlwaysBackupThe;
+	private JLabel noticeLabel;
 	
 	/**
 	 * Create the frame.
@@ -141,38 +159,114 @@ public class LoadPanel extends AbstractViewPanel {
 		setName("SimpleBrowser");
 		contentPane = this;
     	
-		JPanel importTypePanel = new JPanel();
+		JPanel optionsPanel = initOptionsPanel();
+    	JPanel filePanel = initFilePanel();
+    	JPanel searchPanel = initSearchPanel();
+    	JPanel previewPanel = initPreviewPanel();
+    	JPanel reviewPanel = initReviewPanel();
+    	JPanel finalPanel = initFinalPanel();
+        
+        setLayout(new CardLayout(0, 0));
+        cardLayout = (CardLayout)(this.getLayout());
+        
+		add(optionsPanel, "OptionsPanel");
+		add(filePanel, "FilePanel");
+		add(searchPanel, "SearchPanel");
+		add(previewPanel, "PreviewPanel");
+		add(reviewPanel, "ReviewPanel");
+		add(finalPanel, "FinalPanel");
+	}
+
+    private JPanel initOptionsPanel() {
     	JPanel optionsPanel = new JPanel();
-    	JPanel filePanel = new JPanel();
-    	JPanel searchPanel = new JPanel();
-    	JPanel previewPanel = new JPanel();
-    	JPanel reviewPanel = new JPanel();
-    	JPanel finalPanel = new JPanel();
     	
+    	DefaultComboBoxModel<String> modelFormat = new DefaultComboBoxModel<String>();
+        modelFormat.addElement("Comma-separated values (CSV)");
+        modelFormat.addElement("Tab-delimited file (tab)");
+        
+        DefaultComboBoxModel<String> modelImportType = new DefaultComboBoxModel<String>();
+        modelImportType.addElement("");
+        modelImportType.addElement("");
+        
+        KeyValueComboboxModel modelTypes = new KeyValueComboboxModel();
+    	modelTypes.put("|Proteins|", "Proteins");
+    	modelTypes.put("|RNAs|", "RNAs");
+    	modelTypes.put("|Enzymatic-Reactions|", "Enzymatic-Reactions");
+    	modelTypes.put("|Gene-Ontology-Terms|", "Gene-Ontology-Terms");
+    	modelTypes.put("|Compounds|", "Compounds");
+    	modelTypes.put("|Transcription-Units|", "Transcription-Units");
+    	modelTypes.put("|Reactions|", "Reactions");
+    	modelTypes.put("|Organisms|", "Organisms");
+    	modelTypes.put("|Pathways|", "Pathways");
+    	modelTypes.put("|Extragenic-Sites|", "Extragenic-Sites");
+    	modelTypes.put("|All-Genes|", "All-Genes");
+    	modelTypes.put("|Growth-Media|", "Growth-Media");
+    	modelTypes.put("|GO-Term Annotations (proteins)|", "GO-Term Annotations (proteins)");
     	
-        JButton btnBrowse = new JButton("Browse");
-        btnBrowse.setAction(actionBrowse);
-        
-        JButton btnPreview = new JButton("Preview");
-        btnPreview.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		//TODO do the actual search of the identifiers before populating and showing the search panel
-        		// Also do the controller.lockToolBarOrganismSelect();
-        		cardLayout.show(contentPane, "SearchPanel");
-        	}
-        });
-        btnPreview.setAction(actionPreview);
-        
-        JButton btnRevert = new JButton("Revert");
-        btnRevert.setAction(actionRevert);
-        
-        JButton btnSave = new JButton("Save");
-        btnSave.setAction(actionSave);
-        
-        JButton btnOpen = new JButton("Open");
-        btnOpen.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		File file = new File(textFilePath.getText());
+    	optionsPanel.setLayout(new MigLayout("", "[][108px][grow][][]", "[23px][][20px][20px][23px][23px][23px][14px][23px][][][][grow][]"));
+    	
+    	JLabel imageLabel = new JLabel("");
+        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        imageLabel.setOpaque(true);
+        imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step1.png")));
+        optionsPanel.add(imageLabel, "cell 1 0 4 1,alignx center,aligny center");
+		
+        JLabel importTypeLabel = new JLabel("Select Import Type");
+		optionsPanel.add(importTypeLabel, "flowx,cell 1 2,alignx trailing,aligny center");
+		
+		cmbImportType = new JComboBox();
+		cmbImportType.setModel(modelTypes);
+		cmbImportType.setRenderer(new DefaultListCellRenderer() {
+	        @Override
+	        public Component getListCellRendererComponent(final JList list, Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
+	        	if (value != null) value = value.toString().substring(value.toString().indexOf("=")+1, value.toString().length());
+	            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	        }
+	    });
+		cmbImportType.setSelectedIndex(0);
+		optionsPanel.add(cmbImportType, "cell 2 2,alignx left,aligny center");
+		
+		JLabel inputFileLabel = new JLabel("Select Input File");
+		optionsPanel.add(inputFileLabel, "flowx,cell 1 3,alignx right,aligny center");
+		
+		JButton btnBrowse = new JButton("Browse");
+		btnBrowse.setAction(actionBrowse);
+		optionsPanel.add(btnBrowse, "flowx,cell 2 3,alignx left,aligny center");
+		
+		JLabel fileSelectLabel = new JLabel("Select file format");
+		optionsPanel.add(fileSelectLabel, "cell 1 4,alignx right,aligny center");
+		cmbFormat = new JComboBox<String>(modelFormat);
+		optionsPanel.add(cmbFormat, "cell 2 4,alignx left,aligny center");
+		
+		JLabel delimiterLabel = new JLabel("Multiple value delimiter");
+		optionsPanel.add(delimiterLabel, "cell 1 5,alignx right,aligny center");
+		textMultipleValueDelimiter = new JTextField();
+		textMultipleValueDelimiter.setText("$");
+		textMultipleValueDelimiter.setColumns(10);
+		optionsPanel.add(textMultipleValueDelimiter, "cell 2 5,alignx left,aligny center");
+		
+		JLabel appendLabel = new JLabel("Append values or overwrite existing");
+		optionsPanel.add(appendLabel, "cell 1 6,alignx right,aligny center");
+		
+		chckbxAppend = new JCheckBox("Append new data to existing values?");
+		chckbxAppend.setSelected(true);
+		optionsPanel.add(chckbxAppend, "cell 2 6,alignx left,aligny center");
+		
+		JLabel duplicateLabel = new JLabel("Check if this value exists before importing");
+		optionsPanel.add(duplicateLabel, "cell 1 7,alignx right,aligny center");
+		
+		chckbxIgnoreDuplicate = new JCheckBox("Ignore Duplicates?");
+		chckbxIgnoreDuplicate.setSelected(true);
+		optionsPanel.add(chckbxIgnoreDuplicate, "cell 2 7,growx,aligny center");
+		
+		noticeLabel = new JLabel();
+		noticeLabel.setText("Always backup your database file before modifying it!");
+		optionsPanel.add(noticeLabel, "cell 1 10 4 1,alignx left,aligny top");
+		
+		JButton btnNext = new JButton("Open");
+		btnNext.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File file = new File(textFilePath.getText());
     			
     			String fileDelimiter = ",";
     			if (cmbFormat.getSelectedIndex() == 0) fileDelimiter = ",";
@@ -185,180 +279,115 @@ public class LoadPanel extends AbstractViewPanel {
     			}
     			
     			cardLayout.show(contentPane, "FilePanel");
+			}
+		});
+		optionsPanel.add(btnNext, "cell 4 13,alignx center,aligny center");
+		
+		textFilePath = new JTextField();
+		textFilePath.setEditable(false);
+		textFilePath.setColumns(10);
+		optionsPanel.add(textFilePath, "cell 2 3 2 1,growx,alignx right,aligny center");
+		
+    	return optionsPanel;
+    }
+    
+    private JPanel initFilePanel() {
+    	JPanel filePanel = new JPanel();
+    	
+        filePanel.setLayout(new MigLayout("", "[grow]", "[][grow][]"));
+        
+        JLabel imageLabel = new JLabel("");
+        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step2.png")));
+        filePanel.add(imageLabel, "cell 0 0,alignx center,aligny center");
+        
+        JScrollPane SpreadsheetScrollPane = new JScrollPane();
+        tableSpreadSheet = new JTable();
+        tableSpreadSheet.setFillsViewportHeight(true);
+        JTableHeader th = tableSpreadSheet.getTableHeader();  
+        th.setFont(new Font("Serif", Font.BOLD, 15)); 
+        SpreadsheetScrollPane.setViewportView(tableSpreadSheet);
+        filePanel.add(SpreadsheetScrollPane, "cell 0 1 2097051 1,growx,alignx left,aligny top");
+        
+        DefaultComboBoxModel<String> modelAdaptor = new DefaultComboBoxModel<String>();
+		modelAdaptor.addElement("Standard CSV: Column header determines slot label");
+        modelAdaptor.addElement("Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label");
+        modelAdaptor.addElement("MaizeGDB Custom: frameID, goTerm, pubMedID, evCode, timeStampString (dd-mm-yyyy hh-mm-ss), curator");
+        cmbAdaptor = new JComboBox<String>(modelAdaptor);
+        filePanel.add(cmbAdaptor, "flowx,cell 0 2,alignx left,aligny center");
+        
+        JButton btnPreview = new JButton("Preview");
+        btnPreview.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+				searchFrameIDs();
+				clearSearchPanel();
+        		cardLayout.show(contentPane, "SearchPanel");
         	}
         });
-		
+        
         JButton btnBack = new JButton("Back");
         btnBack.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		cardLayout.show(contentPane, "OptionsPanel");
         	}
         });
+        filePanel.add(btnBack, "flowx,cell 0 2,alignx right,aligny center");
+        btnPreview.setAction(actionPreview);
+        filePanel.add(btnPreview, "cell 0 2,alignx right,aligny top");
+//        
+//        GroupLayout gl_filePanel = new GroupLayout(filePanel);
+//        gl_filePanel.setHorizontalGroup(
+//        	gl_filePanel.createParallelGroup(Alignment.LEADING)
+//        		.addGroup(Alignment.TRAILING, gl_filePanel.createSequentialGroup()
+//        			.addContainerGap()
+//        			.addGroup(gl_filePanel.createParallelGroup(Alignment.TRAILING)
+//        				.addComponent(SpreadsheetScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1184, Short.MAX_VALUE)
+//        				.addComponent(imageLabel, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 777, Short.MAX_VALUE)
+//        				.addGroup(Alignment.LEADING, gl_filePanel.createSequentialGroup()
+//        					.addComponent(btnBack)
+//        					.addPreferredGap(ComponentPlacement.RELATED, 665, Short.MAX_VALUE)
+//        					.addComponent(cmbAdaptor, GroupLayout.PREFERRED_SIZE, 375, GroupLayout.PREFERRED_SIZE)
+//        					.addGap(18)
+//        					.addComponent(btnPreview)))
+//        			.addGap(13))
+//        );
+//        gl_filePanel.setVerticalGroup(
+//        	gl_filePanel.createParallelGroup(Alignment.TRAILING)
+//        		.addGroup(gl_filePanel.createSequentialGroup()
+//        			.addContainerGap()
+//        			.addComponent(imageLabel, GroupLayout.PREFERRED_SIZE, 54, GroupLayout.PREFERRED_SIZE)
+//        			.addPreferredGap(ComponentPlacement.RELATED)
+//        			.addComponent(SpreadsheetScrollPane, GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE)
+//        			.addPreferredGap(ComponentPlacement.UNRELATED)
+//        			.addGroup(gl_filePanel.createParallelGroup(Alignment.BASELINE)
+//        				.addComponent(btnPreview)
+//        				.addComponent(btnBack)
+//        				.addComponent(cmbAdaptor, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+//        			.addContainerGap())
+//        );
+//        filePanel.setLayout(gl_filePanel);
         
-        JScrollPane SpreadsheetScrollPane = new JScrollPane();
-        tableSpreadSheet = new JTable();
-        JTableHeader th = tableSpreadSheet.getTableHeader();  
-        th.setFont(new Font("Serif", Font.BOLD, 15)); 
-        SpreadsheetScrollPane.setViewportView(tableSpreadSheet);
-        
-        setLayout(new CardLayout(0, 0));
-        cardLayout = (CardLayout)(this.getLayout());
-        add(importTypePanel, "ImportTypePanel");
-        
-        ButtonGroup group = new ButtonGroup();
-        GridBagLayout gbl_importTypePanel = new GridBagLayout();
-        gbl_importTypePanel.columnWidths = new int[]{73, 133, 75, 9, 69, 7, 81, 13, 61, 59, 139, 0};
-        gbl_importTypePanel.rowHeights = new int[]{23, 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        gbl_importTypePanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-        gbl_importTypePanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-        importTypePanel.setLayout(gbl_importTypePanel);
-        
-        JLabel lblPleaseSelectImport = new JLabel("Please select import type");
-        GridBagConstraints gbc_lblPleaseSelectImport = new GridBagConstraints();
-        gbc_lblPleaseSelectImport.insets = new Insets(0, 0, 5, 5);
-        gbc_lblPleaseSelectImport.gridx = 4;
-        gbc_lblPleaseSelectImport.gridy = 1;
-        importTypePanel.add(lblPleaseSelectImport, gbc_lblPleaseSelectImport);
-        
-        rdbtnProtein = new JRadioButton("|Proteins|");
-        group.add(rdbtnProtein);
-        GridBagConstraints gbc_radioButton = new GridBagConstraints();
-        gbc_radioButton.anchor = GridBagConstraints.NORTHWEST;
-        gbc_radioButton.insets = new Insets(0, 0, 5, 5);
-        gbc_radioButton.gridx = 3;
-        gbc_radioButton.gridy = 5;
-        importTypePanel.add(rdbtnProtein, gbc_radioButton);
-        JRadioButton rdbtnRNA = new JRadioButton("|RNAs|");
-        group.add(rdbtnRNA);
-        GridBagConstraints gbc_rdbtnRNA = new GridBagConstraints();
-        gbc_rdbtnRNA.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnRNA.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnRNA.gridx = 5;
-        gbc_rdbtnRNA.gridy = 5;
-        importTypePanel.add(rdbtnRNA, gbc_rdbtnRNA);
-        JRadioButton rdbtnEnzymeReaction = new JRadioButton("|Enzymatic-Reactions|");
-        group.add(rdbtnEnzymeReaction);
-        GridBagConstraints gbc_rdbtnEnzymeReaction = new GridBagConstraints();
-        gbc_rdbtnEnzymeReaction.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnEnzymeReaction.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnEnzymeReaction.gridx = 3;
-        gbc_rdbtnEnzymeReaction.gridy = 6;
-        importTypePanel.add(rdbtnEnzymeReaction, gbc_rdbtnEnzymeReaction);
-        JRadioButton rdbtnGOTerm = new JRadioButton("|Gene-Ontology-Terms|");
-        group.add(rdbtnGOTerm);
-        GridBagConstraints gbc_rdbtnGOTerm = new GridBagConstraints();
-        gbc_rdbtnGOTerm.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnGOTerm.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnGOTerm.gridx = 5;
-        gbc_rdbtnGOTerm.gridy = 6;
-        importTypePanel.add(rdbtnGOTerm, gbc_rdbtnGOTerm);
-        JRadioButton rdbtnCompound = new JRadioButton("|Compounds|");
-        group.add(rdbtnCompound);
-        GridBagConstraints gbc_rdbtnCompound = new GridBagConstraints();
-        gbc_rdbtnCompound.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnCompound.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnCompound.gridx = 3;
-        gbc_rdbtnCompound.gridy = 7;
-        importTypePanel.add(rdbtnCompound, gbc_rdbtnCompound);
-        JRadioButton rdbtnTU = new JRadioButton("|Transcription-Units|");
-        group.add(rdbtnTU);
-        GridBagConstraints gbc_rdbtnTU = new GridBagConstraints();
-        gbc_rdbtnTU.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnTU.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnTU.gridx = 5;
-        gbc_rdbtnTU.gridy = 7;
-        importTypePanel.add(rdbtnTU, gbc_rdbtnTU);
-        JRadioButton rdbtnReaction = new JRadioButton("|Reactions|");
-        group.add(rdbtnReaction);
-        GridBagConstraints gbc_rdbtnReaction = new GridBagConstraints();
-        gbc_rdbtnReaction.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnReaction.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnReaction.gridx = 3;
-        gbc_rdbtnReaction.gridy = 8;
-        importTypePanel.add(rdbtnReaction, gbc_rdbtnReaction);
-        JRadioButton rdbtnOrganism = new JRadioButton("|Organisms|");
-        group.add(rdbtnOrganism);
-        GridBagConstraints gbc_rdbtnOrganism = new GridBagConstraints();
-        gbc_rdbtnOrganism.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnOrganism.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnOrganism.gridx = 5;
-        gbc_rdbtnOrganism.gridy = 8;
-        importTypePanel.add(rdbtnOrganism, gbc_rdbtnOrganism);
-        JRadioButton rdbtnPathway = new JRadioButton("|Pathways|");
-        group.add(rdbtnPathway);
-        GridBagConstraints gbc_rdbtnPathway = new GridBagConstraints();
-        gbc_rdbtnPathway.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnPathway.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnPathway.gridx = 3;
-        gbc_rdbtnPathway.gridy = 9;
-        importTypePanel.add(rdbtnPathway, gbc_rdbtnPathway);
-        JRadioButton rdbtnExtSites = new JRadioButton("|Extragenic-Sites|");
-        group.add(rdbtnExtSites);
-        GridBagConstraints gbc_rdbtnExtSites = new GridBagConstraints();
-        gbc_rdbtnExtSites.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnExtSites.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnExtSites.gridx = 5;
-        gbc_rdbtnExtSites.gridy = 9;
-        importTypePanel.add(rdbtnExtSites, gbc_rdbtnExtSites);
-        JRadioButton rdbtnGenes = new JRadioButton("|All-Genes|");
-        group.add(rdbtnGenes);
-        GridBagConstraints gbc_rdbtnGenes = new GridBagConstraints();
-        gbc_rdbtnGenes.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnGenes.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnGenes.gridx = 3;
-        gbc_rdbtnGenes.gridy = 10;
-        importTypePanel.add(rdbtnGenes, gbc_rdbtnGenes);
-        JRadioButton rdbtnGrowthMedia = new JRadioButton("|Growth-Media|");
-        group.add(rdbtnGrowthMedia);
-        GridBagConstraints gbc_rdbtnGrowthMedia = new GridBagConstraints();
-        gbc_rdbtnGrowthMedia.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnGrowthMedia.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnGrowthMedia.gridx = 5;
-        gbc_rdbtnGrowthMedia.gridy = 10;
-        importTypePanel.add(rdbtnGrowthMedia, gbc_rdbtnGrowthMedia);
-        JRadioButton rdbtnGOTermAnnotations = new JRadioButton("GO-Term Annotations (proteins)");
-        group.add(rdbtnGOTermAnnotations);
-        GridBagConstraints gbc_rdbtnGOTermAnnotations = new GridBagConstraints();
-        gbc_rdbtnGOTermAnnotations.anchor = GridBagConstraints.NORTHWEST;
-        gbc_rdbtnGOTermAnnotations.insets = new Insets(0, 0, 5, 5);
-        gbc_rdbtnGOTermAnnotations.gridx = 5;
-        gbc_rdbtnGOTermAnnotations.gridy = 11;
-        importTypePanel.add(rdbtnGOTermAnnotations, gbc_rdbtnGOTermAnnotations);
-        
-        JButton btnSelect = new JButton("Select");
-        btnSelect.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent arg0) {
-        		cardLayout.show(contentPane, "OptionsPanel");
-        	}
-        });
-        GridBagConstraints gbc_btnSelect = new GridBagConstraints();
-        gbc_btnSelect.insets = new Insets(0, 0, 5, 5);
-        gbc_btnSelect.gridx = 8;
-        gbc_btnSelect.gridy = 12;
-        importTypePanel.add(btnSelect, gbc_btnSelect);
-        
-		add(optionsPanel, "OptionsPanel");
-		add(filePanel, "FilePanel");
-		add(searchPanel, "SearchPanel");
-		searchPanel.setLayout(new MigLayout("", "[][grow][][][][][][][][][][][][][][][][][][][][][][][][]", "[][][grow][grow][][][][][][][][][]"));
+    	return filePanel;
+    }
+
+    private JPanel initSearchPanel() {
+    	JPanel searchPanel = new JPanel();
+    	
+    	searchPanel.setLayout(new MigLayout("", "[grow]", "[][][grow][]"));
+    	
+    	JLabel imageLabel = new JLabel("");
+        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step2.png")));
+        searchPanel.add(imageLabel, "cell 0 0,alignx center,aligny center");
 		
-		JLabel lblWeCurrentlyHave = new JLabel("We currently have identified xxx out of xxxx frames");
-		searchPanel.add(lblWeCurrentlyHave, "cell 8 2");
-		
-		JPanel panel_1 = new JPanel();
-		searchPanel.add(panel_1, "cell 1 3 24 8,grow");
-		panel_1.setLayout(new GridLayout(0, 1, 0, 0));
+		JLabel label = new JLabel("We currently have identified xxx out of xxxx frames");
+		searchPanel.add(label, "cell 0 1");
 		
 		JTabbedPane tabbedPane_1 = new JTabbedPane(JTabbedPane.TOP);
-		panel_1.add(tabbedPane_1);
+		searchPanel.add(tabbedPane_1, "cell 0 2");
 		
-		JButton btnBack_1 = new JButton("Back");
-		btnBack_1.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(contentPane, "FilePanel");
-			}
-		});
-		searchPanel.add(btnBack_1, "cell 0 12");
+		textArea_2 = new JTextArea();
+		tabbedPane_1.addTab("New tab", null, textArea_2, null);
 		
 		JButton btnAccept = new JButton("Accept");
 		btnAccept.addActionListener(new ActionListener() {
@@ -383,59 +412,67 @@ public class LoadPanel extends AbstractViewPanel {
 				}
 			}
 		});
-		searchPanel.add(btnAccept, "cell 25 12");
-		add(previewPanel, "PreviewPanel");
-		add(reviewPanel, "ReviewPanel");
-		add(finalPanel, "FinalPanel");
 		
-		JButton button = new JButton("Save Log");
-		button.setAction(actionSaveLog);
-		
-		JLabel lblNewLabel_7 = new JLabel("");
-		lblNewLabel_7.setAlignmentX(Component.CENTER_ALIGNMENT);
-		lblNewLabel_7.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step5.png")));
-		GroupLayout gl_finalPanel = new GroupLayout(finalPanel);
-		gl_finalPanel.setHorizontalGroup(
-			gl_finalPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_finalPanel.createSequentialGroup()
-					.addGroup(gl_finalPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_finalPanel.createSequentialGroup()
-							.addGap(361)
-							.addComponent(button))
-						.addGroup(gl_finalPanel.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(lblNewLabel_7, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)))
-					.addContainerGap())
-		);
-		gl_finalPanel.setVerticalGroup(
-			gl_finalPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(Alignment.TRAILING, gl_finalPanel.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblNewLabel_7)
-					.addPreferredGap(ComponentPlacement.RELATED, 212, Short.MAX_VALUE)
-					.addComponent(button)
-					.addGap(105))
-		);
-		finalPanel.setLayout(gl_finalPanel);
-		
-		JButton btnBack2 = new JButton("Back");
-		btnBack2.addActionListener(new ActionListener() {
+		JButton btnBack_1 = new JButton("Back");
+		btnBack_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.unLockToolBarOrganismSelect();
-				cardLayout.show(contentPane, "SearchPanel");
+				cardLayout.show(contentPane, "FilePanel");
 			}
 		});
+		searchPanel.add(btnBack_1, "flowx,cell 0 3,alignx right,aligny center");
+		searchPanel.add(btnAccept, "cell 0 3,alignx right,aligny center");
 		
-		JButton btnUpload = new JButton("Upload");
-		btnUpload.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+        return searchPanel;
+    }
+    
+    private JPanel initPreviewPanel() {
+    	JPanel previewPanel = new JPanel();
+    	
+    	previewPanel.setLayout(new MigLayout("", "[20%,grow][40%,grow][40%,grow]", "[][grow][]"));
+    	
+    	listFrames = new JList<String>(new DefaultListModel<String>());
+		listFrames.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent arg0) {
+				updateComparison();
 			}
 		});
-		btnUpload.setAction(actionUpload);
+		listFrames.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
-		JLabel lblPreviewChanges = new JLabel("");
-		lblPreviewChanges.setAlignmentX(Component.CENTER_ALIGNMENT);
-		lblPreviewChanges.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step3.png")));
+		
+    	JLabel imageLabel = new JLabel("");
+		imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step3.png")));
+		previewPanel.add(imageLabel, "cell 0 0 3 1,alignx center,aligny center");
+		
+		JScrollPane scrollPanelList = new JScrollPane();
+		scrollPanelList.setViewportView(listFrames);
+		JLabel lblList = new JLabel("Frames to be Updated");
+		lblList.setFont(new Font("Arial", Font.BOLD, 16));
+		lblList.setAlignmentX(Component.CENTER_ALIGNMENT);
+		scrollPanelList.setColumnHeaderView(lblList);
+		previewPanel.add(scrollPanelList, "cell 0 1,aligny top,grow");
+		
+		JScrollPane scrollPaneOld = new JScrollPane();
+		textAreaOld = new JTextPane();
+		textAreaOld.setEditable(false);
+		scrollPaneOld.setViewportView(textAreaOld);
+		JLabel lblOld = new JLabel("Existing Frame Data");
+		lblOld.setFont(new Font("Arial", Font.BOLD, 16));
+		scrollPaneOld.setColumnHeaderView(lblOld);
+		previewPanel.add(scrollPaneOld, "cell 1 1,aligny top,grow");
+		
+		JScrollPane scrollPaneNew = new JScrollPane();
+		textAreaNew = new JTextPane();
+		textAreaNew.setEditable(false);
+		scrollPaneNew.setViewportView(textAreaNew);
+		JLabel lblNew = new JLabel("Frame Data after Update");
+		lblNew.setFont(new Font("Arial", Font.BOLD, 16));
+		scrollPaneNew.setColumnHeaderView(lblNew);
+		previewPanel.add(scrollPaneNew, "cell 2 1,aligny top,grow");
+		
+		JButton btnNextDiff = new JButton("New button");
+		btnNextDiff.setAction(actionNextDiff);
+		previewPanel.add(btnNextDiff, "flowx,cell 0 2,alignx left,aligny center");
 		
 		chckbxFilter = new JCheckBox("Show only frames which are altered");
 		chckbxFilter.addChangeListener(new ChangeListener() {
@@ -449,323 +486,76 @@ public class LoadPanel extends AbstractViewPanel {
 				}
 			}
 		});
+		previewPanel.add(chckbxFilter, "cell 0 2,alignx left,aligny center");
 		
-		JSplitPane splitPane_1 = new JSplitPane();
-		
-		JButton btnNextDiff = new JButton("New button");
-		btnNextDiff.setAction(actionNextDiff);
-		
-		GroupLayout gl_previewPanel = new GroupLayout(previewPanel);
-		gl_previewPanel.setHorizontalGroup(
-			gl_previewPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_previewPanel.createSequentialGroup()
-					.addGroup(gl_previewPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_previewPanel.createSequentialGroup()
-							.addGap(10)
-							.addComponent(btnBack2)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(chckbxFilter)
-							.addPreferredGap(ComponentPlacement.RELATED, 312, Short.MAX_VALUE)
-							.addComponent(btnNextDiff)
-							.addGap(18)
-							.addComponent(btnUpload))
-						.addGroup(gl_previewPanel.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(splitPane_1, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE))
-						.addGroup(gl_previewPanel.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(lblPreviewChanges, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)))
-					.addContainerGap())
-		);
-		gl_previewPanel.setVerticalGroup(
-			gl_previewPanel.createParallelGroup(Alignment.TRAILING)
-				.addGroup(gl_previewPanel.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblPreviewChanges)
-					.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addComponent(splitPane_1, GroupLayout.PREFERRED_SIZE, 286, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_previewPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnBack2)
-						.addComponent(chckbxFilter)
-						.addComponent(btnUpload)
-						.addComponent(btnNextDiff))
-					.addGap(31))
-		);
-		
-		JPanel panel = new JPanel();
-		splitPane_1.setLeftComponent(panel);
-		listFrames = new JList<String>(new DefaultListModel<String>());
-		listFrames.addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent arg0) {
-				updateComparison();
-			}
-		});
-		listFrames.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JScrollPane scrollPane = new JScrollPane();
-		panel.add(scrollPane);
-		scrollPane.setViewportView(listFrames);
-		GroupLayout gl_panel = new GroupLayout(panel);
-		gl_panel.setHorizontalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
-		);
-		gl_panel.setVerticalGroup(
-			gl_panel.createParallelGroup(Alignment.TRAILING)
-				.addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
-		);
-		
-		JLabel lblFramesToBe = new JLabel("Frames to be Updated");
-		lblFramesToBe.setFont(new Font("Arial", Font.BOLD, 16));
-		lblFramesToBe.setAlignmentX(Component.CENTER_ALIGNMENT);
-		scrollPane.setColumnHeaderView(lblFramesToBe);
-		panel.setLayout(gl_panel);
-		
-		JSplitPane splitPane = new JSplitPane();
-		splitPane_1.setRightComponent(splitPane);
-		
-		JScrollPane scrollPane_1 = new JScrollPane();
-		splitPane.setLeftComponent(scrollPane_1);
-		
-		textAreaOld = new JTextPane();
-		textAreaOld.setEditable(false);
-		scrollPane_1.setViewportView(textAreaOld);
-		
-		JLabel lblExistingFrameData = new JLabel("Existing Frame Data");
-		lblExistingFrameData.setFont(new Font("Arial", Font.BOLD, 16));
-		scrollPane_1.setColumnHeaderView(lblExistingFrameData);
-		
-		JScrollPane scrollPane_2 = new JScrollPane();
-		splitPane.setRightComponent(scrollPane_2);
-		
-		textAreaNew = new JTextPane();
-		textAreaNew.setEditable(false);
-		scrollPane_2.setViewportView(textAreaNew);
-		
-		JLabel lblFrameDataAfter = new JLabel("Frame Data after Update");
-		lblFrameDataAfter.setFont(new Font("Arial", Font.BOLD, 16));
-		scrollPane_2.setColumnHeaderView(lblFrameDataAfter);
-		splitPane.setDividerLocation(250);
-		
-		previewPanel.setLayout(gl_previewPanel);
-		
-		textFilePath = new JTextField();
-		textFilePath.setEditable(false);
-		textFilePath.setColumns(10);
-		
-		DefaultComboBoxModel<String> modelFormat = new DefaultComboBoxModel<String>();
-        modelFormat.addElement("Comma-separated values (CSV)");
-        modelFormat.addElement("Tab-delimited file (tab)");
-        cmbFormat = new JComboBox<String>(modelFormat);
-		
-		chckbxAppend = new JCheckBox("Append new data to existing values?");
-		chckbxAppend.setSelected(true);
-		
-		chckbxIgnoreDuplicate = new JCheckBox("Ignore Duplicates?");
-		chckbxIgnoreDuplicate.setSelected(true);
-		
-		JLabel lblNewLabel = new JLabel("Select Input File");
-		
-		JLabel lblNewLabel_1 = new JLabel("Select file format");
-		
-		JLabel lblNewLabel_3 = new JLabel("Multiple value delimiter");
-		
-		textMultipleValueDelimiter = new JTextField();
-		textMultipleValueDelimiter.setText("$");
-		textMultipleValueDelimiter.setColumns(10);
-		
-		JLabel lblNewLabel_4 = new JLabel("Append values or overwrite existing");
-		
-		JLabel lblNewLabel_5 = new JLabel("Check if this value exists before importing");
-		
-		JLabel lblNewLabel_2 = new JLabel("");
-		lblNewLabel_2.setAlignmentX(Component.CENTER_ALIGNMENT);
-		lblNewLabel_2.setOpaque(true);
-		lblNewLabel_2.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step1.png")));
-		
-		txtAlwaysBackupThe = new JLabel();
-		txtAlwaysBackupThe.setText("Always backup the database file before modifying it!");
-		
-		JButton btnBack_2 = new JButton("Back");
-		btnBack_2.addActionListener(new ActionListener() {
+		JButton btnBack2 = new JButton("Back");
+		btnBack2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(contentPane, "ImportTypePanel");
+				controller.unLockToolBarOrganismSelect();
+				cardLayout.show(contentPane, "SearchPanel");
 			}
 		});
+		previewPanel.add(btnBack2, "flowx,cell 2 2,alignx right,aligny center");
 		
-		GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
-		gl_optionsPanel.setHorizontalGroup(
-			gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_optionsPanel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_optionsPanel.createSequentialGroup()
-							.addComponent(lblNewLabel_2, GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)
-							.addContainerGap())
-						.addGroup(gl_optionsPanel.createSequentialGroup()
-							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING)
-								.addComponent(lblNewLabel_5)
-								.addComponent(lblNewLabel_4)
-								.addComponent(lblNewLabel_3)
-								.addComponent(lblNewLabel_1)
-								.addComponent(lblNewLabel))
-							.addGap(18)
-							.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-									.addGroup(gl_optionsPanel.createSequentialGroup()
-										.addComponent(btnBrowse)
-										.addPreferredGap(ComponentPlacement.RELATED)
-										.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, 341, GroupLayout.PREFERRED_SIZE))
-									.addComponent(cmbFormat, GroupLayout.PREFERRED_SIZE, 259, GroupLayout.PREFERRED_SIZE)
-									.addComponent(chckbxIgnoreDuplicate, GroupLayout.DEFAULT_SIZE, 414, Short.MAX_VALUE)
-									.addComponent(btnOpen))
-								.addGroup(gl_optionsPanel.createSequentialGroup()
-									.addGroup(gl_optionsPanel.createParallelGroup(Alignment.TRAILING, false)
-										.addComponent(textMultipleValueDelimiter, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-										.addComponent(chckbxAppend, Alignment.LEADING))
-									.addPreferredGap(ComponentPlacement.RELATED, 211, GroupLayout.PREFERRED_SIZE)))
-							.addGap(158))))
-				.addGroup(gl_optionsPanel.createSequentialGroup()
-					.addGap(23)
-					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING)
-						.addComponent(btnBack_2)
-						.addComponent(txtAlwaysBackupThe, GroupLayout.DEFAULT_SIZE, 767, Short.MAX_VALUE))
-					.addContainerGap())
-		);
-		gl_optionsPanel.setVerticalGroup(
-			gl_optionsPanel.createParallelGroup(Alignment.TRAILING)
-				.addGroup(gl_optionsPanel.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblNewLabel_2, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
-					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnBrowse)
-						.addComponent(textFilePath, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblNewLabel))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(cmbFormat, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblNewLabel_1))
-					.addGap(18)
-					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(textMultipleValueDelimiter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblNewLabel_3))
-					.addGap(13)
-					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblNewLabel_4)
-						.addComponent(chckbxAppend))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addGroup(gl_optionsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(chckbxIgnoreDuplicate)
-						.addComponent(lblNewLabel_5))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(btnOpen)
-					.addGap(59)
-					.addComponent(txtAlwaysBackupThe)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnBack_2)
-					.addGap(23))
-		);
-		optionsPanel.setLayout(gl_optionsPanel);
-        
-		DefaultComboBoxModel<String> modelAdaptor = new DefaultComboBoxModel<String>();
-		modelAdaptor.addElement("Standard CSV: Column header determines slot label");
-        modelAdaptor.addElement("Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label");
-        modelAdaptor.addElement("MaizeGDB Custom: frameID, goTerm, pubMedID, evCode, timeStampString (dd-mm-yyyy hh-mm-ss), curator");
-        cmbAdaptor = new JComboBox<String>(modelAdaptor);
-        
-        JLabel lblNewLabel_6 = new JLabel("");
-        lblNewLabel_6.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblNewLabel_6.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step2.png")));
-//        ImageIcon step2 = new ImageIcon(LoadPanel.class.getResource("/resources/step2.png"));
-//        lblNewLabel_6.setIcon(new ImageIcon(step2.getImage().getScaledInstance((int) (step2.getIconWidth()*.75),  (int) (step2.getIconHeight()*.75),  Image.SCALE_SMOOTH)));
-        
-        GroupLayout gl_filePanel = new GroupLayout(filePanel);
-        gl_filePanel.setHorizontalGroup(
-        	gl_filePanel.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, gl_filePanel.createSequentialGroup()
-        			.addContainerGap()
-        			.addGroup(gl_filePanel.createParallelGroup(Alignment.TRAILING)
-        				.addComponent(SpreadsheetScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1184, Short.MAX_VALUE)
-        				.addComponent(lblNewLabel_6, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 777, Short.MAX_VALUE)
-        				.addGroup(Alignment.LEADING, gl_filePanel.createSequentialGroup()
-        					.addComponent(btnBack)
-        					.addPreferredGap(ComponentPlacement.RELATED, 665, Short.MAX_VALUE)
-        					.addComponent(cmbAdaptor, GroupLayout.PREFERRED_SIZE, 375, GroupLayout.PREFERRED_SIZE)
-        					.addGap(18)
-        					.addComponent(btnPreview)))
-        			.addGap(13))
-        );
-        gl_filePanel.setVerticalGroup(
-        	gl_filePanel.createParallelGroup(Alignment.TRAILING)
-        		.addGroup(gl_filePanel.createSequentialGroup()
-        			.addContainerGap()
-        			.addComponent(lblNewLabel_6, GroupLayout.PREFERRED_SIZE, 54, GroupLayout.PREFERRED_SIZE)
-        			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(SpreadsheetScrollPane, GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE)
-        			.addPreferredGap(ComponentPlacement.UNRELATED)
-        			.addGroup(gl_filePanel.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(btnPreview)
-        				.addComponent(btnBack)
-        				.addComponent(cmbAdaptor, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        			.addContainerGap())
-        );
-        filePanel.setLayout(gl_filePanel);
-        
-        JLabel lblSummaryResults = new JLabel("");
-        lblSummaryResults.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblSummaryResults.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step4.png")));
+		JButton btnUpload = new JButton("Upload");
+		btnUpload.setAction(actionUpload);
+		previewPanel.add(btnUpload, "cell 2 2,alignx right,aligny center");
+		
+    	return previewPanel;
+    }
+    
+    private JPanel initReviewPanel() {
+    	JPanel reviewPanel = new JPanel();
+    	
+    	reviewPanel.setLayout(new MigLayout("", "[109px][509px][155px]", "[49px][251px][57px]"));
+    	
+    	JLabel imageLabel = new JLabel("");
+        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step4.png")));
+        reviewPanel.add(imageLabel, "cell 0 0 3 1,alignx center,aligny center");
         
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        
-        GroupLayout gl_reviewPanel = new GroupLayout(reviewPanel);
-        gl_reviewPanel.setHorizontalGroup(
-        	gl_reviewPanel.createParallelGroup(Alignment.LEADING)
-        		.addGroup(gl_reviewPanel.createSequentialGroup()
-        			.addContainerGap()
-        			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.LEADING)
-        				.addGroup(gl_reviewPanel.createParallelGroup(Alignment.TRAILING, false)
-        					.addGroup(gl_reviewPanel.createSequentialGroup()
-        						.addComponent(btnSave)
-        						.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        						.addComponent(btnRevert))
-        					.addComponent(tabbedPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 773, Short.MAX_VALUE))
-        				.addComponent(lblSummaryResults, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        			.addGap(17))
-        );
-        gl_reviewPanel.setVerticalGroup(
-        	gl_reviewPanel.createParallelGroup(Alignment.TRAILING)
-        		.addGroup(gl_reviewPanel.createSequentialGroup()
-        			.addContainerGap()
-        			.addComponent(lblSummaryResults)
-        			.addGap(14)
-        			.addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)
-        			.addGap(7)
-        			.addGroup(gl_reviewPanel.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(btnRevert)
-        				.addComponent(btnSave))
-        			.addContainerGap())
-        );
-        
-        JScrollPane scrollPane_3 = new JScrollPane();
-        tabbedPane.addTab("All Events", null, scrollPane_3, null);
-        
+        JScrollPane scrollPaneAll = new JScrollPane();
+        tabbedPane.addTab("All Events", null, scrollPaneAll, null);
         textLog = new JTextArea();
-        scrollPane_3.setViewportView(textLog);
-        
-        JScrollPane scrollPane_4 = new JScrollPane();
-        tabbedPane.addTab("Successful Imports", null, scrollPane_4, null);
-        
+        scrollPaneAll.setViewportView(textLog);
+        JScrollPane scrollPaneSuccess = new JScrollPane();
+        tabbedPane.addTab("Successful Imports", null, scrollPaneSuccess, null);
         textArea = new JTextArea();
-        scrollPane_4.setViewportView(textArea);
-        
-        JScrollPane scrollPane_5 = new JScrollPane();
-        tabbedPane.addTab("Failed Imports", null, scrollPane_5, null);
-        
+        scrollPaneSuccess.setViewportView(textArea);
+        JScrollPane scrollPaneFailed = new JScrollPane();
+        tabbedPane.addTab("Failed Imports", null, scrollPaneFailed, null);
         textArea_1 = new JTextArea();
-        scrollPane_5.setViewportView(textArea_1);
-        reviewPanel.setLayout(gl_reviewPanel);
-	}
+        scrollPaneFailed.setViewportView(textArea_1);
+        reviewPanel.add(tabbedPane, "cell 0 1 3 1,grow");
+        
+        JButton btnRevert = new JButton("Revert");
+        btnRevert.setAction(actionRevert);
+        reviewPanel.add(btnRevert, "cell 2 2,alignx right,aligny center");
+        
+        JButton btnSave = new JButton("Save");
+        btnSave.setAction(actionSave);
+        reviewPanel.add(btnSave, "cell 0 2,alignx left,aligny center");
+        
+        return reviewPanel;
+    }
+    
+    private JPanel initFinalPanel() {
+    	JPanel finalPanel = new JPanel();
+    	
+    	finalPanel.setLayout(new MigLayout("", "[780px]", "[49px][23px]"));
+    	
+    	JButton button = new JButton("Save Log");
+		button.setAction(actionSaveLog);
+		
+		JLabel imageLabel = new JLabel("");
+		imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step5.png")));
+		finalPanel.add(button, "cell 0 1,alignx right,aligny center");
+		finalPanel.add(imageLabel, "cell 0 0,alignx center,aligny center");
+		
+		return finalPanel;
+    }
     
     private static List<String> textToLines(String text) {
 		List<String> lines = new LinkedList<String>();
@@ -914,7 +704,7 @@ public class LoadPanel extends AbstractViewPanel {
 				return;
 			}
 		}
-		controller.lockToolBarOrganismSelect();
+//		controller.lockToolBarOrganismSelect();
 		textAreaOld.setText("");
 		textAreaNew.setText("");
 		cardLayout.show(contentPane, "PreviewPanel");
@@ -926,7 +716,55 @@ public class LoadPanel extends AbstractViewPanel {
 		allFramesWithImports = batchEdits.getFrameIDsModel();
 		listFrames.setModel(allFramesWithImports);
 	}
-    
+	
+	// For each user provided ID, do a search of that ID in the current DB.  Store results.
+	private void searchFrameIDs() {
+		JavacycConnection conn = controller.getConnection();
+		
+		controller.lockToolBarOrganismSelect();
+		TableModel tb = tableSpreadSheet.getModel();
+		
+		searchResults = new HashMap<String, ArrayList<Frame>>();
+		
+		for (int rowIndex = 0; rowIndex < tb.getRowCount(); rowIndex++) {
+			String userProvidedID = (String) tb.getValueAt(rowIndex, 0);
+			try {
+				if (!searchResults.containsKey(userProvidedID)) {
+					searchResults.put(userProvidedID, conn.search(userProvidedID, importType));
+				}
+			} catch (PtoolsErrorException e) {
+				e.printStackTrace();
+				searchResults.put(userProvidedID, null);
+			}
+		}
+	}
+	
+	private void clearSearchPanel() {
+		String output = "";
+		int frameIDCount = 0;
+		int exactMatchCount = 0;
+		int oneMatchCount = 0;
+		int multipleMatchesCount = 0;
+		int noMatchesCount = 0;
+		
+		for (String key : searchResults.keySet()) {
+			if (searchResults.get(key) == null || searchResults.get(key).size() == 0) noMatchesCount++;
+			else if (searchResults.get(key).size() == 1) {
+				Frame match = searchResults.get(key).get(0);
+				if (key.equalsIgnoreCase(match.getLocalID())) frameIDCount++;
+				else oneMatchCount++;
+			} else {
+				multipleMatchesCount++;
+			}
+		}
+		
+		output += "FrameID's provided : " + frameIDCount + "\n";
+		output += "Single matches found : " + oneMatchCount + "\n";
+		output += "Terms with multiple matches : " + multipleMatchesCount + "\n";
+		output += "Terms with no matches : " + noMatchesCount + "\n";
+		
+		textArea_2.setText(output);
+	}
     
     private class ActionBrowse extends AbstractAction {
 		public ActionBrowse() {
@@ -1016,7 +854,7 @@ public class LoadPanel extends AbstractViewPanel {
 	
 	private void resetForm() {
 		cardLayout.show(contentPane, "ImportTypePanel");
-		rdbtnProtein.setSelected(true);
+		cmbImportType.setSelectedIndex(0);
 		selectedAdaptor = null;
 		tableSpreadSheet.setModel(new DefaultTableModel());
 		listFrames.setModel(new DefaultListModel<String>());
