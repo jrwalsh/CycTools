@@ -1,7 +1,5 @@
 package edu.iastate.cyctools.tools.load.view;
 
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
@@ -11,11 +9,9 @@ import javax.swing.text.Highlighter.Highlight;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -27,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
@@ -40,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import difflib.Delta;
 import difflib.DiffUtils;
@@ -57,21 +53,14 @@ import edu.iastate.cyctools.tools.load.model.BatchUpdate.Event;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Status;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate;
-import edu.iastate.javacyco.Compound;
 import edu.iastate.javacyco.Frame;
-import edu.iastate.javacyco.Gene;
 import edu.iastate.javacyco.JavacycConnection;
-import edu.iastate.javacyco.Pathway;
-import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
-import edu.iastate.javacyco.Reaction;
-
 import java.awt.CardLayout;
 import javax.swing.JComboBox;
 import javax.swing.JCheckBox;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
-import javax.swing.JSplitPane;
 import javax.swing.JList;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
@@ -83,11 +72,7 @@ import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import net.miginfocom.swing.MigLayout;
-import java.awt.GridLayout;
 import javax.swing.JRadioButton;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import java.awt.event.ActionListener;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
@@ -122,7 +107,12 @@ public class LoadPanel extends AbstractViewPanel {
 	private String importType;
 	private ButtonGroup groupImportType;
 	private HashMap<String, ArrayList<Frame>> searchResults;
-	private JTextArea textArea_2;
+	private JLabel labelSearchResults;
+	private JTextArea textSearchExactMatches;
+	private JTextArea textSearchGoodMatches;
+	private JTextArea textSearchMultipleMatches;
+	private JTextArea textSearchNoMatches;
+	private JTabbedPane tabbedSearchResults;
 	private JComboBox cmbImportType = new JComboBox();
 	
 	private final Action actionBrowse = new ActionBrowse();
@@ -320,7 +310,7 @@ public class LoadPanel extends AbstractViewPanel {
         btnPreview.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
 				searchFrameIDs();
-				clearSearchPanel();
+//				clearSearchPanel();
         		cardLayout.show(contentPane, "SearchPanel");
         	}
         });
@@ -380,14 +370,31 @@ public class LoadPanel extends AbstractViewPanel {
         imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step2.png")));
         searchPanel.add(imageLabel, "cell 0 0,alignx center,aligny center");
 		
-		JLabel label = new JLabel("We currently have identified xxx out of xxxx frames");
-		searchPanel.add(label, "cell 0 1");
+		labelSearchResults = new JLabel("Waiting for search results....");
+		searchPanel.add(labelSearchResults, "cell 0 1,alignx left,aligny center");
 		
-		JTabbedPane tabbedPane_1 = new JTabbedPane(JTabbedPane.TOP);
-		searchPanel.add(tabbedPane_1, "cell 0 2");
+		tabbedSearchResults = new JTabbedPane(JTabbedPane.TOP);
+		searchPanel.add(tabbedSearchResults, "cell 0 2,grow");
 		
-		textArea_2 = new JTextArea();
-		tabbedPane_1.addTab("New tab", null, textArea_2, null);
+		textSearchExactMatches = new JTextArea();
+		JScrollPane scroll1 = new JScrollPane();
+		scroll1.setViewportView(textSearchExactMatches);
+		tabbedSearchResults.addTab("Exact Matches", null, scroll1, null);
+		
+		textSearchGoodMatches = new JTextArea();
+		JScrollPane scroll2 = new JScrollPane();
+		scroll2.setViewportView(textSearchGoodMatches);
+		tabbedSearchResults.addTab("Good Matches", null, scroll2, null);
+		
+		textSearchMultipleMatches = new JTextArea();
+		JScrollPane scroll3 = new JScrollPane();
+		scroll3.setViewportView(textSearchMultipleMatches);
+		tabbedSearchResults.addTab("Multiple Matches", null, scroll3, null);
+		
+		textSearchNoMatches = new JTextArea();
+		JScrollPane scroll4 = new JScrollPane();
+		scroll4.setViewportView(textSearchNoMatches);
+		tabbedSearchResults.addTab("No Matches", null, scroll4, null);
 		
 		JButton btnAccept = new JButton("Accept");
 		btnAccept.addActionListener(new ActionListener() {
@@ -416,6 +423,7 @@ public class LoadPanel extends AbstractViewPanel {
 		JButton btnBack_1 = new JButton("Back");
 		btnBack_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				controller.unLockToolBarOrganismSelect();
 				cardLayout.show(contentPane, "FilePanel");
 			}
 		});
@@ -491,7 +499,6 @@ public class LoadPanel extends AbstractViewPanel {
 		JButton btnBack2 = new JButton("Back");
 		btnBack2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.unLockToolBarOrganismSelect();
 				cardLayout.show(contentPane, "SearchPanel");
 			}
 		});
@@ -689,7 +696,6 @@ public class LoadPanel extends AbstractViewPanel {
 		}
 	}
 	
-	
 	private void openPreviewPanel() throws PtoolsErrorException {
 		if (controller.isKBModified(controller.getSelectedOrganism())) {
 			int n = JOptionPane.showConfirmDialog(
@@ -708,35 +714,82 @@ public class LoadPanel extends AbstractViewPanel {
 		textAreaOld.setText("");
 		textAreaNew.setText("");
 		cardLayout.show(contentPane, "PreviewPanel");
-		batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()), controller.getConnection());
+		
+		// Convert user provided IDs to frame IDs, remove imports that can't be matched to an existing frame
+		DefaultTableModel model = (DefaultTableModel) tableSpreadSheet.getModel();
+		int nRow = model.getRowCount(), nCol = model.getColumnCount();
+		for (int i = nRow-1; i >= 0; i--) {
+			String givenID = (String) model.getValueAt(i, 0); // User provided ID must always be in first column
+			ArrayList<Frame> matches = searchResults.get(givenID);
+			if (matches.size() == 1) {
+				model.setValueAt(matches.get(0).getLocalID(), i, 0);
+			} else {
+				model.removeRow(i);//if there is not a good matching FrameID, we skip this line as a condition of the import.  Can't import data if we don't know where to put it.
+			}
+		}
+	    
+	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(model), controller.getConnection());
+//	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()), controller.getConnection());
 		batchEdits.addPropertyChangeListener(controller);
 		
 		batchEdits.downloadFrames(controller.getConnection());
-//		r
 		allFramesWithImports = batchEdits.getFrameIDsModel();
 		listFrames.setModel(allFramesWithImports);
 	}
 	
-	// For each user provided ID, do a search of that ID in the current DB.  Store results.
-	private void searchFrameIDs() {
+	private void searchFrameIDs() { //TODO convert to worker string task
 		JavacycConnection conn = controller.getConnection();
 		
 		controller.lockToolBarOrganismSelect();
 		TableModel tb = tableSpreadSheet.getModel();
 		
+		// For each user provided ID, do a search of that ID in the current DB.  Store results.
 		searchResults = new HashMap<String, ArrayList<Frame>>();
-		
 		for (int rowIndex = 0; rowIndex < tb.getRowCount(); rowIndex++) {
 			String userProvidedID = (String) tb.getValueAt(rowIndex, 0);
 			try {
 				if (!searchResults.containsKey(userProvidedID)) {
-					searchResults.put(userProvidedID, conn.search(userProvidedID, importType));
+					searchResults.put(userProvidedID, conn.search(userProvidedID, ((Entry<String, String>)cmbImportType.getSelectedItem()).getKey()));
 				}
 			} catch (PtoolsErrorException e) {
 				e.printStackTrace();
 				searchResults.put(userProvidedID, null);
 			}
 		}
+		
+		// Process search results
+		ArrayList<String> exactMatches = new ArrayList<String>();
+		ArrayList<String> goodMatches = new ArrayList<String>();
+		ArrayList<String> ambiguousMatches = new ArrayList<String>();
+		ArrayList<String> noMatches = new ArrayList<String>();
+		
+		for (String key : searchResults.keySet()) {
+			if (searchResults.get(key) == null || searchResults.get(key).size() == 0) noMatches.add(key);
+			else if (searchResults.get(key).size() == 1) {
+				Frame match = searchResults.get(key).get(0);
+				if (key.equalsIgnoreCase(match.getLocalID())) exactMatches.add(key);
+				else goodMatches.add(key);
+			} else {
+				ambiguousMatches.add(key);
+			}
+		}
+		
+		tabbedSearchResults.setTitleAt(0, "Found " + exactMatches.size() + " terms with exact matches");
+		tabbedSearchResults.setTitleAt(1, "Found " + goodMatches.size() + " terms with good matches");
+		tabbedSearchResults.setTitleAt(2, "Found " + ambiguousMatches.size() + " terms with abmiguous matches");
+		tabbedSearchResults.setTitleAt(3, "Found " + noMatches.size() + " terms with no matches");
+		
+		int totalGoodMatches = exactMatches.size() + goodMatches.size();
+		labelSearchResults.setText("We were able to match " + totalGoodMatches + " out of " + searchResults.keySet().size() + " terms.");
+		for (String ID : exactMatches) textSearchExactMatches.setText(textSearchExactMatches.getText() + ID + "\n");
+		for (String ID : goodMatches) textSearchGoodMatches.setText(textSearchGoodMatches.getText() + ID + "\n");
+		for (String ID : ambiguousMatches) textSearchMultipleMatches.setText(textSearchMultipleMatches.getText() + ID + "\n");
+		for (String ID : noMatches) textSearchNoMatches.setText(textSearchNoMatches.getText() + ID + "\n");
+		
+		textSearchExactMatches.setCaretPosition(0);
+		textSearchGoodMatches.setCaretPosition(0);
+		textSearchMultipleMatches.setCaretPosition(0);
+		textSearchNoMatches.setCaretPosition(0);
 	}
 	
 	private void clearSearchPanel() {
@@ -763,7 +816,7 @@ public class LoadPanel extends AbstractViewPanel {
 		output += "Terms with multiple matches : " + multipleMatchesCount + "\n";
 		output += "Terms with no matches : " + noMatchesCount + "\n";
 		
-		textArea_2.setText(output);
+		textSearchExactMatches.setText(output);
 	}
     
     private class ActionBrowse extends AbstractAction {
@@ -853,7 +906,7 @@ public class LoadPanel extends AbstractViewPanel {
 	}
 	
 	private void resetForm() {
-		cardLayout.show(contentPane, "ImportTypePanel");
+		cardLayout.show(contentPane, "OptionsPanel");
 		cmbImportType.setSelectedIndex(0);
 		selectedAdaptor = null;
 		tableSpreadSheet.setModel(new DefaultTableModel());
