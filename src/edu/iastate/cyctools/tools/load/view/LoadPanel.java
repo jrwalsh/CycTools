@@ -107,10 +107,10 @@ public class LoadPanel extends AbstractViewPanel {
 	private ButtonGroup groupImportType;
 	private HashMap<String, ArrayList<Frame>> searchResults;
 	private JLabel labelSearchResults;
-	private JTextArea textSearchExactMatches;
-	private JTextArea textSearchGoodMatches;
-	private JTextArea textSearchMultipleMatches;
-	private JTextArea textSearchNoMatches;
+	private JTable tableSearchExactMatches;
+	private JTable tableSearchGoodMatches;
+	private JTable tableSearchMultipleMatches;
+	private JTable tableSearchNoMatches;
 	private JTabbedPane tabbedSearchResults;
 	private JComboBox cmbImportType = new JComboBox();
 	
@@ -309,8 +309,7 @@ public class LoadPanel extends AbstractViewPanel {
         JButton btnPreview = new JButton("Preview");
         btnPreview.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-				searchFrameIDs();
-        		cardLayout.show(contentPane, "SearchPanel");
+				if (searchFrameIDs()) cardLayout.show(contentPane, "SearchPanel");
         	}
         });
         
@@ -341,26 +340,27 @@ public class LoadPanel extends AbstractViewPanel {
 		searchPanel.add(labelSearchResults, "cell 0 1,alignx left,aligny center");
 		
 		tabbedSearchResults = new JTabbedPane(JTabbedPane.TOP);
+		tabbedSearchResults.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		searchPanel.add(tabbedSearchResults, "cell 0 2,grow");
 		
-		textSearchExactMatches = new JTextArea();
+		tableSearchExactMatches = new JTable();
 		JScrollPane scroll1 = new JScrollPane();
-		scroll1.setViewportView(textSearchExactMatches);
+		scroll1.setViewportView(tableSearchExactMatches);
 		tabbedSearchResults.addTab("Exact Matches", null, scroll1, null);
 		
-		textSearchGoodMatches = new JTextArea();
+		tableSearchGoodMatches = new JTable();
 		JScrollPane scroll2 = new JScrollPane();
-		scroll2.setViewportView(textSearchGoodMatches);
+		scroll2.setViewportView(tableSearchGoodMatches);
 		tabbedSearchResults.addTab("Good Matches", null, scroll2, null);
 		
-		textSearchMultipleMatches = new JTextArea();
+		tableSearchMultipleMatches = new JTable();
 		JScrollPane scroll3 = new JScrollPane();
-		scroll3.setViewportView(textSearchMultipleMatches);
+		scroll3.setViewportView(tableSearchMultipleMatches);
 		tabbedSearchResults.addTab("Multiple Matches", null, scroll3, null);
 		
-		textSearchNoMatches = new JTextArea();
+		tableSearchNoMatches = new JTable();
 		JScrollPane scroll4 = new JScrollPane();
-		scroll4.setViewportView(textSearchNoMatches);
+		scroll4.setViewportView(tableSearchNoMatches);
 		tabbedSearchResults.addTab("No Matches", null, scroll4, null);
 		
 		JButton btnAccept = new JButton("Accept");
@@ -403,13 +403,13 @@ public class LoadPanel extends AbstractViewPanel {
     private JPanel initPreviewPanel() {
     	JPanel previewPanel = new JPanel();
     	
-    	previewPanel.setLayout(new MigLayout("", "[25%,grow][25%,grow][25%,grow][25%,grow]", "[][10%:n][grow][]"));
+    	previewPanel.setLayout(new MigLayout("", "[50%,grow][50%,grow]", "[][10%:n][grow][]"));
 		
 		
     	JLabel imageLabel = new JLabel("");
 		imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step3.png")));
-		previewPanel.add(imageLabel, "cell 0 0 4 1,alignx center,aligny center");
+		previewPanel.add(imageLabel, "cell 0 0 2 1,alignx center,aligny center");
 		
 		listFrames = new JList<String>(new DefaultListModel<String>());
 		listFrames.addListSelectionListener(new ListSelectionListener() {
@@ -420,12 +420,13 @@ public class LoadPanel extends AbstractViewPanel {
 		listFrames.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		JScrollPane scrollPanelList = new JScrollPane();
+		scrollPanelList.setMinimumSize(new Dimension(23, 150));
 		scrollPanelList.setViewportView(listFrames);
 		JLabel lblList = new JLabel("Frames to be Updated");
 		lblList.setFont(new Font("Arial", Font.BOLD, 16));
 		lblList.setAlignmentX(Component.CENTER_ALIGNMENT);
 		scrollPanelList.setColumnHeaderView(lblList);
-		previewPanel.add(scrollPanelList, "cell 0 1 4 1,aligny top,grow");
+		previewPanel.add(scrollPanelList, "cell 0 1 2 1,aligny top,grow");
 		
 		JScrollPane scrollPaneOld = new JScrollPane();
 		textAreaOld = new JTextPane();
@@ -434,7 +435,7 @@ public class LoadPanel extends AbstractViewPanel {
 		JLabel lblOld = new JLabel("Existing Frame Data");
 		lblOld.setFont(new Font("Arial", Font.BOLD, 16));
 		scrollPaneOld.setColumnHeaderView(lblOld);
-		previewPanel.add(scrollPaneOld, "cell 0 2 2 1,aligny top,grow");
+		previewPanel.add(scrollPaneOld, "cell 0 2,aligny top,grow");
 		
 		JScrollPane scrollPaneNew = new JScrollPane();
 		textAreaNew = new JTextPane();
@@ -443,13 +444,14 @@ public class LoadPanel extends AbstractViewPanel {
 		JLabel lblNew = new JLabel("Frame Data after Update");
 		lblNew.setFont(new Font("Arial", Font.BOLD, 16));
 		scrollPaneNew.setColumnHeaderView(lblNew);
-		previewPanel.add(scrollPaneNew, "cell 2 2 2 1,aligny top,grow");
+		previewPanel.add(scrollPaneNew, "cell 1 2 2 1,aligny top,grow");
 		
 		JButton btnNextDiff = new JButton("New button");
 		btnNextDiff.setAction(actionNextDiff);
 		previewPanel.add(btnNextDiff, "flowx,cell 0 3,alignx left,aligny center");
 		
 		chckbxFilter = new JCheckBox("Show only frames which are altered");
+		chckbxFilter.setFocusable(false);
 		chckbxFilter.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				if (chckbxFilter.isSelected()) {
@@ -469,11 +471,11 @@ public class LoadPanel extends AbstractViewPanel {
 				cardLayout.show(contentPane, "SearchPanel");
 			}
 		});
-		previewPanel.add(btnBack2, "flowx,cell 3 3,alignx right,aligny center");
+		previewPanel.add(btnBack2, "flowx,cell 1 3,alignx right,aligny center");
 		
 		JButton btnUpload = new JButton("Upload");
 		btnUpload.setAction(actionUpload);
-		previewPanel.add(btnUpload, "cell 3 3,alignx right,aligny center");
+		previewPanel.add(btnUpload, "cell 1 3,alignx right,aligny center");
 		
     	return previewPanel;
     }
@@ -532,6 +534,8 @@ public class LoadPanel extends AbstractViewPanel {
     }
     
     private static List<String> textToLines(String text) {
+    	// This method is used to convert text (a string) into a list of strings, broken on newline characters.
+    	// Necessary for the text diff tool.
 		List<String> lines = new LinkedList<String>();
 		String line = "";
 		BufferedReader in = null;
@@ -550,13 +554,6 @@ public class LoadPanel extends AbstractViewPanel {
 			}
 		}
 		return lines;
-        
-//        List<String> lines = new LinkedList<String>();
-//        
-//        if (text != null) {
-//        	for (String line : text.split("\n")) lines.add(line + "\n");
-//        }
-//        return lines;
     }
 
 	private void updateComparison() {
@@ -607,18 +604,6 @@ public class LoadPanel extends AbstractViewPanel {
 	
 	private void highlightDiffs() {
 		// Highlight diffs
-//		int currentPosition = 0;
-//		for (String line : updatedFrameString.split("\n")) {
-//			if (!originalFrameString.contains(line)) {
-//				DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-//				try {
-//					textAreaNew.getHighlighter().addHighlight(currentPosition, currentPosition + line.length(), highlightPainter);
-//				} catch (BadLocationException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//			currentPosition += line.length()+1;
-//		}
 		textAreaOld.getHighlighter().removeAllHighlights();
 		textAreaNew.getHighlighter().removeAllHighlights();
 		
@@ -682,7 +667,6 @@ public class LoadPanel extends AbstractViewPanel {
 //		controller.lockToolBarOrganismSelect();
 		textAreaOld.setText("");
 		textAreaNew.setText("");
-		cardLayout.show(contentPane, "PreviewPanel");
 		
 		// Convert user provided IDs to frame IDs, remove imports that can't be matched to an existing frame
 		DefaultTableModel model = (DefaultTableModel) tableSpreadSheet.getModel();
@@ -693,9 +677,15 @@ public class LoadPanel extends AbstractViewPanel {
 			if (matches.size() == 1) {
 				model.setValueAt(matches.get(0).getLocalID(), i, 0);
 			} else {
-				model.removeRow(i);//if there is not a good matching FrameID, we skip this line as a condition of the import.  Can't import data if we don't know where to put it.
+				model.removeRow(i);//if there is not a good matching FrameID, we skip this line as a condition of the import.  Can't import data if we don't know where to put it. //TODO Critical error, this removal is destructive and causes the line to be removed from the original table on the file view screen!!!!
 			}
 		}
+		
+		if (model.getRowCount() == 0) {
+			JOptionPane.showMessageDialog(this, "No data could be matched to frames in this database for the selected frame type. Unable to proceed with import", "No Data to Import!", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		cardLayout.show(contentPane, "PreviewPanel");
 	    
 	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(model), controller.getConnection());
 //	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()), controller.getConnection());
@@ -706,12 +696,29 @@ public class LoadPanel extends AbstractViewPanel {
 		listFrames.setModel(allFramesWithImports);
 	}
 	
-	private void searchFrameIDs() { //TODO convert to worker string task
+	private boolean searchFrameIDs() { //TODO convert to worker string task
 		JavacycConnection conn = controller.getConnection();
 		
 		controller.lockToolBarOrganismSelect();
 		TableModel tb = tableSpreadSheet.getModel();
 		
+		// Do a fast preliminary check to see if any user provided ID's are not frames in this database
+//		JOptionPane.showMessageDialog(this, "Validating import objects", "Validating", JOptionPane.PLAIN_MESSAGE);
+		int noMatchCount = 0;
+		for (int rowIndex = 0; rowIndex < tb.getRowCount(); rowIndex++) {
+			String userProvidedID = (String) tb.getValueAt(rowIndex, 0);
+			try {
+				if (!conn.frameExists(userProvidedID)) noMatchCount++;
+			} catch (PtoolsErrorException e) {
+				e.printStackTrace();
+			}
+		}
+		if (noMatchCount > 0) {
+			int n = JOptionPane.showConfirmDialog(this, "Some IDs do not match any objects in the database.  Would you like to perform a search for these objects in the database?"
+					, "Validating", JOptionPane.YES_NO_OPTION);
+			if (n == JOptionPane.NO_OPTION) return false;
+		}
+				
 		// For each user provided ID, do a search of that ID in the current DB.  Store results.
 		searchResults = new HashMap<String, ArrayList<Frame>>();
 		for (int rowIndex = 0; rowIndex < tb.getRowCount(); rowIndex++) {
@@ -732,6 +739,9 @@ public class LoadPanel extends AbstractViewPanel {
 		ArrayList<String> ambiguousMatches = new ArrayList<String>();
 		ArrayList<String> noMatches = new ArrayList<String>();
 		
+		// Copy the table model, but insert an extra column at the beginning to store the matched frame IDs
+		consumeSearchResults();
+		
 		for (String key : searchResults.keySet()) {
 			if (searchResults.get(key) == null || searchResults.get(key).size() == 0) noMatches.add(key);
 			else if (searchResults.get(key).size() == 1) {
@@ -745,24 +755,122 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		tabbedSearchResults.setTitleAt(0, "Found " + exactMatches.size() + " terms with exact matches");
 		tabbedSearchResults.setTitleAt(1, "Found " + goodMatches.size() + " terms with good matches");
-		tabbedSearchResults.setTitleAt(2, "Found " + ambiguousMatches.size() + " terms with abmiguous matches");
-		tabbedSearchResults.setTitleAt(3, "Found " + noMatches.size() + " terms with no matches");
-		textSearchExactMatches.setText("");
-		textSearchGoodMatches.setText("");
-		textSearchMultipleMatches.setText("");
-		textSearchNoMatches.setText("");
+		tabbedSearchResults.setTitleAt(2, ambiguousMatches.size() + " terms with abmiguous matches");
+		tabbedSearchResults.setTitleAt(3, noMatches.size() + " terms not found");
 		
 		int totalGoodMatches = exactMatches.size() + goodMatches.size();
 		labelSearchResults.setText("We were able to match " + totalGoodMatches + " out of " + searchResults.keySet().size() + " terms.");
-		for (String ID : exactMatches) textSearchExactMatches.setText(textSearchExactMatches.getText() + ID + "\n");
-		for (String ID : goodMatches) textSearchGoodMatches.setText(textSearchGoodMatches.getText() + ID + "\n");
-		for (String ID : ambiguousMatches) textSearchMultipleMatches.setText(textSearchMultipleMatches.getText() + ID + "\n");
-		for (String ID : noMatches) textSearchNoMatches.setText(textSearchNoMatches.getText() + ID + "\n");
 		
-		textSearchExactMatches.setCaretPosition(0);
-		textSearchGoodMatches.setCaretPosition(0);
-		textSearchMultipleMatches.setCaretPosition(0);
-		textSearchNoMatches.setCaretPosition(0);
+		return true;
+	}
+	
+	private void consumeSearchResults() {
+		ArrayList<Object[]> exactMatches = new ArrayList<Object[]>();
+		ArrayList<Object[]> goodMatches = new ArrayList<Object[]>();
+		ArrayList<Object[]> ambiguousMatches = new ArrayList<Object[]>();
+		ArrayList<Object[]> noMatches = new ArrayList<Object[]>();
+		
+		TableModel tb = tableSpreadSheet.getModel();
+		int nCol = tb.getColumnCount();
+		
+		// Sort out the original table into different groups based on the quality of the match
+		// Copy whole lines from the original table
+		for (int rowIndex = 0; rowIndex < tb.getRowCount(); rowIndex++) {
+			Object[] row = new Object[nCol];
+			for (int i = 0; i < nCol; i++) {
+				row[i] = tb.getValueAt(rowIndex, i);
+			}
+			
+			String userProvidedID = (String) tb.getValueAt(rowIndex, 0);
+			if (searchResults.get(userProvidedID) == null || searchResults.get(userProvidedID).size() == 0) noMatches.add(row);
+			else if (searchResults.get(userProvidedID).size() == 1) {
+				Frame match = searchResults.get(userProvidedID).get(0);
+				if (userProvidedID.equalsIgnoreCase(match.getLocalID())) exactMatches.add(row);
+				else goodMatches.add(row);
+			} else {
+				ambiguousMatches.add(row);
+			}
+		}
+		
+		// Exact Matches
+		if (exactMatches.size() > 0) {
+			int nRow = exactMatches.size();
+			Object[] header = new Object[nCol+1];
+			Object[][] data = new Object[nRow][nCol+1];
+			header[0] = "Matched Frame";
+			for (int j = 0; j < nCol; j++) {
+				header[j+1] = tableSpreadSheet.getColumnName(j);
+			}
+			int rowIndex = 0;
+			for (Object[] row : exactMatches) {
+				Object[] extendedRow = new Object[row.length+1];
+				extendedRow[0] = searchResults.get(row[0]).get(0).getLocalID();
+				for (int i = 0; i < row.length; i++) {
+					extendedRow[i+1] = row[i];
+				}
+				data[rowIndex] = extendedRow;
+				rowIndex++;
+			}
+			DefaultTableModel newModel = new DefaultTableModel(data, header);
+			tableSearchExactMatches.setModel(newModel);
+		}
+		
+		// Good Matches
+		if (goodMatches.size() > 0) {
+			int nRow = goodMatches.size();
+			Object[] header = new Object[nCol+1];
+			Object[][] data = new Object[nRow][nCol+1];
+			header[0] = "Matched Frame";
+			for (int j = 0; j < nCol; j++) {
+				header[j+1] = tableSpreadSheet.getColumnName(j);
+			}
+			int rowIndex = 0;
+			for (Object[] row : goodMatches) {
+				Object[] extendedRow = new Object[row.length+1];
+				extendedRow[0] = searchResults.get(row[0]).get(0).getLocalID();
+				for (int i = 0; i < row.length; i++) {
+					extendedRow[i+1] = row[i];
+				}
+				data[rowIndex] = extendedRow;
+				rowIndex++;
+			}
+			DefaultTableModel newModel = new DefaultTableModel(data, header);
+			tableSearchGoodMatches.setModel(newModel);
+		}
+		
+		// Ambiguous Matches
+		if (ambiguousMatches.size() > 0) {
+			int nRow = ambiguousMatches.size();
+			Object[] header = new Object[nCol];
+			Object[][] data = new Object[nRow][nCol];
+			for (int j = 0; j < nCol; j++) {
+				header[j] = tableSpreadSheet.getColumnName(j);
+			}
+			int rowIndex = 0;
+			for (Object[] row : ambiguousMatches) {
+				data[rowIndex] = row;
+				rowIndex++;
+			}
+			DefaultTableModel newModel = new DefaultTableModel(data, header);
+			tableSearchMultipleMatches.setModel(newModel);
+		}
+		
+		// No Matches
+		if (noMatches.size() > 0) {
+			int nRow = noMatches.size();
+			Object[] header = new Object[nCol];
+			Object[][] data = new Object[nRow][nCol];
+			for (int j = 0; j < nCol; j++) {
+				header[j] = tableSpreadSheet.getColumnName(j);
+			}
+			int rowIndex = 0;
+			for (Object[] row : noMatches) {
+				data[rowIndex] = row;
+				rowIndex++;
+			}
+			DefaultTableModel newModel = new DefaultTableModel(data, header);
+			tableSearchNoMatches.setModel(newModel);
+		}
 	}
     
 	private class ActionUpload extends AbstractAction {
