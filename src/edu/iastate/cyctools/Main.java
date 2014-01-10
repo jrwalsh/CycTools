@@ -53,12 +53,12 @@ public class Main {
 		cardPanel.add(new LoadPanel(controller), MainCardPanel.loadCard);
 		
 		JFrame displayFrame = new JFrame("CycBrowser");
-		displayFrame.setMinimumSize(new Dimension(800, 400));
+		displayFrame.setMinimumSize(new Dimension(1000, 600));
 		controller.setMainJFrame(displayFrame);
 		displayFrame.setJMenuBar(new MenuBar(controller));
 		displayFrame.getContentPane().setLayout(new MigLayout("", "[grow]", "[1px][grow]"));
 		displayFrame.getContentPane().add(toolPanel, "north");
-		displayFrame.getContentPane().add(cardPanel, "cell 0 1,growx,aligny top");
+		displayFrame.getContentPane().add(cardPanel, "cell 0 1,growx,growy,aligny top");
 		displayFrame.getContentPane().add(statusPanel, "south");
 		
         displayFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

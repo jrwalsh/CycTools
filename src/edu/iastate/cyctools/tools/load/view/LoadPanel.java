@@ -284,12 +284,12 @@ public class LoadPanel extends AbstractViewPanel {
     private JPanel initFilePanel() {
     	JPanel filePanel = new JPanel();
     	
-        filePanel.setLayout(new MigLayout("", "[grow]", "[][grow][]"));
+        filePanel.setLayout(new MigLayout("", "[grow][]", "[][grow][]"));
         
         JLabel imageLabel = new JLabel("");
         imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step2.png")));
-        filePanel.add(imageLabel, "cell 0 0,alignx center,aligny center");
+        filePanel.add(imageLabel, "cell 0 0 2 1,alignx center,aligny center");
         
         JScrollPane SpreadsheetScrollPane = new JScrollPane();
         tableSpreadSheet = new JTable();
@@ -297,21 +297,14 @@ public class LoadPanel extends AbstractViewPanel {
         JTableHeader th = tableSpreadSheet.getTableHeader();
         th.setFont(new Font("Serif", Font.BOLD, 15));
         SpreadsheetScrollPane.setViewportView(tableSpreadSheet);
-        filePanel.add(SpreadsheetScrollPane, "cell 0 1 2097051 1,growx,alignx left,aligny top");
+        filePanel.add(SpreadsheetScrollPane, "cell 0 1 2 1,growx,growy,alignx left,aligny top");
         
         DefaultComboBoxModel<String> modelAdaptor = new DefaultComboBoxModel<String>();
 		modelAdaptor.addElement("Standard CSV: Column header determines slot label");
         modelAdaptor.addElement("Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label");
         modelAdaptor.addElement("MaizeGDB Custom: frameID, goTerm, pubMedID, evCode, timeStampString (dd-mm-yyyy hh-mm-ss), curator");
         cmbAdaptor = new JComboBox<String>(modelAdaptor);
-        filePanel.add(cmbAdaptor, "flowx,cell 0 2,alignx left,aligny center");
-        
-        JButton btnPreview = new JButton("Preview");
-        btnPreview.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-				if (searchFrameIDs()) cardLayout.show(contentPane, "SearchPanel");
-        	}
-        });
+        filePanel.add(cmbAdaptor, "flowx,cell 0 2,alignx right,aligny center");
         
         JButton btnBack = new JButton("Back");
         btnBack.addActionListener(new ActionListener() {
@@ -319,9 +312,16 @@ public class LoadPanel extends AbstractViewPanel {
         		cardLayout.show(contentPane, "OptionsPanel");
         	}
         });
-        filePanel.add(btnBack, "flowx,cell 0 2,alignx right,aligny center");
+        filePanel.add(btnBack, "flowx,cell 1 2,alignx right,aligny center");
+        
+        JButton btnPreview = new JButton("Preview");
+        btnPreview.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+				if (searchFrameIDs()) cardLayout.show(contentPane, "SearchPanel");
+        	}
+        });
         btnPreview.setAction(actionPreview);
-        filePanel.add(btnPreview, "cell 0 2,alignx right,aligny top");
+        filePanel.add(btnPreview, "cell 1 2,alignx right,aligny center");
         
     	return filePanel;
     }
@@ -403,7 +403,7 @@ public class LoadPanel extends AbstractViewPanel {
     private JPanel initPreviewPanel() {
     	JPanel previewPanel = new JPanel();
     	
-    	previewPanel.setLayout(new MigLayout("", "[50%,grow][50%,grow]", "[][10%:n][grow][]"));
+    	previewPanel.setLayout(new MigLayout("", "[50%,grow][50%,grow]", "[][150:n][grow][]"));
 		
 		
     	JLabel imageLabel = new JLabel("");
@@ -420,7 +420,6 @@ public class LoadPanel extends AbstractViewPanel {
 		listFrames.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		JScrollPane scrollPanelList = new JScrollPane();
-		scrollPanelList.setMinimumSize(new Dimension(23, 150));
 		scrollPanelList.setViewportView(listFrames);
 		JLabel lblList = new JLabel("Frames to be Updated");
 		lblList.setFont(new Font("Arial", Font.BOLD, 16));
@@ -448,10 +447,9 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		JButton btnNextDiff = new JButton("New button");
 		btnNextDiff.setAction(actionNextDiff);
-		previewPanel.add(btnNextDiff, "flowx,cell 0 3,alignx left,aligny center");
+		previewPanel.add(btnNextDiff, "flowx,cell 0 3,alignx left,aligny bottom");
 		
 		chckbxFilter = new JCheckBox("Show only frames which are altered");
-		chckbxFilter.setFocusable(false);
 		chckbxFilter.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				if (chckbxFilter.isSelected()) {
@@ -463,7 +461,7 @@ public class LoadPanel extends AbstractViewPanel {
 				}
 			}
 		});
-		previewPanel.add(chckbxFilter, "cell 0 3,alignx left,aligny center");
+		previewPanel.add(chckbxFilter, "cell 0 3,alignx left,aligny bottom");
 		
 		JButton btnBack2 = new JButton("Back");
 		btnBack2.addActionListener(new ActionListener() {
@@ -471,11 +469,11 @@ public class LoadPanel extends AbstractViewPanel {
 				cardLayout.show(contentPane, "SearchPanel");
 			}
 		});
-		previewPanel.add(btnBack2, "flowx,cell 1 3,alignx right,aligny center");
+		previewPanel.add(btnBack2, "flowx,cell 1 3,alignx right,aligny bottom");
 		
 		JButton btnUpload = new JButton("Upload");
 		btnUpload.setAction(actionUpload);
-		previewPanel.add(btnUpload, "cell 1 3,alignx right,aligny center");
+		previewPanel.add(btnUpload, "cell 1 3,alignx right,aligny bottom");
 		
     	return previewPanel;
     }

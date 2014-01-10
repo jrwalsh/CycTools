@@ -74,7 +74,7 @@ public class ToolPanel extends AbstractViewPanel {
 	        }
 	    });
 		comboBoxOrganism.setAction(actionSetOrganism);
-		setLayout(new MigLayout("", "[59px][grow][284px]", "[23px]"));
+		setLayout(new MigLayout("", "[59px][grow][]", "[23px]"));
 		
 		btnHome = new JButton("Home");
 		btnHome.setAction(action);
