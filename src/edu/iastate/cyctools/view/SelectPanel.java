@@ -17,6 +17,7 @@ import javax.swing.JButton;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import net.miginfocom.swing.MigLayout;
 
 @SuppressWarnings("serial")
 public class SelectPanel extends AbstractViewPanel {
@@ -33,7 +34,6 @@ public class SelectPanel extends AbstractViewPanel {
 	 * @param controller 
 	 */
 	public SelectPanel(DefaultController controller) {
-		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();
         localInitialization();
@@ -85,63 +85,19 @@ public class SelectPanel extends AbstractViewPanel {
 		btnLoadData.setMargin(new Insets(2, 2, 2, 2));
 		
 		JLabel lblloadASpreadsheet = new JLabel("<html>Load a spreadsheet file into the database.</html>");
-		
-		GroupLayout groupLayout = new GroupLayout(this);
-		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(55)
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(btnCompare, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(lbltheCompareTool, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(btnLoadData, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(lblloadASpreadsheet, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE))
-						.addGroup(groupLayout.createSequentialGroup()
-							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-								.addComponent(btnFrameBrowse, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
-								.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE))
-							.addGap(18)
-							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-								.addComponent(lblSearch, 0, 0, Short.MAX_VALUE)
-								.addComponent(lblFrameInspect, GroupLayout.DEFAULT_SIZE, 224, Short.MAX_VALUE))
-							.addGap(18)
-							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-								.addComponent(btnExport, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
-								.addComponent(btnExportStructure, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE))
-							.addGap(18)
-							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-								.addComponent(lblExport, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblStructure, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE))))
-					.addContainerGap())
-		);
-		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(56)
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(lblExport, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(lblFrameInspect, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(btnFrameBrowse, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
-						.addComponent(btnExport, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
-					.addGap(18)
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(lblStructure, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(btnExportStructure, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
-						.addComponent(lblSearch, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(btnSearch, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
-					.addGap(18)
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(btnCompare, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lbltheCompareTool, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnLoadData, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblloadASpreadsheet, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
-					.addGap(56))
-		);
-		setLayout(groupLayout);
+		setLayout(new MigLayout("", "[grow][101px][224px][101px][255px][grow]", "[][84px][84px][84px][grow]"));
+		add(btnCompare, "cell 1 3,alignx left,growy");
+		add(lbltheCompareTool, "cell 2 3,grow");
+		add(btnLoadData, "cell 3 3,grow");
+		add(lblloadASpreadsheet, "cell 4 3,grow");
+		add(btnFrameBrowse, "cell 1 1,grow");
+		add(btnSearch, "cell 1 2,grow");
+		add(lblSearch, "cell 2 2,grow");
+		add(lblFrameInspect, "cell 2 1,grow");
+		add(btnExport, "cell 3 1,grow");
+		add(btnExportStructure, "cell 3 2,grow");
+		add(lblExport, "cell 4 1,grow");
+		add(lblStructure, "cell 4 2,grow");
 	}
     
 	private class ActionSelectFrameBrowser extends AbstractAction {

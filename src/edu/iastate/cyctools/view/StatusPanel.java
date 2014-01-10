@@ -11,6 +11,9 @@ import javax.swing.JLabel;
 import java.awt.Dimension;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import net.miginfocom.swing.MigLayout;
+import javax.swing.border.SoftBevelBorder;
+import javax.swing.border.BevelBorder;
 
 @SuppressWarnings("serial")
 public class StatusPanel extends AbstractViewPanel {
@@ -22,6 +25,7 @@ public class StatusPanel extends AbstractViewPanel {
 	 * @param controller 
 	 */
 	public StatusPanel(DefaultController controller) {
+		setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		this.controller = controller;
 		
 		initComponents();
@@ -35,25 +39,10 @@ public class StatusPanel extends AbstractViewPanel {
     }
     
     private void initComponents() {
-    	setPreferredSize(new Dimension(800, 30));
+		setLayout(new MigLayout("", "[72px,grow]", "[14px]"));
 		
 		lblStatus = new JLabel("Not Connected");
-		GroupLayout groupLayout = new GroupLayout(this);
-		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblStatus)
-					.addContainerGap(718, Short.MAX_VALUE))
-		);
-		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.TRAILING)
-				.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblStatus)
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-		);
-		setLayout(groupLayout);
+		add(lblStatus, "cell 0 0,alignx left,aligny center");
 	}
     
 	@Override

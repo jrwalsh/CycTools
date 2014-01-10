@@ -20,6 +20,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Dimension;
+import net.miginfocom.swing.MigLayout;
 
 public class Main {
 	
@@ -52,40 +53,13 @@ public class Main {
 		cardPanel.add(new LoadPanel(controller), MainCardPanel.loadCard);
 		
 		JFrame displayFrame = new JFrame("CycBrowser");
+		displayFrame.setMinimumSize(new Dimension(800, 400));
 		controller.setMainJFrame(displayFrame);
-		
-		displayFrame.setResizable(false);
-		displayFrame.setPreferredSize(new Dimension(835, 535));
 		displayFrame.setJMenuBar(new MenuBar(controller));
-		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[]{800, 0};
-		gridBagLayout.rowHeights = new int[]{35, 400, 30, 0};
-		gridBagLayout.columnWeights = new double[]{0.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
-		displayFrame.getContentPane().setLayout(gridBagLayout);
-		
-		GridBagConstraints gbc_toolPanel = new GridBagConstraints();
-		gbc_toolPanel.fill = GridBagConstraints.HORIZONTAL;
-		gbc_toolPanel.anchor = GridBagConstraints.NORTH;
-		gbc_toolPanel.insets = new Insets(0, 0, 5, 0);
-		gbc_toolPanel.gridx = 0;
-		gbc_toolPanel.gridy = 0;
-		displayFrame.getContentPane().add(toolPanel, gbc_toolPanel);
-		
-		GridBagConstraints gbc_cardPanel = new GridBagConstraints();
-		gbc_cardPanel.fill = GridBagConstraints.HORIZONTAL;
-		gbc_cardPanel.anchor = GridBagConstraints.NORTH;
-		gbc_cardPanel.insets = new Insets(0, 0, 5, 0);
-		gbc_cardPanel.gridx = 0;
-		gbc_cardPanel.gridy = 1;
-		displayFrame.getContentPane().add(cardPanel, gbc_cardPanel);
-		
-		GridBagConstraints gbc_statusPanel = new GridBagConstraints();
-		gbc_statusPanel.fill = GridBagConstraints.HORIZONTAL;
-		gbc_statusPanel.anchor = GridBagConstraints.NORTH;
-		gbc_statusPanel.gridx = 0;
-		gbc_statusPanel.gridy = 2;
-		displayFrame.getContentPane().add(statusPanel, gbc_statusPanel);
+		displayFrame.getContentPane().setLayout(new MigLayout("", "[grow]", "[1px][grow]"));
+		displayFrame.getContentPane().add(toolPanel, "north");
+		displayFrame.getContentPane().add(cardPanel, "cell 0 1,growx,aligny top");
+		displayFrame.getContentPane().add(statusPanel, "south");
 		
         displayFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         displayFrame.pack();

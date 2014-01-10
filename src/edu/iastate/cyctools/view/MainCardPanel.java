@@ -27,7 +27,6 @@ public class MainCardPanel extends AbstractViewPanel {
 	 * @param controller 
 	 */
 	public MainCardPanel(DefaultController controller) {
-		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();
         localInitialization();

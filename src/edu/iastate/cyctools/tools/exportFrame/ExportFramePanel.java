@@ -69,7 +69,6 @@ public class ExportFramePanel extends AbstractViewPanel {
 	}
     
     private void initComponents() {
-    	setPreferredSize(new Dimension(800, 400));
     	
     	JSplitPane splitPane = new JSplitPane();
     	GroupLayout groupLayout = new GroupLayout(this);

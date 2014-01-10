@@ -19,6 +19,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
 import java.awt.Dimension;
+import net.miginfocom.swing.MigLayout;
 
 @SuppressWarnings("serial")
 public class LoginPanel extends AbstractViewPanel {
@@ -33,7 +34,6 @@ public class LoginPanel extends AbstractViewPanel {
 	 * Create the frame.
 	 */
 	public LoginPanel(DefaultController controller) {
-		setPreferredSize(new Dimension(800, 400));
 		this.controller = controller;
 		initComponents();
         localInitialization();
@@ -49,103 +49,47 @@ public class LoginPanel extends AbstractViewPanel {
     }
     
     private void initComponents() {
-    	JPanel panel = new JPanel();
-		
-		txtHost = new JTextField();
-		txtHost.setText("jrwalsh.student.iastate.edu");
-		txtHost.setColumns(10);
-		
-		JLabel lblPort = new JLabel("Port");
-		
-		txtPort = new JTextField();
-		txtPort.setText("4444");
-		txtPort.setColumns(10);
-		
-		JLabel lblUser = new JLabel("UserName");
-		
-		txtUser = new JTextField();
-		txtUser.setColumns(10);
-		
-		JLabel lblPassword = new JLabel("Password");
-		
-		JLabel lblHost = new JLabel("Host");
-		
-		pwbox = new JPasswordField();
-		
-		JButton btnConnect = new JButton("Connect");
-		btnConnect.setAction(actionConnect);
-		GroupLayout gl_panel = new GroupLayout(panel);
-		gl_panel.setHorizontalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
-						.addComponent(lblPassword, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblPort, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblUser, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblHost, GroupLayout.PREFERRED_SIZE, 86, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
-							.addComponent(txtUser, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
-							.addComponent(pwbox, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
-							.addComponent(txtPort, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE))
-						.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
-							.addComponent(btnConnect)
-							.addComponent(txtHost, GroupLayout.PREFERRED_SIZE, 188, GroupLayout.PREFERRED_SIZE)))
-					.addGap(418))
-		);
-		gl_panel.setVerticalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addGap(6)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(txtHost, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblHost, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblPort, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblUser, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtUser, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addGroup(gl_panel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblPassword, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE)
-						.addComponent(pwbox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addComponent(btnConnect))
-		);
-		panel.setLayout(gl_panel);
+		setLayout(new MigLayout("", "[25%,grow][][][][25%,grow]", "[49px][53px][][][][][][grow]"));
 		
 		JLabel lblWelcomeToCyctools = new JLabel("<html><h1>Welcome to CycTools</h1></html>");
+		add(lblWelcomeToCyctools, "cell 0 0 5 1,alignx center,aligny center");
 		
 		JLabel lblNewLabel = new JLabel("<html>Please enter connection information. If no username and password is required for your server, leave these fields blank.</html>");
-		GroupLayout groupLayout = new GroupLayout(this);
-		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(255)
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblWelcomeToCyctools, GroupLayout.PREFERRED_SIZE, 306, GroupLayout.PREFERRED_SIZE)
-						.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
-							.addComponent(lblNewLabel, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-							.addComponent(panel, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 300, Short.MAX_VALUE)))
-					.addContainerGap(239, Short.MAX_VALUE))
-		);
-		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblWelcomeToCyctools)
-					.addGap(11)
-					.addComponent(lblNewLabel, GroupLayout.PREFERRED_SIZE, 53, GroupLayout.PREFERRED_SIZE)
-					.addGap(18)
-					.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(110, Short.MAX_VALUE))
-		);
-		setLayout(groupLayout);
+		add(lblNewLabel, "cell 0 1 5 1,alignx center,aligny center");
+		
+		JLabel lblHost = new JLabel("Host");
+		add(lblHost, "cell 1 2,alignx right,aligny center");
+		
+		txtHost = new JTextField();
+		add(txtHost, "cell 2 2,alignx left,aligny center");
+		txtHost.setText("jrwalsh.student.iastate.edu");
+		txtHost.setColumns(20);
+		
+		JLabel lblPort = new JLabel("Port");
+		add(lblPort, "cell 1 3,alignx right,aligny center");
+		
+		txtPort = new JTextField();
+		add(txtPort, "cell 2 3,alignx left,aligny center");
+		txtPort.setText("4444");
+		txtPort.setColumns(20);
+		
+		JLabel lblUser = new JLabel("UserName");
+		add(lblUser, "cell 1 4,alignx right,aligny center");
+		
+		txtUser = new JTextField();
+		add(txtUser, "cell 2 4,alignx left,aligny center");
+		txtUser.setColumns(20);
+		
+		JLabel lblPassword = new JLabel("Password");
+		add(lblPassword, "cell 1 5,alignx right,aligny center");
+		
+		pwbox = new JPasswordField();
+		pwbox.setColumns(20);
+		add(pwbox, "cell 2 5,alignx left,aligny center");
+		
+		JButton btnConnect = new JButton("Connect");
+		add(btnConnect, "cell 2 6,alignx right,aligny center");
+		btnConnect.setAction(actionConnect);
 	}
     
 	private class ActionConnect extends AbstractAction {

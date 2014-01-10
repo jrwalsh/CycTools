@@ -23,6 +23,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JList;
+import net.miginfocom.swing.MigLayout;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public class ToolPanel extends AbstractViewPanel {
@@ -57,7 +58,6 @@ public class ToolPanel extends AbstractViewPanel {
     }
     
     private void initComponents() {
-    	setPreferredSize(new Dimension(800, 35));
 		
 		comboBoxOrganism = new JComboBox();
 		// Cosmetic modification of the display of items in the combobox.  Change from "key=value" to "key: value"
@@ -74,30 +74,12 @@ public class ToolPanel extends AbstractViewPanel {
 	        }
 	    });
 		comboBoxOrganism.setAction(actionSetOrganism);
+		setLayout(new MigLayout("", "[59px][grow][284px]", "[23px]"));
 		
 		btnHome = new JButton("Home");
 		btnHome.setAction(action);
-		
-		GroupLayout groupLayout = new GroupLayout(this);
-		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(btnHome)
-					.addGap(437)
-					.addComponent(comboBoxOrganism, GroupLayout.PREFERRED_SIZE, 284, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap())
-		);
-		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(5)
-					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnHome)
-						.addComponent(comboBoxOrganism, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-		);
-		setLayout(groupLayout);
+		add(btnHome, "cell 0 0,alignx left,aligny center");
+		add(comboBoxOrganism, "cell 2 0,alignx right,aligny center");
 	}
     
     public void lockToolBar() {

@@ -45,7 +45,6 @@ public class ExportPGDBStructurePanel extends AbstractViewPanel {
     }
     
     private void initComponents() {
-		setMinimumSize(new Dimension(800, 525));
 		setName("SimpleBrowser");
 		
 		setBorder(new EmptyBorder(5, 5, 5, 5));

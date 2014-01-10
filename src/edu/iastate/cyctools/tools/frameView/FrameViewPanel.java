@@ -88,7 +88,6 @@ public class FrameViewPanel extends AbstractViewPanel {
     
     private void initComponents() {
     	setPreferredSize(new Dimension(800, 400));
-		setMinimumSize(new Dimension(800, 400));
 		setName("SimpleBrowser");
 		
 		setBorder(new EmptyBorder(5, 5, 5, 5));

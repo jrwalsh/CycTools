@@ -103,7 +103,6 @@ public class LoadPanel extends AbstractViewPanel {
 	private int currentDelta;
 	private List<String> original;
 	private List<String> revised;
-	private JRadioButton rdbtnProtein;
 	private String importType;
 	private ButtonGroup groupImportType;
 	private HashMap<String, ArrayList<Frame>> searchResults;
@@ -115,7 +114,6 @@ public class LoadPanel extends AbstractViewPanel {
 	private JTabbedPane tabbedSearchResults;
 	private JComboBox cmbImportType = new JComboBox();
 	
-	private final Action actionBrowse = new ActionBrowse();
 	private final Action actionUpload = new ActionUpload();
 	private final Action actionSave = new ActionSave();
 	private final Action actionRevert = new ActionRevert();
@@ -145,7 +143,6 @@ public class LoadPanel extends AbstractViewPanel {
     
     private void initComponents() {
     	setPreferredSize(new Dimension(800, 400));
-		setMinimumSize(new Dimension(800, 400));
 		setName("SimpleBrowser");
 		contentPane = this;
     	
@@ -174,10 +171,6 @@ public class LoadPanel extends AbstractViewPanel {
         modelFormat.addElement("Comma-separated values (CSV)");
         modelFormat.addElement("Tab-delimited file (tab)");
         
-        DefaultComboBoxModel<String> modelImportType = new DefaultComboBoxModel<String>();
-        modelImportType.addElement("");
-        modelImportType.addElement("");
-        
         KeyValueComboboxModel modelTypes = new KeyValueComboboxModel();
     	modelTypes.put("|Proteins|", "Proteins");
     	modelTypes.put("|RNAs|", "RNAs");
@@ -193,13 +186,13 @@ public class LoadPanel extends AbstractViewPanel {
     	modelTypes.put("|Growth-Media|", "Growth-Media");
     	modelTypes.put("|GO-Term Annotations (proteins)|", "GO-Term Annotations (proteins)");
     	
-    	optionsPanel.setLayout(new MigLayout("", "[][108px][grow][][]", "[23px][][20px][20px][23px][23px][23px][14px][23px][][][][grow][]"));
+    	optionsPanel.setLayout(new MigLayout("", "[25%][108px][grow][25%]", "[23px][][20px][20px][23px][23px][23px][14px][23px][][][grow]"));
     	
     	JLabel imageLabel = new JLabel("");
         imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         imageLabel.setOpaque(true);
         imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step1.png")));
-        optionsPanel.add(imageLabel, "cell 1 0 4 1,alignx center,aligny center");
+        optionsPanel.add(imageLabel, "cell 0 0 4 1,alignx center,aligny center");
 		
         JLabel importTypeLabel = new JLabel("Select Import Type");
 		optionsPanel.add(importTypeLabel, "flowx,cell 1 2,alignx trailing,aligny center");
@@ -220,7 +213,14 @@ public class LoadPanel extends AbstractViewPanel {
 		optionsPanel.add(inputFileLabel, "flowx,cell 1 3,alignx right,aligny center");
 		
 		JButton btnBrowse = new JButton("Browse");
-		btnBrowse.setAction(actionBrowse);
+		btnBrowse.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser fileChooser = new JFileChooser();
+				if (fileChooser.showOpenDialog((Component) arg0.getSource()) == JFileChooser.APPROVE_OPTION) {
+					textFilePath.setText(fileChooser.getSelectedFile().getAbsolutePath());
+				}
+			}
+		});
 		optionsPanel.add(btnBrowse, "flowx,cell 2 3,alignx left,aligny center");
 		
 		JLabel fileSelectLabel = new JLabel("Select file format");
@@ -249,10 +249,6 @@ public class LoadPanel extends AbstractViewPanel {
 		chckbxIgnoreDuplicate.setSelected(true);
 		optionsPanel.add(chckbxIgnoreDuplicate, "cell 2 7,growx,aligny center");
 		
-		noticeLabel = new JLabel();
-		noticeLabel.setText("Always backup your database file before modifying it!");
-		optionsPanel.add(noticeLabel, "cell 1 10 4 1,alignx left,aligny top");
-		
 		JButton btnNext = new JButton("Open");
 		btnNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -271,12 +267,16 @@ public class LoadPanel extends AbstractViewPanel {
     			cardLayout.show(contentPane, "FilePanel");
 			}
 		});
-		optionsPanel.add(btnNext, "cell 4 13,alignx center,aligny center");
+		optionsPanel.add(btnNext, "cell 2 8,alignx left,aligny center");
+		
+		noticeLabel = new JLabel();
+		noticeLabel.setText("Always backup your database file before modifying it!");
+		optionsPanel.add(noticeLabel, "cell 1 10 3 1,alignx left,aligny top");
 		
 		textFilePath = new JTextField();
 		textFilePath.setEditable(false);
-		textFilePath.setColumns(10);
-		optionsPanel.add(textFilePath, "cell 2 3 2 1,growx,alignx right,aligny center");
+		textFilePath.setColumns(50);
+		optionsPanel.add(textFilePath, "cell 2 3,alignx left,aligny center");
 		
     	return optionsPanel;
     }
@@ -294,8 +294,8 @@ public class LoadPanel extends AbstractViewPanel {
         JScrollPane SpreadsheetScrollPane = new JScrollPane();
         tableSpreadSheet = new JTable();
         tableSpreadSheet.setFillsViewportHeight(true);
-        JTableHeader th = tableSpreadSheet.getTableHeader();  
-        th.setFont(new Font("Serif", Font.BOLD, 15)); 
+        JTableHeader th = tableSpreadSheet.getTableHeader();
+        th.setFont(new Font("Serif", Font.BOLD, 15));
         SpreadsheetScrollPane.setViewportView(tableSpreadSheet);
         filePanel.add(SpreadsheetScrollPane, "cell 0 1 2097051 1,growx,alignx left,aligny top");
         
@@ -310,7 +310,6 @@ public class LoadPanel extends AbstractViewPanel {
         btnPreview.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
 				searchFrameIDs();
-//				clearSearchPanel();
         		cardLayout.show(contentPane, "SearchPanel");
         	}
         });
@@ -324,38 +323,6 @@ public class LoadPanel extends AbstractViewPanel {
         filePanel.add(btnBack, "flowx,cell 0 2,alignx right,aligny center");
         btnPreview.setAction(actionPreview);
         filePanel.add(btnPreview, "cell 0 2,alignx right,aligny top");
-//        
-//        GroupLayout gl_filePanel = new GroupLayout(filePanel);
-//        gl_filePanel.setHorizontalGroup(
-//        	gl_filePanel.createParallelGroup(Alignment.LEADING)
-//        		.addGroup(Alignment.TRAILING, gl_filePanel.createSequentialGroup()
-//        			.addContainerGap()
-//        			.addGroup(gl_filePanel.createParallelGroup(Alignment.TRAILING)
-//        				.addComponent(SpreadsheetScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1184, Short.MAX_VALUE)
-//        				.addComponent(imageLabel, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 777, Short.MAX_VALUE)
-//        				.addGroup(Alignment.LEADING, gl_filePanel.createSequentialGroup()
-//        					.addComponent(btnBack)
-//        					.addPreferredGap(ComponentPlacement.RELATED, 665, Short.MAX_VALUE)
-//        					.addComponent(cmbAdaptor, GroupLayout.PREFERRED_SIZE, 375, GroupLayout.PREFERRED_SIZE)
-//        					.addGap(18)
-//        					.addComponent(btnPreview)))
-//        			.addGap(13))
-//        );
-//        gl_filePanel.setVerticalGroup(
-//        	gl_filePanel.createParallelGroup(Alignment.TRAILING)
-//        		.addGroup(gl_filePanel.createSequentialGroup()
-//        			.addContainerGap()
-//        			.addComponent(imageLabel, GroupLayout.PREFERRED_SIZE, 54, GroupLayout.PREFERRED_SIZE)
-//        			.addPreferredGap(ComponentPlacement.RELATED)
-//        			.addComponent(SpreadsheetScrollPane, GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE)
-//        			.addPreferredGap(ComponentPlacement.UNRELATED)
-//        			.addGroup(gl_filePanel.createParallelGroup(Alignment.BASELINE)
-//        				.addComponent(btnPreview)
-//        				.addComponent(btnBack)
-//        				.addComponent(cmbAdaptor, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-//        			.addContainerGap())
-//        );
-//        filePanel.setLayout(gl_filePanel);
         
     	return filePanel;
     }
@@ -436,9 +403,15 @@ public class LoadPanel extends AbstractViewPanel {
     private JPanel initPreviewPanel() {
     	JPanel previewPanel = new JPanel();
     	
-    	previewPanel.setLayout(new MigLayout("", "[20%,grow][40%,grow][40%,grow]", "[][grow][]"));
-    	
-    	listFrames = new JList<String>(new DefaultListModel<String>());
+    	previewPanel.setLayout(new MigLayout("", "[25%,grow][25%,grow][25%,grow][25%,grow]", "[][10%:n][grow][]"));
+		
+		
+    	JLabel imageLabel = new JLabel("");
+		imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step3.png")));
+		previewPanel.add(imageLabel, "cell 0 0 4 1,alignx center,aligny center");
+		
+		listFrames = new JList<String>(new DefaultListModel<String>());
 		listFrames.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
 				updateComparison();
@@ -446,19 +419,13 @@ public class LoadPanel extends AbstractViewPanel {
 		});
 		listFrames.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
-		
-    	JLabel imageLabel = new JLabel("");
-		imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step3.png")));
-		previewPanel.add(imageLabel, "cell 0 0 3 1,alignx center,aligny center");
-		
 		JScrollPane scrollPanelList = new JScrollPane();
 		scrollPanelList.setViewportView(listFrames);
 		JLabel lblList = new JLabel("Frames to be Updated");
 		lblList.setFont(new Font("Arial", Font.BOLD, 16));
 		lblList.setAlignmentX(Component.CENTER_ALIGNMENT);
 		scrollPanelList.setColumnHeaderView(lblList);
-		previewPanel.add(scrollPanelList, "cell 0 1,aligny top,grow");
+		previewPanel.add(scrollPanelList, "cell 0 1 4 1,aligny top,grow");
 		
 		JScrollPane scrollPaneOld = new JScrollPane();
 		textAreaOld = new JTextPane();
@@ -467,7 +434,7 @@ public class LoadPanel extends AbstractViewPanel {
 		JLabel lblOld = new JLabel("Existing Frame Data");
 		lblOld.setFont(new Font("Arial", Font.BOLD, 16));
 		scrollPaneOld.setColumnHeaderView(lblOld);
-		previewPanel.add(scrollPaneOld, "cell 1 1,aligny top,grow");
+		previewPanel.add(scrollPaneOld, "cell 0 2 2 1,aligny top,grow");
 		
 		JScrollPane scrollPaneNew = new JScrollPane();
 		textAreaNew = new JTextPane();
@@ -476,11 +443,11 @@ public class LoadPanel extends AbstractViewPanel {
 		JLabel lblNew = new JLabel("Frame Data after Update");
 		lblNew.setFont(new Font("Arial", Font.BOLD, 16));
 		scrollPaneNew.setColumnHeaderView(lblNew);
-		previewPanel.add(scrollPaneNew, "cell 2 1,aligny top,grow");
+		previewPanel.add(scrollPaneNew, "cell 2 2 2 1,aligny top,grow");
 		
 		JButton btnNextDiff = new JButton("New button");
 		btnNextDiff.setAction(actionNextDiff);
-		previewPanel.add(btnNextDiff, "flowx,cell 0 2,alignx left,aligny center");
+		previewPanel.add(btnNextDiff, "flowx,cell 0 3,alignx left,aligny center");
 		
 		chckbxFilter = new JCheckBox("Show only frames which are altered");
 		chckbxFilter.addChangeListener(new ChangeListener() {
@@ -494,7 +461,7 @@ public class LoadPanel extends AbstractViewPanel {
 				}
 			}
 		});
-		previewPanel.add(chckbxFilter, "cell 0 2,alignx left,aligny center");
+		previewPanel.add(chckbxFilter, "cell 0 3,alignx left,aligny center");
 		
 		JButton btnBack2 = new JButton("Back");
 		btnBack2.addActionListener(new ActionListener() {
@@ -502,11 +469,11 @@ public class LoadPanel extends AbstractViewPanel {
 				cardLayout.show(contentPane, "SearchPanel");
 			}
 		});
-		previewPanel.add(btnBack2, "flowx,cell 2 2,alignx right,aligny center");
+		previewPanel.add(btnBack2, "flowx,cell 3 3,alignx right,aligny center");
 		
 		JButton btnUpload = new JButton("Upload");
 		btnUpload.setAction(actionUpload);
-		previewPanel.add(btnUpload, "cell 2 2,alignx right,aligny center");
+		previewPanel.add(btnUpload, "cell 3 3,alignx right,aligny center");
 		
     	return previewPanel;
     }
@@ -619,6 +586,7 @@ public class LoadPanel extends AbstractViewPanel {
 			originalFrame = new Frame(controller.getConnection(), frameID);
 			originalFrameString = controller.frameToString(originalFrame);
 		} else textAreaOld.setText(originalFrameString);
+		textAreaOld.setCaretPosition(0);
 		original = textToLines(originalFrameString);
 		
 		// apply frame edits to local copy of frame
@@ -627,6 +595,7 @@ public class LoadPanel extends AbstractViewPanel {
 		// return print of the updated frame
 		String updatedFrameString = controller.frameToString(updatedFrame);
 		textAreaNew.setText(updatedFrameString);
+		textAreaNew.setCaretPosition(0);
 		revised  = textToLines(updatedFrameString);
 		
 		currentDelta = 0;
@@ -778,6 +747,10 @@ public class LoadPanel extends AbstractViewPanel {
 		tabbedSearchResults.setTitleAt(1, "Found " + goodMatches.size() + " terms with good matches");
 		tabbedSearchResults.setTitleAt(2, "Found " + ambiguousMatches.size() + " terms with abmiguous matches");
 		tabbedSearchResults.setTitleAt(3, "Found " + noMatches.size() + " terms with no matches");
+		textSearchExactMatches.setText("");
+		textSearchGoodMatches.setText("");
+		textSearchMultipleMatches.setText("");
+		textSearchNoMatches.setText("");
 		
 		int totalGoodMatches = exactMatches.size() + goodMatches.size();
 		labelSearchResults.setText("We were able to match " + totalGoodMatches + " out of " + searchResults.keySet().size() + " terms.");
@@ -791,47 +764,7 @@ public class LoadPanel extends AbstractViewPanel {
 		textSearchMultipleMatches.setCaretPosition(0);
 		textSearchNoMatches.setCaretPosition(0);
 	}
-	
-	private void clearSearchPanel() {
-		String output = "";
-		int frameIDCount = 0;
-		int exactMatchCount = 0;
-		int oneMatchCount = 0;
-		int multipleMatchesCount = 0;
-		int noMatchesCount = 0;
-		
-		for (String key : searchResults.keySet()) {
-			if (searchResults.get(key) == null || searchResults.get(key).size() == 0) noMatchesCount++;
-			else if (searchResults.get(key).size() == 1) {
-				Frame match = searchResults.get(key).get(0);
-				if (key.equalsIgnoreCase(match.getLocalID())) frameIDCount++;
-				else oneMatchCount++;
-			} else {
-				multipleMatchesCount++;
-			}
-		}
-		
-		output += "FrameID's provided : " + frameIDCount + "\n";
-		output += "Single matches found : " + oneMatchCount + "\n";
-		output += "Terms with multiple matches : " + multipleMatchesCount + "\n";
-		output += "Terms with no matches : " + noMatchesCount + "\n";
-		
-		textSearchExactMatches.setText(output);
-	}
     
-    private class ActionBrowse extends AbstractAction {
-		public ActionBrowse() {
-			putValue(NAME, "Browse");
-			putValue(SHORT_DESCRIPTION, "Browse local files");
-		}
-		public void actionPerformed(ActionEvent e) {
-			JFileChooser fileChooser = new JFileChooser();
-			if (fileChooser.showOpenDialog((Component) e.getSource()) == JFileChooser.APPROVE_OPTION) {
-				textFilePath.setText(fileChooser.getSelectedFile().getAbsolutePath());
-			}
-		}
-	}
-	
 	private class ActionUpload extends AbstractAction {
 		public ActionUpload() {
 			putValue(NAME, "Update Database");
