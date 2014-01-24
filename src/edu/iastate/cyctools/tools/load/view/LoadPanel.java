@@ -37,14 +37,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import difflib.Delta;
-import difflib.DiffUtils;
-import difflib.Patch;
 import edu.iastate.cyctools.CycToolsError;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
+import edu.iastate.cyctools.externalSourceCode.DiffMatchPatch.Patch;
 import edu.iastate.cyctools.externalSourceCode.KeyValueComboboxModel;
+import edu.iastate.cyctools.externalSourceCode.DiffMatchPatch;
+import edu.iastate.cyctools.externalSourceCode.DiffMatchPatch.Diff;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.MaizeAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleAnnotationValueImport;
@@ -99,10 +99,12 @@ public class LoadPanel extends AbstractViewPanel {
 	private JCheckBox chckbxFilter;
 	DefaultListModel<String> allFramesWithImports;
 	DefaultListModel<String> framesWhichModifyKB;
-	private Patch patch;
-	private int currentDelta;
-	private List<String> original;
-	private List<String> revised;
+	private LinkedList<Patch> patches;
+	private int currentPatch;
+//	private List<String> original;
+//	private List<String> revised;
+	private String original;
+	private String revised;
 	private String importType;
 	private ButtonGroup groupImportType;
 	private HashMap<String, ArrayList<Frame>> searchResults;
@@ -429,7 +431,6 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		JScrollPane scrollPaneOld = new JScrollPane();
 		textAreaOld = new JTextPane();
-		textAreaOld.setEditable(false);
 		scrollPaneOld.setViewportView(textAreaOld);
 		JLabel lblOld = new JLabel("Existing Frame Data");
 		lblOld.setFont(new Font("Arial", Font.BOLD, 16));
@@ -438,7 +439,6 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		JScrollPane scrollPaneNew = new JScrollPane();
 		textAreaNew = new JTextPane();
-		textAreaNew.setEditable(false);
 		scrollPaneNew.setViewportView(textAreaNew);
 		JLabel lblNew = new JLabel("Frame Data after Update");
 		lblNew.setFont(new Font("Arial", Font.BOLD, 16));
@@ -453,6 +453,7 @@ public class LoadPanel extends AbstractViewPanel {
 		chckbxFilter.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				if (chckbxFilter.isSelected()) {
+					//TODO can i filter out go-term annotation changes here, so that a diff curator is ignored?
 					framesWhichModifyKB = batchEdits.framesWhichModifyKB(controller.getConnection());
 					if (framesWhichModifyKB.isEmpty()) framesWhichModifyKB.addElement("No Frames will modify KB");
 					listFrames.setModel(framesWhichModifyKB);
@@ -531,35 +532,49 @@ public class LoadPanel extends AbstractViewPanel {
 		return finalPanel;
     }
     
-    private static List<String> textToLines(String text) {
-    	// This method is used to convert text (a string) into a list of strings, broken on newline characters.
-    	// Necessary for the text diff tool.
-		List<String> lines = new LinkedList<String>();
-		String line = "";
-		BufferedReader in = null;
-		try {
-		        in = new BufferedReader(new StringReader(text));
-		        while ((line = in.readLine()) != null) {
-		                lines.add(line);
-		        }
-		} catch (IOException e) {
-		        e.printStackTrace();
-		} finally {
-			try {
-				in.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return lines;
-    }
+//    private static List<String> textToLines(String text) {
+//    	// This method is used to convert text (a string) into a list of strings, broken on newline characters.
+//    	// Necessary for the text diff tool.
+//		List<String> lines = new LinkedList<String>();
+//		String line = "";
+//		BufferedReader in = null;
+//		try {
+//		        in = new BufferedReader(new StringReader(text));
+//		        while ((line = in.readLine()) != null) {
+//		                lines.add(line);
+//		        }
+//		} catch (IOException e) {
+//		        e.printStackTrace();
+//		} finally {
+//			try {
+//				in.close();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		return lines;
+//    }
 
+    
+//    private void diff_lineMode(String text1, String text2) {
+//    	  diff_match_patch dmp = new diff_match_patch();
+//    	  var a = dmp.diff_linesToChars_(text1, text2);
+//    	  var lineText1 = a[0];
+//    	  var lineText2 = a[1];
+//    	  var lineArray = a[2];
+//
+//    	  var diffs = dmp.diff_main(lineText1, lineText2, false);
+//
+//    	  dmp.diff_charsToLines_(diffs, lineArray);
+//    	  return diffs;
+//    	}
+    
 	private void updateComparison() {
 		String frameID = "";
 		original = null;
 		revised = null;
-		currentDelta = 0;
-		patch = null;
+		currentPatch = 0;
+		patches = null;
 		actionNextDiff.setEnabled(false);
 		try {
 			frameID = listFrames.getSelectedValue().toString();
@@ -582,7 +597,7 @@ public class LoadPanel extends AbstractViewPanel {
 			originalFrameString = controller.frameToString(originalFrame);
 		} else textAreaOld.setText(originalFrameString);
 		textAreaOld.setCaretPosition(0);
-		original = textToLines(originalFrameString);
+		original = textAreaOld.getText();
 		
 		// apply frame edits to local copy of frame
 		Frame updatedFrame = batchEdits.updateLocalFrame(originalFrame);//controller.updateLocalFrame(frameID, frameEditArray);
@@ -591,10 +606,12 @@ public class LoadPanel extends AbstractViewPanel {
 		String updatedFrameString = controller.frameToString(updatedFrame);
 		textAreaNew.setText(updatedFrameString);
 		textAreaNew.setCaretPosition(0);
-		revised  = textToLines(updatedFrameString);
+		revised  = textAreaNew.getText();
 		
-		currentDelta = 0;
-		patch = DiffUtils.diff(original, revised);
+		DiffMatchPatch dmp = new DiffMatchPatch();
+		currentPatch = 0;
+		LinkedList<Diff> diffs = dmp.diff_lines_only(original, revised);
+		patches = dmp.patch_make(original, diffs);
 		actionNextDiff.setEnabled(true);
 		
 		highlightDiffs();
@@ -605,45 +622,30 @@ public class LoadPanel extends AbstractViewPanel {
 		textAreaOld.getHighlighter().removeAllHighlights();
 		textAreaNew.getHighlighter().removeAllHighlights();
 		
-		for (Delta delta : patch.getDeltas()) {
+		// DiffMatchPatch assumes a rolling context (i.e. patches must be applied in order from start to finish).  Thus, when calculating the what to highlight
+		// on the original text, we have to modify our context since we are showing the original and not applying the patches to the original text.
+		// Also, DiffMatchPatch pads the beginning and end of a patch with (default 4) extra chars to provide overlap and context. Don't want to highlight the padding though.
+		int contextShift = 0;
+		for (Patch patch : patches) {
 			// Highlight the original text
-			int originalPosition = 0;
-			for (String line : original) {
-				if (delta.getOriginal().getLines() != null && delta.getOriginal().getLines().size() > 0 && line.equals(delta.getOriginal().getLines().get(0))) {
-					originalPosition += delta.getOriginal().getPosition();
-					
-					DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-					try {
-						int length = 0;
-						for (Object s : delta.getOriginal().getLines()) length += s.toString().length();
-						textAreaOld.getHighlighter().addHighlight(originalPosition, originalPosition + length, highlightPainter);
-					} catch (BadLocationException ble) {
-						ble.printStackTrace();
-					}
-					
-				} else {
-					originalPosition += line.length();
-				}
+			DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+			try {
+				textAreaOld.getHighlighter().addHighlight(patch.start1 + 4 - contextShift, patch.start1 + patch.length1 - 4 - contextShift, highlightPainter);
+				// Context difference is the difference in lengths of all previous patches
+				contextShift = (patch.start2 + patch.length2) - (patch.start1 + patch.length1);
+			} catch (BadLocationException ble) {
+				ble.printStackTrace();
 			}
-			
-			// Highlight the revised text
-			int revisedPosition = 0;
-			for (String line : revised) {
-				if (delta.getRevised().getLines() != null && delta.getRevised().getLines().size() > 0 && line.equals(delta.getRevised().getLines().get(0))) {
-					revisedPosition += delta.getRevised().getPosition();
-					
-					DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-					try {
-						int length = 0;
-						for (Object s : delta.getRevised().getLines()) length += s.toString().length();
-						textAreaNew.getHighlighter().addHighlight(revisedPosition, revisedPosition + length+1, highlightPainter);
-					} catch (BadLocationException ble) {
-						ble.printStackTrace();
-					}
-					
-				} else {
-					revisedPosition += line.length();
-				}
+		}
+
+		// Highlight the revised text
+		for (Patch patch : patches) {
+			// Highlight the original text
+			DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+			try {
+				textAreaNew.getHighlighter().addHighlight(patch.start2 + 4, patch.start2 + patch.length2 - 4, highlightPainter);
+			} catch (BadLocationException ble) {
+				ble.printStackTrace();
 			}
 		}
 	}
@@ -1013,63 +1015,54 @@ public class LoadPanel extends AbstractViewPanel {
 		public void actionPerformed(ActionEvent e) {
 			try {
 				highlightDiffs();
-				Delta delta = patch.getDeltas().get(currentDelta);
+				
+				int contextShift = 0;
+				for (int i = 0; i < currentPatch; i++) {
+					Patch patch = patches.get(i);
+					contextShift += (patch.start2 + patch.length2) - (patch.start1 + patch.length1);
+				}
+				
+				Patch patch = patches.get(currentPatch);
+				currentPatch++;
 				
 				// Highlight the original text
-				int originalPosition = 0;
-//				textAreaOld.getHighlighter().removeAllHighlights();
-				for (String line : original) {
-					if (delta.getOriginal().getLines() != null && delta.getOriginal().getLines().size() > 0 && line.equals(delta.getOriginal().getLines().get(0))) {
-						originalPosition += delta.getOriginal().getPosition();
-						
-						DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
-						try {
-							int length = 0;
-							for (Object s : delta.getOriginal().getLines()) length += s.toString().length();
-							
-							//Remove previous highlight
-							for (Highlight h : textAreaOld.getHighlighter().getHighlights()) if (h.getStartOffset() == originalPosition) textAreaOld.getHighlighter().removeHighlight(h);
-							
-							textAreaOld.getHighlighter().addHighlight(originalPosition, originalPosition + length, highlightPainter);
-							textAreaOld.scrollRectToVisible(textAreaOld.modelToView(originalPosition + length));
-						} catch (BadLocationException ble) {
-							ble.printStackTrace();
-						}
-						
-					} else {
-						originalPosition += line.length();
+				DefaultHighlighter.DefaultHighlightPainter highlightPainterOld = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+				
+				// Remove previous highlight
+				for (Highlight h : textAreaOld.getHighlighter().getHighlights()) {
+					if (h.getStartOffset() == patch.start1 + 4 - contextShift) {
+						textAreaOld.getHighlighter().removeHighlight(h);
 					}
 				}
+				
+				// Highlight this change
+				try {
+					textAreaOld.getHighlighter().addHighlight(patch.start1 + 4 - contextShift, patch.start1 + patch.length1 - 4 - contextShift, highlightPainterOld);
+				} catch (BadLocationException ble) {
+					ble.printStackTrace();
+				}
+				textAreaOld.scrollRectToVisible(textAreaOld.modelToView(patch.start1 + 4 - contextShift));
+				
 				
 				// Highlight the revised text
-				int revisedPosition = 0;
-//				textAreaNew.getHighlighter().removeAllHighlights();
-				for (String line : revised) {
-					if (delta.getRevised().getLines() != null && delta.getRevised().getLines().size() > 0 && line.equals(delta.getRevised().getLines().get(0))) {
-						revisedPosition += delta.getRevised().getPosition();
-						
-						DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
-						try {
-							int length = 0;
-							for (Object s : delta.getRevised().getLines()) length += s.toString().length();
-							
-							//Remove previous highlight
-							for (Highlight h : textAreaNew.getHighlighter().getHighlights()) if (h.getStartOffset() == revisedPosition) textAreaNew.getHighlighter().removeHighlight(h);
-							
-							textAreaNew.getHighlighter().addHighlight(revisedPosition, revisedPosition + length+1, highlightPainter);
-							textAreaNew.scrollRectToVisible(textAreaNew.modelToView(revisedPosition + length));
-						} catch (BadLocationException ble) {
-							ble.printStackTrace();
-						}
-						
-					} else {
-						revisedPosition += line.length();
+				DefaultHighlighter.DefaultHighlightPainter highlightPainterNew = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+				
+				// Remove previous highlight
+				for (Highlight h : textAreaNew.getHighlighter().getHighlights()) {
+					if (h.getStartOffset() == patch.start2 + 4) {
+						textAreaNew.getHighlighter().removeHighlight(h);
 					}
 				}
 				
-				currentDelta++;
+				// Highlight this change
+				try {
+					textAreaNew.getHighlighter().addHighlight(patch.start2 + 4, patch.start2 + patch.length2 - 4, highlightPainterNew);
+				} catch (BadLocationException ble) {
+					ble.printStackTrace();
+				}
+				textAreaNew.scrollRectToVisible(textAreaNew.modelToView(patch.start2 + 4));
 			} catch (Exception exception) {
-				currentDelta = 0;
+				currentPatch = 0;
 				textAreaOld.getHighlighter().removeAllHighlights();
 				textAreaNew.getHighlighter().removeAllHighlights();
 				CycToolsError.showWarning("Reached end of text, will continue searching from the beginning.", "End of file");
