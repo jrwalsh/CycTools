@@ -1,14 +1,16 @@
 package edu.iastate.cyctools.tools.load.view;
 
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter.Highlight;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
@@ -25,16 +27,13 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map.Entry;
 
 import edu.iastate.cyctools.CycToolsError;
@@ -72,7 +71,6 @@ import javax.swing.ImageIcon;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import net.miginfocom.swing.MigLayout;
-import javax.swing.JRadioButton;
 import java.awt.event.ActionListener;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
@@ -105,8 +103,8 @@ public class LoadPanel extends AbstractViewPanel {
 //	private List<String> revised;
 	private String original;
 	private String revised;
-	private String importType;
-	private ButtonGroup groupImportType;
+//	private String importType;
+//	private ButtonGroup groupImportType;
 	private HashMap<String, ArrayList<Frame>> searchResults;
 	private JLabel labelSearchResults;
 	private JTable tableSearchExactMatches;
@@ -350,20 +348,20 @@ public class LoadPanel extends AbstractViewPanel {
 		scroll1.setViewportView(tableSearchExactMatches);
 		tabbedSearchResults.addTab("Exact Matches", null, scroll1, null);
 		
-		tableSearchGoodMatches = new JTable();
-		JScrollPane scroll2 = new JScrollPane();
-		scroll2.setViewportView(tableSearchGoodMatches);
-		tabbedSearchResults.addTab("Good Matches", null, scroll2, null);
+//		tableSearchGoodMatches = new JTable();
+//		JScrollPane scroll2 = new JScrollPane();
+//		scroll2.setViewportView(tableSearchGoodMatches);
+//		tabbedSearchResults.addTab("Good Matches", null, scroll2, null);
 		
 		tableSearchMultipleMatches = new JTable();
 		JScrollPane scroll3 = new JScrollPane();
 		scroll3.setViewportView(tableSearchMultipleMatches);
 		tabbedSearchResults.addTab("Multiple Matches", null, scroll3, null);
 		
-		tableSearchNoMatches = new JTable();
-		JScrollPane scroll4 = new JScrollPane();
-		scroll4.setViewportView(tableSearchNoMatches);
-		tabbedSearchResults.addTab("No Matches", null, scroll4, null);
+//		tableSearchNoMatches = new JTable();
+//		JScrollPane scroll4 = new JScrollPane();
+//		scroll4.setViewportView(tableSearchNoMatches);
+//		tabbedSearchResults.addTab("No Matches", null, scroll4, null);
 		
 		JButton btnAccept = new JButton("Accept");
 		btnAccept.addActionListener(new ActionListener() {
@@ -753,13 +751,15 @@ public class LoadPanel extends AbstractViewPanel {
 			}
 		}
 		
-		tabbedSearchResults.setTitleAt(0, "Found " + exactMatches.size() + " terms with exact matches");
-		tabbedSearchResults.setTitleAt(1, "Found " + goodMatches.size() + " terms with good matches");
-		tabbedSearchResults.setTitleAt(2, ambiguousMatches.size() + " terms with abmiguous matches");
-		tabbedSearchResults.setTitleAt(3, noMatches.size() + " terms not found");
+		tabbedSearchResults.setTitleAt(0, "Found " + (exactMatches.size() + goodMatches.size()) + " terms with matches in database");
+//		tabbedSearchResults.setTitleAt(1, "Found " + goodMatches.size() + " terms with good matches");
+		tabbedSearchResults.setTitleAt(1, (ambiguousMatches.size() + noMatches.size()) + " terms with ambiguous matches or no matches in database");
+//		tabbedSearchResults.setTitleAt(3, noMatches.size() + " terms not found");
 		
-		int totalGoodMatches = exactMatches.size() + goodMatches.size();
-		labelSearchResults.setText("We were able to match " + totalGoodMatches + " out of " + searchResults.keySet().size() + " terms.");
+//		int totalGoodMatches = exactMatches.size() + goodMatches.size();
+		labelSearchResults.setText("<html><body style='width: 100%'>We were able to match " + exactMatches.size() + " out of " + searchResults.keySet().size() + " based on FrameIDs.  An " +
+				"additional " + goodMatches.size() + " out of " + searchResults.keySet().size() + " terms were matched based on synonyms.  This search was performed " +
+						"on " + ((Entry<String, String>)cmbImportType.getSelectedItem()).getKey() + " in the database " + controller.getSelectedOrganism() + ".");
 		
 		return true;
 	}
@@ -792,15 +792,16 @@ public class LoadPanel extends AbstractViewPanel {
 			}
 		}
 		
-		// Exact Matches
-		if (exactMatches.size() > 0) {
-			int nRow = exactMatches.size();
+		// Exact and Good Matches in one table
+		if (exactMatches.size() > 0 || goodMatches.size() > 0) {
+			int nRow = exactMatches.size() + goodMatches.size();
 			Object[] header = new Object[nCol+1];
 			Object[][] data = new Object[nRow][nCol+1];
 			header[0] = "Matched Frame";
 			for (int j = 0; j < nCol; j++) {
 				header[j+1] = tableSpreadSheet.getColumnName(j);
 			}
+			
 			int rowIndex = 0;
 			for (Object[] row : exactMatches) {
 				Object[] extendedRow = new Object[row.length+1];
@@ -811,20 +812,7 @@ public class LoadPanel extends AbstractViewPanel {
 				data[rowIndex] = extendedRow;
 				rowIndex++;
 			}
-			DefaultTableModel newModel = new DefaultTableModel(data, header);
-			tableSearchExactMatches.setModel(newModel);
-		}
-		
-		// Good Matches
-		if (goodMatches.size() > 0) {
-			int nRow = goodMatches.size();
-			Object[] header = new Object[nCol+1];
-			Object[][] data = new Object[nRow][nCol+1];
-			header[0] = "Matched Frame";
-			for (int j = 0; j < nCol; j++) {
-				header[j+1] = tableSpreadSheet.getColumnName(j);
-			}
-			int rowIndex = 0;
+			
 			for (Object[] row : goodMatches) {
 				Object[] extendedRow = new Object[row.length+1];
 				extendedRow[0] = searchResults.get(row[0]).get(0).getLocalID();
@@ -834,44 +822,148 @@ public class LoadPanel extends AbstractViewPanel {
 				data[rowIndex] = extendedRow;
 				rowIndex++;
 			}
+			
 			DefaultTableModel newModel = new DefaultTableModel(data, header);
-			tableSearchGoodMatches.setModel(newModel);
+			tableSearchExactMatches.setModel(newModel);
+			
+			TableColumnModel tcm = tableSearchExactMatches.getColumnModel();
+			TableColumn tm = tcm.getColumn(0);
+			tm.setCellRenderer(new CustomRenderer());
 		}
 		
-		// Ambiguous Matches
-		if (ambiguousMatches.size() > 0) {
-			int nRow = ambiguousMatches.size();
+		// Ambiguous and Empty Matches in another table
+		if (ambiguousMatches.size() > 0 || noMatches.size() > 0) {
+			int nRow = ambiguousMatches.size() + noMatches.size();
 			Object[] header = new Object[nCol];
 			Object[][] data = new Object[nRow][nCol];
 			for (int j = 0; j < nCol; j++) {
 				header[j] = tableSpreadSheet.getColumnName(j);
 			}
+			
 			int rowIndex = 0;
 			for (Object[] row : ambiguousMatches) {
 				data[rowIndex] = row;
 				rowIndex++;
 			}
-			DefaultTableModel newModel = new DefaultTableModel(data, header);
-			tableSearchMultipleMatches.setModel(newModel);
-		}
-		
-		// No Matches
-		if (noMatches.size() > 0) {
-			int nRow = noMatches.size();
-			Object[] header = new Object[nCol];
-			Object[][] data = new Object[nRow][nCol];
-			for (int j = 0; j < nCol; j++) {
-				header[j] = tableSpreadSheet.getColumnName(j);
-			}
-			int rowIndex = 0;
+			
 			for (Object[] row : noMatches) {
 				data[rowIndex] = row;
 				rowIndex++;
 			}
+			
 			DefaultTableModel newModel = new DefaultTableModel(data, header);
-			tableSearchNoMatches.setModel(newModel);
+			tableSearchMultipleMatches.setModel(newModel);
 		}
 	}
+	
+//	private void consumeSearchResults() {
+//		ArrayList<Object[]> exactMatches = new ArrayList<Object[]>();
+//		ArrayList<Object[]> goodMatches = new ArrayList<Object[]>();
+//		ArrayList<Object[]> ambiguousMatches = new ArrayList<Object[]>();
+//		ArrayList<Object[]> noMatches = new ArrayList<Object[]>();
+//		
+//		TableModel tb = tableSpreadSheet.getModel();
+//		int nCol = tb.getColumnCount();
+//		
+//		// Sort out the original table into different groups based on the quality of the match
+//		// Copy whole lines from the original table
+//		for (int rowIndex = 0; rowIndex < tb.getRowCount(); rowIndex++) {
+//			Object[] row = new Object[nCol];
+//			for (int i = 0; i < nCol; i++) {
+//				row[i] = tb.getValueAt(rowIndex, i);
+//			}
+//			
+//			String userProvidedID = (String) tb.getValueAt(rowIndex, 0);
+//			if (searchResults.get(userProvidedID) == null || searchResults.get(userProvidedID).size() == 0) noMatches.add(row);
+//			else if (searchResults.get(userProvidedID).size() == 1) {
+//				Frame match = searchResults.get(userProvidedID).get(0);
+//				if (userProvidedID.equalsIgnoreCase(match.getLocalID())) exactMatches.add(row);
+//				else goodMatches.add(row);
+//			} else {
+//				ambiguousMatches.add(row);
+//			}
+//		}
+//		
+//		// Exact Matches
+//		if (exactMatches.size() > 0) {
+//			int nRow = exactMatches.size();
+//			Object[] header = new Object[nCol+1];
+//			Object[][] data = new Object[nRow][nCol+1];
+//			header[0] = "Matched Frame";
+//			for (int j = 0; j < nCol; j++) {
+//				header[j+1] = tableSpreadSheet.getColumnName(j);
+//			}
+//			int rowIndex = 0;
+//			for (Object[] row : exactMatches) {
+//				Object[] extendedRow = new Object[row.length+1];
+//				extendedRow[0] = searchResults.get(row[0]).get(0).getLocalID();
+//				for (int i = 0; i < row.length; i++) {
+//					extendedRow[i+1] = row[i];
+//				}
+//				data[rowIndex] = extendedRow;
+//				rowIndex++;
+//			}
+//			DefaultTableModel newModel = new DefaultTableModel(data, header);
+//			tableSearchExactMatches.setModel(newModel);
+//		}
+//		
+//		// Good Matches
+//		if (goodMatches.size() > 0) {
+//			int nRow = goodMatches.size();
+//			Object[] header = new Object[nCol+1];
+//			Object[][] data = new Object[nRow][nCol+1];
+//			header[0] = "Matched Frame";
+//			for (int j = 0; j < nCol; j++) {
+//				header[j+1] = tableSpreadSheet.getColumnName(j);
+//			}
+//			int rowIndex = 0;
+//			for (Object[] row : goodMatches) {
+//				Object[] extendedRow = new Object[row.length+1];
+//				extendedRow[0] = searchResults.get(row[0]).get(0).getLocalID();
+//				for (int i = 0; i < row.length; i++) {
+//					extendedRow[i+1] = row[i];
+//				}
+//				data[rowIndex] = extendedRow;
+//				rowIndex++;
+//			}
+//			DefaultTableModel newModel = new DefaultTableModel(data, header);
+//			tableSearchGoodMatches.setModel(newModel);
+//		}
+//		
+//		// Ambiguous Matches
+//		if (ambiguousMatches.size() > 0) {
+//			int nRow = ambiguousMatches.size();
+//			Object[] header = new Object[nCol];
+//			Object[][] data = new Object[nRow][nCol];
+//			for (int j = 0; j < nCol; j++) {
+//				header[j] = tableSpreadSheet.getColumnName(j);
+//			}
+//			int rowIndex = 0;
+//			for (Object[] row : ambiguousMatches) {
+//				data[rowIndex] = row;
+//				rowIndex++;
+//			}
+//			DefaultTableModel newModel = new DefaultTableModel(data, header);
+//			tableSearchMultipleMatches.setModel(newModel);
+//		}
+//		
+//		// No Matches
+//		if (noMatches.size() > 0) {
+//			int nRow = noMatches.size();
+//			Object[] header = new Object[nCol];
+//			Object[][] data = new Object[nRow][nCol];
+//			for (int j = 0; j < nCol; j++) {
+//				header[j] = tableSpreadSheet.getColumnName(j);
+//			}
+//			int rowIndex = 0;
+//			for (Object[] row : noMatches) {
+//				data[rowIndex] = row;
+//				rowIndex++;
+//			}
+//			DefaultTableModel newModel = new DefaultTableModel(data, header);
+//			tableSearchNoMatches.setModel(newModel);
+//		}
+//	}
     
 	private class ActionUpload extends AbstractAction {
 		public ActionUpload() {
@@ -1087,4 +1179,12 @@ public class LoadPanel extends AbstractViewPanel {
 		    }
 		}
  	}
+	
+	class CustomRenderer extends DefaultTableCellRenderer {
+	    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+	    	setBackground(Color.LIGHT_GRAY);
+	        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+	        return this;
+	    }
+	}
 }
