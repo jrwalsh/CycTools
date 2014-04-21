@@ -11,7 +11,7 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 	private String slotLabel;
 	private String slotValue;
 	private String annotationLabel;
-	private ArrayList<String> annotationValues;
+	protected ArrayList<String> annotationValues;
 	
 	public AnnotationUpdate(String frameID, String slotLabel, String slotValue, String annotationLabel, ArrayList<String> annotationValues,  boolean append, boolean ignoreDuplicates, int[] associatedRows) {
 		this.frameID = frameID;

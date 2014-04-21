@@ -7,7 +7,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
-import edu.iastate.cyctools.tools.load.model.AnnotationUpdate;
+import edu.iastate.cyctools.tools.load.model.GOAnnotation;
+import edu.iastate.cyctools.tools.load.model.GOTermAnnotationUpdate;
 import edu.iastate.cyctools.tools.load.model.SlotUpdate;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
@@ -46,11 +47,17 @@ public class MaizeAdaptor implements FileAdaptor {
 			conn.selectOrganism("CORN");
 			String encodedTime = encodeTimeStampString(timeStampString, conn);
 			
+			if (!goTerm.startsWith("|")) goTerm = "|" + goTerm;
+			if (!goTerm.endsWith("|")) goTerm = goTerm + "|";
 			frameUpdates.add(new SlotUpdate(frameID, "GO-TERMS", goTerm, append, ignoreDuplicates, new int[] {rowIndex}));
 			
-			ArrayList<String> annotValues = new ArrayList<String>();
-			annotValues.add("\"" + pubMedID + ":" + evCode + ":" + encodedTime + ":" + curator + "\"");
-			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues, append, ignoreDuplicates, new int[] {rowIndex}));
+			ArrayList<GOAnnotation> goAnnotationValues = new ArrayList<GOAnnotation>();
+			goAnnotationValues.add(new GOAnnotation(pubMedID, evCode, encodedTime, curator));
+			frameUpdates.add(new GOTermAnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", goAnnotationValues, append, ignoreDuplicates, new int[] {rowIndex}));
+			
+//			ArrayList<String> annotValues = new ArrayList<String>();
+//			annotValues.add("\"" + pubMedID + ":" + evCode + ":" + encodedTime + ":" + curator + "\"");
+//			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues, append, ignoreDuplicates, new int[] {rowIndex}));
 		}
 		return frameUpdates;
 	}
@@ -129,8 +136,8 @@ public class MaizeAdaptor implements FileAdaptor {
 			String date = timeStampString.split(" ")[0];
 			String time = timeStampString.split(" ")[1];
 			
-			String day = date.split("-")[0];
-			String month = date.split("-")[1];
+			String month = date.split("-")[0];
+			String day = date.split("-")[1];
 			String year = date.split("-")[2];
 			
 			String hour = time.split("-")[0];
