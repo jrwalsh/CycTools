@@ -66,9 +66,9 @@ public class ToolPanel extends AbstractViewPanel {
 	        public Component getListCellRendererComponent(final JList list, Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
 	        	if (value != null) {
 	        		value = value.toString().replace("=", ": ");
-	        		if (value.toString().contains(":") && controller.isKBModified(value.toString().substring(0, value.toString().indexOf(":")))) {
-	        			value = "*" + value.toString();
-	        		}
+//	        		if (value.toString().contains(":") && controller.isKBModified(value.toString().substring(0, value.toString().indexOf(":")))) { //TODO so many errors from this.... why why why?
+//	        			value = "*" + value.toString();
+//	        		}
 	        	}
 	            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 	        }

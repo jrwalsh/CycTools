@@ -346,12 +346,12 @@ public class LoadPanel extends AbstractViewPanel {
 		tableSearchExactMatches = new JTable();
 		JScrollPane scroll1 = new JScrollPane();
 		scroll1.setViewportView(tableSearchExactMatches);
-		tabbedSearchResults.addTab("Exact Matches", null, scroll1, null);
+		tabbedSearchResults.addTab("FrameID Matches", null, scroll1, null);
 		
-//		tableSearchGoodMatches = new JTable();
-//		JScrollPane scroll2 = new JScrollPane();
-//		scroll2.setViewportView(tableSearchGoodMatches);
-//		tabbedSearchResults.addTab("Good Matches", null, scroll2, null);
+		tableSearchGoodMatches = new JTable();
+		JScrollPane scroll2 = new JScrollPane();
+		scroll2.setViewportView(tableSearchGoodMatches);
+		tabbedSearchResults.addTab("Synonym Matches", null, scroll2, null);
 		
 		tableSearchMultipleMatches = new JTable();
 		JScrollPane scroll3 = new JScrollPane();
@@ -647,7 +647,7 @@ public class LoadPanel extends AbstractViewPanel {
 			}
 		}
 	}
-	
+
 	private void openPreviewPanel() throws PtoolsErrorException {
 		if (controller.isKBModified(controller.getSelectedOrganism())) {
 			int n = JOptionPane.showConfirmDialog(
@@ -666,18 +666,88 @@ public class LoadPanel extends AbstractViewPanel {
 		textAreaOld.setText("");
 		textAreaNew.setText("");
 		
-		// Convert user provided IDs to frame IDs, remove imports that can't be matched to an existing frame
-		DefaultTableModel model = (DefaultTableModel) tableSpreadSheet.getModel();
-		int nRow = model.getRowCount(), nCol = model.getColumnCount();
-		for (int i = nRow-1; i >= 0; i--) {
-			String givenID = (String) model.getValueAt(i, 0); // User provided ID must always be in first column
-			ArrayList<Frame> matches = searchResults.get(givenID);
-			if (matches.size() == 1) {
-				model.setValueAt(matches.get(0).getLocalID(), i, 0);
-			} else {
-				model.removeRow(i);//if there is not a good matching FrameID, we skip this line as a condition of the import.  Can't import data if we don't know where to put it. //TODO Critical error, this removal is destructive and causes the line to be removed from the original table on the file view screen!!!!
+//		only if a search was performed; //TODO
+//		DefaultTableModel model = new DefaultTableModel();
+//		for (int rowIndex = 0; rowIndex <)
+//		model.setValueAt(aValue, row, column)
+//		model.getValueAt(row, column)
+//		for (TableRow row : tableSearchExactMatches.ro;
+//		int nRow = model.getRowCount(), nCol = model.getColumnCount();
+//		for (int i = nRow-1; i >= 0; i--) {
+//			String ID = (String) model.getValueAt(i, 0); // User provided ID must always be in first column
+//			ArrayList<Frame> matches = searchResults.get(givenID);
+//			if (matches.size() == 1) {
+//				model.setValueAt(matches.get(0).getLocalID(), i, 0);
+//			} else {
+//				model.removeRow(i);//if there is not a good matching FrameID, we skip this line as a condition of the import.  Can't import data if we don't know where to put it. //TODO Critical error, this removal is destructive and causes the line to be removed from the original table on the file view screen!!!!
+//			}
+//		}
+		
+		
+		//---------------------------------------------
+//		// Convert user provided IDs to frame IDs, remove imports that can't be matched to an existing frame //TODO broken now, need to fix.
+		// This part is redoing the search when the table on the search pane has already been filled out with the proper search results.
+//		DefaultTableModel model = (DefaultTableModel) tableSpreadSheet.getModel();
+//		int nRow = model.getRowCount(), nCol = model.getColumnCount();
+//		for (int i = nRow-1; i >= 0; i--) {
+//			String givenID = (String) model.getValueAt(i, 0); // User provided ID must always be in first column
+//			ArrayList<Frame> matches = searchResults.get(givenID);
+//			if (matches.size() == 1) {
+//				model.setValueAt(matches.get(0).getLocalID(), i, 0);
+//			} else {
+//				model.removeRow(i);//if there is not a good matching FrameID, we skip this line as a condition of the import.  Can't import data if we don't know where to put it. //TODO Critical error, this removal is destructive and causes the line to be removed from the original table on the file view screen!!!!
+//			}
+//		}
+		
+		// Get data from exact frame matches
+		DefaultTableModel model = new DefaultTableModel();
+		DefaultTableModel dtmExactMatches = (DefaultTableModel) tableSearchExactMatches.getModel();
+		int nRow1 = dtmExactMatches.getRowCount();
+		DefaultTableModel dtmGoodMatches = (DefaultTableModel) tableSearchGoodMatches.getModel();
+	    int nRow2 = dtmGoodMatches.getRowCount();
+	    
+	    int nCol; Object[] tableHeaders = new Object[0];
+	    if (dtmExactMatches.getColumnCount() > 0) {
+	    	nCol = dtmExactMatches.getColumnCount();
+	    	tableHeaders = new Object[nCol-1];
+	    	for (int i=0; i < nCol; i++) { // Skip 2nd column, headers are same in both tables and only need to be retrieved once
+				if (i < 1) tableHeaders[i] = tableSearchExactMatches.getColumnModel().getColumn(i).getHeaderValue();
+				if (i > 1) tableHeaders[i-1] = tableSearchExactMatches.getColumnModel().getColumn(i).getHeaderValue();
 			}
-		}
+	    } else if (dtmGoodMatches.getColumnCount() > 0) {
+	    	nCol = dtmGoodMatches.getColumnCount();
+	    	tableHeaders = new Object[nCol-1];
+	    	for (int i=0; i < nCol; i++) { // Skip 2nd column, headers are same in both tables and only need to be retrieved once
+				if (i < 1) tableHeaders[i] = tableSearchGoodMatches.getColumnModel().getColumn(i).getHeaderValue();
+				if (i > 1) tableHeaders[i-1] = tableSearchGoodMatches.getColumnModel().getColumn(i).getHeaderValue();
+			}
+	    } else {
+	    	nCol = 0;
+	    }
+	    
+	    if (nCol != 0) { // If no data, then don't try to parse it out
+		    Object[][] tableData = new Object[nRow1+nRow2][nCol-1];
+			
+			// Get data from exact frame matches
+		    for (int i = 0 ; i < nRow1 ; i++) {
+		        for (int j = 0 ; j < nCol ; j++) {
+		        	if (j < 1) tableData[i][j] = dtmExactMatches.getValueAt(i,j);
+		        	if (j > 1) tableData[i][j-1] = dtmExactMatches.getValueAt(i,j);
+		        }
+		    }
+		    
+		    // Get data from synonym matches (headers will be same as frame id matches)
+		    for (int i = 0 ; i < nRow2 ; i++) {
+		        for (int j = 0 ; j < nCol ; j++) {
+		        	if (j < 1) tableData[nRow1+i][j] = dtmGoodMatches.getValueAt(i,j);
+		        	if (j > 1) tableData[nRow1+i][j-1] = dtmGoodMatches.getValueAt(i,j);
+		        }
+		    }
+		    
+		    model = new DefaultTableModel(tableData, tableHeaders);
+	    }
+	    
+		//---------------------------------------------
 		
 		if (model.getRowCount() == 0) {
 			JOptionPane.showMessageDialog(this, "No data could be matched to frames in this database for the selected frame type. Unable to proceed with import", "No Data to Import!", JOptionPane.WARNING_MESSAGE);
@@ -732,39 +802,39 @@ public class LoadPanel extends AbstractViewPanel {
 		}
 		
 		// Process search results
-		ArrayList<String> exactMatches = new ArrayList<String>();
-		ArrayList<String> goodMatches = new ArrayList<String>();
-		ArrayList<String> ambiguousMatches = new ArrayList<String>();
-		ArrayList<String> noMatches = new ArrayList<String>();
+//		ArrayList<String> exactMatches = new ArrayList<String>();
+//		ArrayList<String> goodMatches = new ArrayList<String>();
+//		ArrayList<String> ambiguousMatches = new ArrayList<String>();
+//		ArrayList<String> noMatches = new ArrayList<String>();
 		
 		// Copy the table model, but insert an extra column at the beginning to store the matched frame IDs
-		consumeSearchResults();
+		SortResults results = consumeSearchResults();
 		
-		for (String key : searchResults.keySet()) {
-			if (searchResults.get(key) == null || searchResults.get(key).size() == 0) noMatches.add(key);
-			else if (searchResults.get(key).size() == 1) {
-				Frame match = searchResults.get(key).get(0);
-				if (key.equalsIgnoreCase(match.getLocalID())) exactMatches.add(key);
-				else goodMatches.add(key);
-			} else {
-				ambiguousMatches.add(key);
-			}
-		}
+//		for (String key : searchResults.keySet()) {
+//			if (searchResults.get(key) == null || searchResults.get(key).size() == 0) noMatches.add(key);
+//			else if (searchResults.get(key).size() == 1) {
+//				Frame match = searchResults.get(key).get(0);
+//				if (key.equalsIgnoreCase(match.getLocalID())) exactMatches.add(key);
+//				else goodMatches.add(key);
+//			} else {
+//				ambiguousMatches.add(key);
+//			}
+//		}
 		
-		tabbedSearchResults.setTitleAt(0, "Found " + (exactMatches.size() + goodMatches.size()) + " terms with matches in database");
-//		tabbedSearchResults.setTitleAt(1, "Found " + goodMatches.size() + " terms with good matches");
-		tabbedSearchResults.setTitleAt(1, (ambiguousMatches.size() + noMatches.size()) + " terms with ambiguous matches or no matches in database");
+		tabbedSearchResults.setTitleAt(0, "Found " + results.getExactMatches().size() + " terms with FrameID matches in database");
+		tabbedSearchResults.setTitleAt(1, "Found " + results.getGoodMatches().size() + " terms with Synonym matches");
+		tabbedSearchResults.setTitleAt(2, (results.getAmbiguousMatches().size() + results.getNoMatches().size()) + " terms with ambiguous matches or no matches in database");
 //		tabbedSearchResults.setTitleAt(3, noMatches.size() + " terms not found");
 		
 //		int totalGoodMatches = exactMatches.size() + goodMatches.size();
-		labelSearchResults.setText("<html><body style='width: 100%'>We were able to match " + exactMatches.size() + " out of " + searchResults.keySet().size() + " based on FrameIDs.  An " +
-				"additional " + goodMatches.size() + " out of " + searchResults.keySet().size() + " terms were matched based on synonyms.  This search was performed " +
+		labelSearchResults.setText("<html><body style='width: 100%'>We were able to match " + results.getExactMatches().size() + " out of " + searchResults.keySet().size() + " based on FrameIDs.  An " +
+				"additional " + results.getGoodMatches().size() + " out of " + searchResults.keySet().size() + " terms were matched based on synonyms.  This search was performed " +
 						"on " + ((Entry<String, String>)cmbImportType.getSelectedItem()).getKey() + " in the database " + controller.getSelectedOrganism() + ".");
 		
 		return true;
 	}
 	
-	private void consumeSearchResults() {
+	private SortResults consumeSearchResults() {
 		ArrayList<Object[]> exactMatches = new ArrayList<Object[]>();
 		ArrayList<Object[]> goodMatches = new ArrayList<Object[]>();
 		ArrayList<Object[]> ambiguousMatches = new ArrayList<Object[]>();
@@ -781,20 +851,70 @@ public class LoadPanel extends AbstractViewPanel {
 				row[i] = tb.getValueAt(rowIndex, i);
 			}
 			
+			
 			String userProvidedID = (String) tb.getValueAt(rowIndex, 0);
-			if (searchResults.get(userProvidedID) == null || searchResults.get(userProvidedID).size() == 0) noMatches.add(row);
-			else if (searchResults.get(userProvidedID).size() == 1) {
-				Frame match = searchResults.get(userProvidedID).get(0);
-				if (userProvidedID.equalsIgnoreCase(match.getLocalID())) exactMatches.add(row);
-				else goodMatches.add(row);
-			} else {
-				ambiguousMatches.add(row);
+			if (searchResults.get(userProvidedID) == null || searchResults.get(userProvidedID).size() == 0) noMatches.add(row); // Case: No matches returned by search
+			else {
+				boolean frameIDMatchFound = false;
+				int synonymMatchesCount = 0;
+				for (Frame match : searchResults.get(userProvidedID)) {
+					if (userProvidedID.equalsIgnoreCase(match.getLocalID())) {
+						frameIDMatchFound = true;
+						break;
+					}
+					
+					try {
+						for (String name : match.getNames()) {
+							if (userProvidedID.equalsIgnoreCase(name.replaceAll("\"", ""))) {
+								synonymMatchesCount++;
+								break; // Only increment by 1 per frame with a matching synonym
+							}
+						}
+					} catch (PtoolsErrorException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				if (frameIDMatchFound) exactMatches.add(row); // Case: FrameID matched search exactly, can't possibly have better match to something else so we can safely stop looking
+				else if (synonymMatchesCount == 0) {
+					noMatches.add(row); // Case: No exact matches found by search
+				} else if (synonymMatchesCount == 1) {
+					goodMatches.add(row); // Case: 1 and only 1 synonym had an exact match
+				} else {
+					ambiguousMatches.add(row); // Case: We have exact matches on the synonyms of two or more frames.  Unlikely, but if it happens we can't use this match.
+				}
 			}
+			
+//			String userProvidedID = (String) tb.getValueAt(rowIndex, 0);
+//			if (searchResults.get(userProvidedID) == null || searchResults.get(userProvidedID).size() == 0) noMatches.add(row); // Case: No matches returned by search
+//			else if (searchResults.get(userProvidedID).size() == 1) {
+//				Frame match = searchResults.get(userProvidedID).get(0);
+//				if (userProvidedID.equalsIgnoreCase(match.getLocalID())) exactMatches.add(row); // Case: FrameID matched search exactly
+//				else {
+//					try {
+//						boolean foundMatch = false;
+//						for (String name : match.getNames()) {
+//							if (userProvidedID.equalsIgnoreCase(name)) {
+//								foundMatch = true;
+//								break;
+//							}
+//						}
+//						if (foundMatch) 
+
+			
+//						else noMatches.add(row);
+//					} catch (PtoolsErrorException e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			} else {
+//				ambiguousMatches.add(row);
+//			}
 		}
 		
-		// Exact and Good Matches in one table
-		if (exactMatches.size() > 0 || goodMatches.size() > 0) {
-			int nRow = exactMatches.size() + goodMatches.size();
+		// Exact Matches to frame ID's in one table
+		if (exactMatches.size() > 0) {
+			int nRow = exactMatches.size();
 			Object[] header = new Object[nCol+1];
 			Object[][] data = new Object[nRow][nCol+1];
 			header[0] = "Matched Frame";
@@ -813,9 +933,41 @@ public class LoadPanel extends AbstractViewPanel {
 				rowIndex++;
 			}
 			
+			DefaultTableModel newModel = new DefaultTableModel(data, header);
+			tableSearchExactMatches.setModel(newModel);
+			
+			TableColumnModel tcm = tableSearchExactMatches.getColumnModel();
+			TableColumn tm = tcm.getColumn(0);
+			tm.setCellRenderer(new CustomRenderer());
+		}
+		
+		// Exact Matches to synonyms in one table
+		if (goodMatches.size() > 0) {
+			int nRow = goodMatches.size();
+			Object[] header = new Object[nCol+1];
+			Object[][] data = new Object[nRow][nCol+1];
+			header[0] = "Matched Frame";
+			for (int j = 0; j < nCol; j++) {
+				header[j+1] = tableSpreadSheet.getColumnName(j);
+			}
+			
+			int rowIndex = 0;
 			for (Object[] row : goodMatches) {
 				Object[] extendedRow = new Object[row.length+1];
-				extendedRow[0] = searchResults.get(row[0]).get(0).getLocalID();
+				String matchID = ""; // Need to do search again to make sure we have the one frame with a matching synonym.  We already checked to make sure that only 1 frame will be a match.
+				String userProvidedID = (String) row[0];
+				for (Frame match : searchResults.get(userProvidedID)) {
+					try {
+						for (String name : match.getNames()) {
+							if (userProvidedID.equalsIgnoreCase(name.replaceAll("\"", ""))) {
+								matchID = match.getLocalID();
+							}
+						}
+					} catch (PtoolsErrorException e) {
+						e.printStackTrace();
+					}
+				}
+				extendedRow[0] = matchID;
 				for (int i = 0; i < row.length; i++) {
 					extendedRow[i+1] = row[i];
 				}
@@ -824,9 +976,9 @@ public class LoadPanel extends AbstractViewPanel {
 			}
 			
 			DefaultTableModel newModel = new DefaultTableModel(data, header);
-			tableSearchExactMatches.setModel(newModel);
+			tableSearchGoodMatches.setModel(newModel);
 			
-			TableColumnModel tcm = tableSearchExactMatches.getColumnModel();
+			TableColumnModel tcm = tableSearchGoodMatches.getColumnModel();
 			TableColumn tm = tcm.getColumn(0);
 			tm.setCellRenderer(new CustomRenderer());
 		}
@@ -854,6 +1006,13 @@ public class LoadPanel extends AbstractViewPanel {
 			DefaultTableModel newModel = new DefaultTableModel(data, header);
 			tableSearchMultipleMatches.setModel(newModel);
 		}
+		
+		SortResults results = new SortResults();
+		results.setExactMatches(exactMatches);
+		results.setGoodMatches(goodMatches);
+		results.setAmbiguousMatches(ambiguousMatches);
+		results.setNoMatches(noMatches);
+		return results;
 	}
 	
 //	private void consumeSearchResults() {
@@ -1159,6 +1318,45 @@ public class LoadPanel extends AbstractViewPanel {
 				textAreaNew.getHighlighter().removeAllHighlights();
 				CycToolsError.showWarning("Reached end of text, will continue searching from the beginning.", "End of file");
 			}
+		}
+	}
+	
+	private class SortResults {
+		ArrayList<Object[]> exactMatches = new ArrayList<Object[]>();
+		ArrayList<Object[]> goodMatches = new ArrayList<Object[]>();
+		ArrayList<Object[]> ambiguousMatches = new ArrayList<Object[]>();
+		ArrayList<Object[]> noMatches = new ArrayList<Object[]>();
+		
+		public SortResults() {
+			exactMatches = new ArrayList<Object[]>();
+			goodMatches = new ArrayList<Object[]>();
+			ambiguousMatches = new ArrayList<Object[]>();
+			noMatches = new ArrayList<Object[]>();
+		}
+		
+		public ArrayList<Object[]> getExactMatches() {
+			return exactMatches;
+		}
+		public ArrayList<Object[]> getGoodMatches() {
+			return goodMatches;
+		}
+		public ArrayList<Object[]> getAmbiguousMatches() {
+			return ambiguousMatches;
+		}
+		public ArrayList<Object[]> getNoMatches() {
+			return noMatches;
+		}
+		public void setExactMatches(ArrayList<Object[]> exactMatches) {
+			this.exactMatches = exactMatches;
+		}
+		public void setGoodMatches(ArrayList<Object[]> goodMatches) {
+			this.goodMatches = goodMatches;
+		}
+		public void setAmbiguousMatches(ArrayList<Object[]> ambiguousMatches) {
+			this.ambiguousMatches = ambiguousMatches;
+		}
+		public void setNoMatches(ArrayList<Object[]> noMatches) {
+			this.noMatches = noMatches;
 		}
 	}
 	
