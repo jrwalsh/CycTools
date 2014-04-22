@@ -72,6 +72,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import net.miginfocom.swing.MigLayout;
 import java.awt.event.ActionListener;
+import javax.swing.border.EtchedBorder;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public class LoadPanel extends AbstractViewPanel {
@@ -113,6 +114,12 @@ public class LoadPanel extends AbstractViewPanel {
 	private JTable tableSearchNoMatches;
 	private JTabbedPane tabbedSearchResults;
 	private JComboBox cmbImportType = new JComboBox();
+	private JComboBox comboBoxAuthor;
+	private JPanel panelCredits;
+	private JCheckBox checkBoxCredits;
+	private JComboBox comboBoxOrganization;
+	private JLabel lblChooseOrganization;
+	private JLabel lblChooseIndividualAuthor;
 	
 	private final Action actionUpload = new ActionUpload();
 	private final Action actionSave = new ActionSave();
@@ -121,6 +128,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private final Action actionSaveLog = new ActionSaveLog();
 	private final Action actionNextDiff = new ActionNextDiff();
 	private JLabel noticeLabel;
+	
 	
 	/**
 	 * Create the frame.
@@ -146,6 +154,7 @@ public class LoadPanel extends AbstractViewPanel {
 		setName("SimpleBrowser");
 		contentPane = this;
     	
+		JPanel databasePanel = initDatabasePanel();
 		JPanel optionsPanel = initOptionsPanel();
     	JPanel filePanel = initFilePanel();
     	JPanel searchPanel = initSearchPanel();
@@ -156,6 +165,7 @@ public class LoadPanel extends AbstractViewPanel {
         setLayout(new CardLayout(0, 0));
         cardLayout = (CardLayout)(this.getLayout());
         
+        add(databasePanel, "DatabasePanel");
 		add(optionsPanel, "OptionsPanel");
 		add(filePanel, "FilePanel");
 		add(searchPanel, "SearchPanel");
@@ -163,8 +173,27 @@ public class LoadPanel extends AbstractViewPanel {
 		add(reviewPanel, "ReviewPanel");
 		add(finalPanel, "FinalPanel");
 	}
+    
+    private JPanel initDatabasePanel() {
+    	JPanel databasePanel = new JPanel();
+    	databasePanel.setLayout(new MigLayout("", "[][grow][]", "[][grow][]"));
+    	
+    	JButton btnNext_1 = new JButton("Next");
+    	btnNext_1.addActionListener(new ActionListener() {
+    		public void actionPerformed(ActionEvent arg0) {
+    			controller.lockToolBarOrganismSelect();
+    			cardLayout.show(contentPane, "OptionsPanel");
+    			loadCreditableEntitiesLists();
+    		}
+    	});
+    	
+    	JLabel lblPleaseSelectA = new JLabel("Please select a database and press Next to continue.");
+    	databasePanel.add(lblPleaseSelectA, "cell 1 1,alignx center,aligny center");
+    	databasePanel.add(btnNext_1, "cell 2 2,alignx right,aligny center");
+    	return databasePanel;
+    }
 
-    private JPanel initOptionsPanel() {
+	private JPanel initOptionsPanel() {
     	JPanel optionsPanel = new JPanel();
     	
     	DefaultComboBoxModel<String> modelFormat = new DefaultComboBoxModel<String>();
@@ -186,13 +215,17 @@ public class LoadPanel extends AbstractViewPanel {
     	modelTypes.put("|Growth-Media|", "Growth-Media");
     	modelTypes.put("|GO-Term Annotations (proteins)|", "GO-Term Annotations (proteins)");
     	
-    	optionsPanel.setLayout(new MigLayout("", "[25%][108px][grow][25%]", "[23px][][20px][20px][23px][23px][23px][14px][23px][][][grow]"));
+    	optionsPanel.setLayout(new MigLayout("", "[25%][108px,grow][grow][25%]", "[23px][][20px][20px][23px][23px][23px][14px][23px][][grow][]"));
     	
     	JLabel imageLabel = new JLabel("");
         imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         imageLabel.setOpaque(true);
         imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step1.png")));
         optionsPanel.add(imageLabel, "cell 0 0 4 1,alignx center,aligny center");
+        
+        noticeLabel = new JLabel();
+        noticeLabel.setText("Always backup your database file before modifying it!");
+        optionsPanel.add(noticeLabel, "cell 0 1 4 1,alignx center,aligny top");
 		
         JLabel importTypeLabel = new JLabel("Select Import Type");
 		optionsPanel.add(importTypeLabel, "flowx,cell 1 2,alignx trailing,aligny center");
@@ -249,6 +282,78 @@ public class LoadPanel extends AbstractViewPanel {
 		chckbxIgnoreDuplicate.setSelected(true);
 		optionsPanel.add(chckbxIgnoreDuplicate, "cell 2 7,growx,aligny center");
 		
+		textFilePath = new JTextField();
+		textFilePath.setEditable(false);
+		textFilePath.setColumns(50);
+		optionsPanel.add(textFilePath, "cell 2 3,alignx left,aligny center");
+		
+		JLabel lblAuthorCredits = new JLabel("Update Author Credits");
+		optionsPanel.add(lblAuthorCredits, "flowx,cell 1 9,alignx right,aligny center");
+		
+		panelCredits = new JPanel();
+		panelCredits.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+		panelCredits.setEnabled(false);
+		optionsPanel.add(panelCredits, "cell 2 9,grow");
+		
+		lblChooseIndividualAuthor = new JLabel("Choose Individual Author");
+		lblChooseIndividualAuthor.setEnabled(false);
+		panelCredits.setLayout(new MigLayout("", "[100px][grow]", "[38px][]"));
+		panelCredits.add(lblChooseIndividualAuthor, "cell 0 0,alignx right,aligny center");
+		
+		
+//		conn.getClassAllInstances("|Organizations|");
+		
+		comboBoxAuthor = new JComboBox();
+		comboBoxAuthor.setEnabled(false);
+		comboBoxAuthor.setRenderer(new DefaultListCellRenderer() {
+	        @Override
+	        public Component getListCellRendererComponent(final JList list, Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
+	        	if (value != null) {
+	        		value = value.toString().substring(value.toString().indexOf("=")+1, value.toString().length());
+	        		value = value.toString().replace("\"", "");
+	        	}
+	            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	        }
+	    });
+		panelCredits.add(comboBoxAuthor, "cell 1 0,growx,aligny center");
+		
+		lblChooseOrganization = new JLabel("Choose Organization");
+		lblChooseOrganization.setEnabled(false);
+		panelCredits.add(lblChooseOrganization, "cell 0 1,alignx right,aligny center");
+		comboBoxOrganization = new JComboBox();
+		comboBoxOrganization.setEnabled(false);
+		comboBoxOrganization.setRenderer(new DefaultListCellRenderer() {
+	        @Override
+	        public Component getListCellRendererComponent(final JList list, Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
+	        	if (value != null) {
+	        		value = value.toString().substring(value.toString().indexOf("=")+1, value.toString().length());
+	        		value = value.toString().replace("\"", "");
+	        	}
+	            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	        }
+	    });
+		panelCredits.add(comboBoxOrganization, "cell 1 1,growx,aligny center");
+		
+		checkBoxCredits = new JCheckBox("");
+		checkBoxCredits.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				if (checkBoxCredits.isSelected()) {
+					panelCredits.setEnabled(true);
+					lblChooseIndividualAuthor.setEnabled(true);
+					lblChooseOrganization.setEnabled(true);
+					comboBoxAuthor.setEnabled(true);
+					comboBoxOrganization.setEnabled(true);
+				} else {
+					panelCredits.setEnabled(false);
+					lblChooseIndividualAuthor.setEnabled(false);
+					lblChooseOrganization.setEnabled(false);
+					comboBoxAuthor.setEnabled(false);
+					comboBoxOrganization.setEnabled(false);
+				}
+			}
+		});
+		optionsPanel.add(checkBoxCredits, "cell 1 9,alignx right,aligny center");
+		
 		JButton btnNext = new JButton("Open");
 		btnNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -267,21 +372,20 @@ public class LoadPanel extends AbstractViewPanel {
     			cardLayout.show(contentPane, "FilePanel");
 			}
 		});
-		optionsPanel.add(btnNext, "cell 2 8,alignx left,aligny center");
 		
-		noticeLabel = new JLabel();
-		noticeLabel.setText("Always backup your database file before modifying it!");
-		optionsPanel.add(noticeLabel, "cell 1 10 3 1,alignx left,aligny top");
-		
-		textFilePath = new JTextField();
-		textFilePath.setEditable(false);
-		textFilePath.setColumns(50);
-		optionsPanel.add(textFilePath, "cell 2 3,alignx left,aligny center");
+		JButton btnBack_2 = new JButton("Back");
+		btnBack_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				resetForm();
+			}
+		});
+		optionsPanel.add(btnBack_2, "flowx,cell 3 11");
+		optionsPanel.add(btnNext, "cell 3 11,alignx right,aligny center");
 		
     	return optionsPanel;
     }
     
-    private JPanel initFilePanel() {
+	private JPanel initFilePanel() {
     	JPanel filePanel = new JPanel();
     	
         filePanel.setLayout(new MigLayout("", "[grow][]", "[][grow][]"));
@@ -390,7 +494,6 @@ public class LoadPanel extends AbstractViewPanel {
 		JButton btnBack_1 = new JButton("Back");
 		btnBack_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.unLockToolBarOrganismSelect();
 				cardLayout.show(contentPane, "FilePanel");
 			}
 		});
@@ -566,6 +669,38 @@ public class LoadPanel extends AbstractViewPanel {
 //    	  dmp.diff_charsToLines_(diffs, lineArray);
 //    	  return diffs;
 //    	}
+    
+    protected void loadCreditableEntitiesLists() {
+    	JavacycConnection conn = controller.getConnection();
+		try {
+			KeyValueComboboxModel modelAuthors = new KeyValueComboboxModel();
+			modelAuthors.put("-None Selected-", "-None Selected-");
+	    	ArrayList<String> authors;
+			authors = conn.getClassAllInstances("|People|");
+			for (String author : authors) {
+				String commonName = conn.getSlotValue(author, "Common-Name");
+				if (commonName == null || commonName.length() == 0 || commonName.equalsIgnoreCase("NIL")) commonName = author;
+				modelAuthors.put(author, commonName);
+			}
+			comboBoxAuthor.setModel(modelAuthors);
+			comboBoxAuthor.setSelectedIndex(0);
+			
+			
+			KeyValueComboboxModel modelOrganizations = new KeyValueComboboxModel();
+			modelOrganizations.put("-None Selected-", "-None Selected-");
+	    	ArrayList<String> organizations;
+			organizations = conn.getClassAllInstances("|Organizations|");
+			for (String organization : organizations) {
+				String commonName = conn.getSlotValue(organization, "Common-Name");
+				if (commonName == null || commonName.length() == 0 || commonName.equalsIgnoreCase("NIL")) commonName = organization;
+				modelOrganizations.put(organization, commonName);
+			}
+			comboBoxOrganization.setModel(modelOrganizations);
+			comboBoxOrganization.setSelectedIndex(0);
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		}
+	}
     
 	private void updateComparison() {
 		String frameID = "";
@@ -767,7 +902,6 @@ public class LoadPanel extends AbstractViewPanel {
 	private boolean searchFrameIDs() { //TODO convert to worker string task
 		JavacycConnection conn = controller.getConnection();
 		
-		controller.lockToolBarOrganismSelect();
 		TableModel tb = tableSpreadSheet.getModel();
 		
 		// Do a fast preliminary check to see if any user provided ID's are not frames in this database
@@ -1198,7 +1332,9 @@ public class LoadPanel extends AbstractViewPanel {
 	}
 	
 	private void resetForm() {
-		cardLayout.show(contentPane, "OptionsPanel");
+		cardLayout.show(contentPane, "DatabasePanel");
+		checkBoxCredits.setSelected(false);
+		
 		cmbImportType.setSelectedIndex(0);
 		selectedAdaptor = null;
 		tableSpreadSheet.setModel(new DefaultTableModel());
@@ -1221,6 +1357,7 @@ public class LoadPanel extends AbstractViewPanel {
 		
 		textFilePath.setText("");
 		textMultipleValueDelimiter.setText("$");
+		controller.unLockToolBarOrganismSelect();
 	}
 	
 	@Override
