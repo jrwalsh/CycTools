@@ -114,4 +114,9 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 		boolean isModified = !aFrame.equalBySlotValues(frameToModify); // If the frames are not equal, a change has been made to the database.
 		return isModified;
 	}
+
+	@Override
+	public String toString() {
+		return "updating annotation: " + annotationLabel + " for slot: " + slotLabel + " on frame: " + frameID + " with the values: " + annotationValues.toString();//TODO don't really expect this toString to work, right?
+	}
 }

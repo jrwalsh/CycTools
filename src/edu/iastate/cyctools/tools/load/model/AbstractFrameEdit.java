@@ -38,4 +38,5 @@ public abstract class AbstractFrameEdit {
 	public abstract boolean modifiesFrame(JavacycConnection conn, Frame aFrame) throws PtoolsErrorException;
 	public abstract boolean commit(JavacycConnection conn) throws PtoolsErrorException;
 	public abstract Frame commitLocal(Frame frame) throws PtoolsErrorException;
+	public abstract String toString();
 }

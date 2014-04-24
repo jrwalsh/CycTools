@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import edu.iastate.cyctools.CycToolsError;
@@ -50,6 +51,7 @@ import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleAnnotationValueImport;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleSlotValueImport;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Event;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Status;
+import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate;
 import edu.iastate.javacyco.Frame;
@@ -369,6 +371,11 @@ public class LoadPanel extends AbstractViewPanel {
     				return;
     			}
     			
+				if (checkBoxCredits.isSelected() && comboBoxAuthor.getSelectedIndex() == 0 && comboBoxOrganization.getSelectedIndex() == 0) {
+    				JOptionPane.showMessageDialog(DefaultController.mainJFrame, "If authorship credits checkbox is selected, at least 1 author or organization is required", "Error", JOptionPane.ERROR_MESSAGE);
+    				return;
+				}
+    			
     			cardLayout.show(contentPane, "FilePanel");
 			}
 		});
@@ -554,7 +561,6 @@ public class LoadPanel extends AbstractViewPanel {
 		chckbxFilter.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 				if (chckbxFilter.isSelected()) {
-					//TODO can i filter out go-term annotation changes here, so that a diff curator is ignored?
 					framesWhichModifyKB = batchEdits.framesWhichModifyKB(controller.getConnection());
 					if (framesWhichModifyKB.isEmpty()) framesWhichModifyKB.addElement("No Frames will modify KB");
 					listFrames.setModel(framesWhichModifyKB);
@@ -888,15 +894,34 @@ public class LoadPanel extends AbstractViewPanel {
 			JOptionPane.showMessageDialog(this, "No data could be matched to frames in this database for the selected frame type. Unable to proceed with import", "No Data to Import!", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		cardLayout.show(contentPane, "PreviewPanel");
+		
 	    
-	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(model), controller.getConnection());
+	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(model), this);
 //	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(tableSpreadSheet.getModel()), controller.getConnection());
 		batchEdits.addPropertyChangeListener(controller);
 		
 		batchEdits.downloadFrames(controller.getConnection());
 		allFramesWithImports = batchEdits.getFrameIDsModel();
 		listFrames.setModel(allFramesWithImports);
+	}
+	
+	public void showPreviewPanel() {
+		cardLayout.show(contentPane, "PreviewPanel");
+	}
+	
+	public void addAuthorCredits() {
+		// Add in AuthorCreditUpdates for frames which are modified, must have downloadFrames first
+		if (checkBoxCredits.isSelected() && (comboBoxAuthor.getSelectedIndex() != 0 || comboBoxOrganization.getSelectedIndex() != 0)) {
+			String author;
+			if (comboBoxAuthor.getSelectedIndex() == 0) author = "";
+			else author = ((Entry<String, String>)comboBoxAuthor.getSelectedItem()).getKey();
+			
+			String organization;
+			if (comboBoxOrganization.getSelectedIndex() == 0) organization = "";
+			else organization = ((Entry<String, String>)comboBoxOrganization.getSelectedItem()).getKey();
+			
+			batchEdits.createAuthorCredits(author, organization, controller.getConnection());
+		}
 	}
 	
 	private boolean searchFrameIDs() { //TODO convert to worker string task

@@ -124,7 +124,7 @@ public class MaizeAdaptor implements FileAdaptor {
 	}
 	
 	
-	// Agreed upon format is dd-mm-yyyy hh-mm-ss
+	// Agreed upon format is mm-dd-yyyy hh-mm-ss
 	private String encodeTimeStampString(String timeStampString, JavacycConnection conn) {
 		String encodedTime = "";
 		

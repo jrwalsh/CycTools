@@ -127,6 +127,11 @@ public class SlotUpdate extends AbstractFrameDataEdit {
 		boolean isModified = !aFrame.equalBySlotValues(frameToModify); // If the frames are not equal, a change has been made to the database.
 		return isModified;
 	}
+
+	@Override
+	public String toString() {
+		return "updating slot: " + slotLabel + " on frame: " + frameID + " with the values: " + slotValues.toString();//TODO don't really expect this toString to work, right?
+	}
 	
 //	@Override
 //	public boolean modifiesKB(JavacycConnection conn) throws PtoolsErrorException {

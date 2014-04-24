@@ -3,7 +3,9 @@ package edu.iastate.cyctools.tools.load.model;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
@@ -16,6 +18,7 @@ import javax.swing.ProgressMonitor;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractModel;
 import edu.iastate.cyctools.tools.load.threadedTasks.DownloadFramesTask;
+import edu.iastate.cyctools.tools.load.view.LoadPanel;
 import edu.iastate.cyctools.view.dialog.TranslucentGlassPane;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
@@ -25,6 +28,7 @@ import edu.iastate.javacyco.PtoolsErrorException;
 // Contains a group of updates (AbstractFrameEdit).  Knows how to compare them to existing KB, commit them to KB, and report on the results of the commit.
 // Save/revert of the KB must still be done separately, as save/revert of KB is not handled by this class.
 public class BatchUpdate extends AbstractModel {
+	private LoadPanel loadPanel;
 	private ProgressMonitor progressMonitor;
 	private DownloadFramesTask task;
 	private ArrayList<Frame> framesFromKB;
@@ -36,7 +40,8 @@ public class BatchUpdate extends AbstractModel {
 	private TreeSet<Integer> linesProcessed;
 	private ArrayList<Event> eventLog;
     
-    public BatchUpdate(ArrayList<AbstractFrameEdit> frameEditList, JavacycConnection conn) {
+    public BatchUpdate(ArrayList<AbstractFrameEdit> frameEditList, LoadPanel loadPanel) {
+    	this.loadPanel = loadPanel;
     	initDefault();
     	this.frameEdits = frameEditList;
     	
@@ -198,6 +203,8 @@ public class BatchUpdate extends AbstractModel {
 							framesFromKB = task.get();
 							progressMonitor.setProgress(0);
 							progressMonitor.close();
+							loadPanel.showPreviewPanel();
+							loadPanel.addAuthorCredits();
 							DefaultController.mainJFrame.getGlassPane().setVisible(false);
 						} catch (InterruptedException e1) {
 							framesFromKB = new ArrayList<Frame>();
@@ -243,6 +250,47 @@ public class BatchUpdate extends AbstractModel {
     	return listModel;
     }
     
+    private TreeSet<String> getFramesWhichModifyKB(JavacycConnection conn) {
+    	TreeSet<String> frameSet = new TreeSet<String>();
+    	for (AbstractFrameEdit frameEdit : frameEdits) {
+    		Frame frame = getFrameByID(frameEdit.getFrameID());
+    		if (frame == null) frameSet.add(frameEdit.getFrameID());
+    		else {
+	    		boolean modifiesKB = true;
+				try {
+					modifiesKB = frameEdit.modifiesFrame(conn, frame);
+				} catch (PtoolsErrorException e) {
+					e.printStackTrace();
+				}
+	    		if (modifiesKB) {
+	    			frameSet.add(frameEdit.getFrameID());
+	    		}
+    		}
+    	}
+    	
+    	return frameSet;
+    }
+    
+    public void createAuthorCredits(String author, String organization, JavacycConnection conn) {
+		TreeSet<String> frameIDs = getFramesWhichModifyKB(conn);
+		Calendar now = new GregorianCalendar();
+		String seconds = "" + now.get(Calendar.SECOND);
+		String minutes = "" + now.get(Calendar.MINUTE);
+		String hours = "" + now.get(Calendar.HOUR_OF_DAY);
+		String day = "" + now.get(Calendar.DAY_OF_MONTH);
+		String month = "" + now.get(Calendar.MONTH);
+		String year = "" + now.get(Calendar.YEAR);
+		String encodedTime = "";
+		
+		try {
+			encodedTime = conn.encodeTimeStamp(seconds, minutes, hours, day, month, year);
+		} catch (PtoolsErrorException e) {
+			e.printStackTrace();
+		}
+		
+		for (String frameID : frameIDs) frameEdits.add(new AuthorCreditUpdate(frameID, author, organization, encodedTime, new int[0]));
+	}
+    
     public Frame getFrameByID(String frameID) {
     	for (Frame frame : framesFromKB) {
     		if (frame.getLocalID().equalsIgnoreCase(frameID)) return frame;
@@ -283,10 +331,12 @@ public class BatchUpdate extends AbstractModel {
 			}
     		
     		if (result) {
-    			Event event = new Event(new Date(), Status.SUCCESS, "Successfully committed update to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString());
+    			Event event = new Event(new Date(), Status.SUCCESS, frameEdit.toString());
+//    			Event event = new Event(new Date(), Status.SUCCESS, "Successfully committed update to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString());
     			eventLog.add(event);
     		} else {
-    			Event event = new Event(new Date(), Status.FAIL, "Failed commit to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString());
+    			Event event = new Event(new Date(), Status.FAIL, frameEdit.toString());
+//    			Event event = new Event(new Date(), Status.FAIL, "Failed commit to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString());
     			eventLog.add(event);
     		}
 		}

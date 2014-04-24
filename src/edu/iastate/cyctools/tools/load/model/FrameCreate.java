@@ -39,4 +39,10 @@ public class FrameCreate extends AbstractFrameEdit {
 		return false;
 	}
 
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return "creating frame: " + frameID;
+	}
+
 }
