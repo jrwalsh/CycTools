@@ -11,9 +11,6 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.ProgressMonitor;
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.externalSourceCode.AbstractModel;
@@ -22,7 +19,6 @@ import edu.iastate.cyctools.tools.load.view.LoadPanel;
 import edu.iastate.cyctools.view.dialog.TranslucentGlassPane;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
-import edu.iastate.javacyco.Protein;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 // Contains a group of updates (AbstractFrameEdit).  Knows how to compare them to existing KB, commit them to KB, and report on the results of the commit.
@@ -44,8 +40,6 @@ public class BatchUpdate extends AbstractModel {
     	this.loadPanel = loadPanel;
     	initDefault();
     	this.frameEdits = frameEditList;
-    	
-    	//validateIdentifiers(conn); // Should just make conn a locked in global hook to the connection object, locked at creation of BatchUpdate
     	
     	frameEditsMap = new HashMap<String, ArrayList<AbstractFrameEdit>>();
     	frameIDSet = new TreeSet<String>();
@@ -73,28 +67,6 @@ public class BatchUpdate extends AbstractModel {
     	eventLog = new ArrayList<Event>();
     }
     
-    private void validateIdentifiers(JavacycConnection conn) {
-    	String frameType = Protein.GFPtype;
-    	ArrayList<String> validIdentifiers = new ArrayList<String>();
-    	for (AbstractFrameEdit frameEdit : frameEdits) {
-    		try {
-				if (conn.frameExists(frameEdit.getFrameID())) {
-					System.out.println("Found frame " + frameEdit.getFrameID() + " :: " + Frame.load(conn, frameEdit.getFrameID()).getCommonName());
-					validIdentifiers.add(frameEdit.getFrameID());
-				} else {
-					ArrayList<Frame> matches = conn.search(frameEdit.getFrameID(), frameType);
-					if (matches != null && matches.size() > 0) {
-						for (Frame match : matches) System.out.println("Possible Match: " + match.getLocalID());
-					} else {
-						System.out.println("No Matchs found for: " + frameEdit.getFrameID());
-					}
-				}
-			} catch (PtoolsErrorException e1) {
-				e1.printStackTrace();
-			}
-    	}
-    }
-
     // Accessors
     public ArrayList<AbstractFrameEdit> getFrameEdits() {
     	return frameEdits;
@@ -123,66 +95,6 @@ public class BatchUpdate extends AbstractModel {
 		}
 		return listModel;
     }
-    
-//    public DefaultListModel<String> checkForNewData(JavacycConnection conn) {
-//    	// We want to know which frame updates will actually result in new data in the database.
-//    	// If data is not new (i.e. already in database), then this update is not adding new data
-//    	// for that frame.
-//    	
-//    	DefaultListModel<String> listModel = new DefaultListModel<String>();
-//    	TreeSet<String> frameIDSet = new TreeSet<String>();
-//    	for (AbstractFrameEdit frameEdit : frameEdits) {
-//    		try {
-//    			boolean modifiesKB = frameEdit.modifiesKB(conn);
-//				if (modifiesKB) {
-//					frameIDSet.add(frameEdit.frameID);
-//				}
-//			} catch (PtoolsErrorException e) {
-//				e.printStackTrace();
-//			}
-//    	}
-//    	
-//    	for (String id : frameIDSet) listModel.addElement(id);
-//    	
-//		return listModel;
-//    }
-    
-//    private void updateComparison(String frameID) {
-//		if (frameID.equalsIgnoreCase("")) return;
-//		
-//		String originalFrameString = controller.frameToString(frameID);
-//		
-//		if (originalFrameString == null || originalFrameString.equalsIgnoreCase("")) {
-//			String message = "Frame " + frameID + " does not exist in database " + controller.getSelectedOrganism();
-//			textAreaOld.setText(message);
-//			textAreaNew.setText(message);
-//			return;
-//		}
-//		
-//		textAreaOld.setText(originalFrameString);
-//		
-//		// select the frame edits which relate to this frame
-//		ArrayList<AbstractFrameEdit> frameEditArray = batchEdits.getFrameEditsMap().get(frameID);
-//		
-//		// apply frame edits to local copy of frame
-//		Frame resultFrame = controller.updateLocalFrame(frameID, frameEditArray);
-//		
-//		// return print of the updated frame
-//		String updatedFrameString = controller.frameToString(resultFrame);
-//		textAreaNew.setText(updatedFrameString);
-//		int currentPosition = 0;
-//		for (String line : updatedFrameString.split("\n")) {
-//			if (!originalFrameString.contains(line)) {
-//				DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
-//				try {
-//					textAreaNew.getHighlighter().addHighlight(currentPosition, currentPosition + line.length(), highlightPainter);
-//				} catch (BadLocationException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//			currentPosition += line.length()+1;
-//		}
-//	}
     
     public void downloadFrames(JavacycConnection conn) {
     	progressMonitor = new ProgressMonitor(DefaultController.mainJFrame, "Analyzing Imports...", "", 0, 100);
@@ -332,11 +244,9 @@ public class BatchUpdate extends AbstractModel {
     		
     		if (result) {
     			Event event = new Event(new Date(), Status.SUCCESS, frameEdit.toString());
-//    			Event event = new Event(new Date(), Status.SUCCESS, "Successfully committed update to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString());
     			eventLog.add(event);
     		} else {
     			Event event = new Event(new Date(), Status.FAIL, frameEdit.toString());
-//    			Event event = new Event(new Date(), Status.FAIL, "Failed commit to frame " + frameEdit.getFrameID() + ". Data from line(s) " + frameEdit.getAssociatedRowsString());
     			eventLog.add(event);
     		}
 		}

@@ -1,10 +1,6 @@
 package edu.iastate.cyctools.tools.load.model;
 
 import java.util.ArrayList;
-import java.util.Date;
-
-import edu.iastate.cyctools.tools.load.model.BatchUpdate.Event;
-import edu.iastate.cyctools.tools.load.model.BatchUpdate.Status;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;

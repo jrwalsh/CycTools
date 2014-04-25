@@ -14,15 +14,15 @@ import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
-// Designed for the MaizeGDB teams curation updates.  To be designed to handle their specifically formated input file.
+// Designed for the MaizeGDB teams curation updates.  To be designed to handle their specifically formated input file.  This generically imports GO-Term annotations.
 @SuppressWarnings("unchecked")
-public class MaizeAdaptor implements FileAdaptor {
+public class GOTermAdaptor implements FileAdaptor {
 	private boolean append;
 	private boolean ignoreDuplicates;
 	@SuppressWarnings("unused")
 	private String multipleValueDelimiter; //Contains this parameter to conform to the interface, but this custom adaptor does not allow multiple values in a column
 	
-	public MaizeAdaptor() {
+	public GOTermAdaptor() {
 		append = true;
 		ignoreDuplicates = true;
 		multipleValueDelimiter = "$"; //TODO convert multiple value entries into arrays before insert
@@ -54,10 +54,6 @@ public class MaizeAdaptor implements FileAdaptor {
 			ArrayList<GOAnnotation> goAnnotationValues = new ArrayList<GOAnnotation>();
 			goAnnotationValues.add(new GOAnnotation(pubMedID, evCode, encodedTime, curator));
 			frameUpdates.add(new GOTermAnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", goAnnotationValues, append, ignoreDuplicates, new int[] {rowIndex}));
-			
-//			ArrayList<String> annotValues = new ArrayList<String>();
-//			annotValues.add("\"" + pubMedID + ":" + evCode + ":" + encodedTime + ":" + curator + "\"");
-//			frameUpdates.add(new AnnotationUpdate(frameID, "GO-TERMS", goTerm, "CITATIONS", annotValues, append, ignoreDuplicates, new int[] {rowIndex}));
 		}
 		return frameUpdates;
 	}
