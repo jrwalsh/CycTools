@@ -51,6 +51,7 @@ public class MainCardPanel extends AbstractViewPanel {
 			else if (evt.getNewValue() == State.SHOW_MAIN_SCREEN) {
 				CardLayout cl = (CardLayout)(this.getLayout());
 			    cl.show(this, MainCardPanel.selectCard);
+			    controller.setDisconnectActionEnabled(true);
 			}
 			else if (evt.getNewValue() == State.SHOW_FRAMEBROWSE) {
 				CardLayout cl = (CardLayout)(this.getLayout());

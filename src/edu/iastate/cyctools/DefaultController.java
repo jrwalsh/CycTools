@@ -16,6 +16,7 @@ import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
 import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
+import edu.iastate.cyctools.view.MenuBar;
 import edu.iastate.cyctools.view.StatusPanel;
 import edu.iastate.cyctools.view.ToolPanel;
 import edu.iastate.javacyco.Frame;
@@ -29,6 +30,7 @@ public class DefaultController implements PropertyChangeListener {
 	public static JFrame mainJFrame;
 	public ToolPanel toolPanel;
 	public StatusPanel statusPanel;
+	public MenuBar menuPanel;
 	private DocumentModel documentModel;
 	private WindowAdapter winAdaptor;
 	
@@ -77,6 +79,10 @@ public class DefaultController implements PropertyChangeListener {
     
     public void setStatusPanel(StatusPanel statusPanel) {
 		this.statusPanel = statusPanel;
+	}
+    
+    public void setMenuPanel(MenuBar menuPanel) {
+		this.menuPanel = menuPanel;
 	}
     
     public JavacycConnection getConnection() {
@@ -225,5 +231,9 @@ public class DefaultController implements PropertyChangeListener {
 
 	public boolean isKBModified(String kb) {
 		return dataAccess.isCurrentKBModified(kb);
+	}
+
+	public void setDisconnectActionEnabled(boolean enabled) {
+		menuPanel.setDisconnectActionEnabled(enabled);
 	}
 }

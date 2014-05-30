@@ -2,14 +2,11 @@ package edu.iastate.cyctools.view;
 
 import edu.iastate.cyctools.DefaultController;
 import edu.iastate.cyctools.InternalStateModel.State;
-import edu.iastate.javacyco.Frame;
-import edu.iastate.javacyco.JavacycConnection;
-import edu.iastate.javacyco.Protein;
-import edu.iastate.javacyco.PtoolsErrorException;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -17,9 +14,18 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @SuppressWarnings("serial")
 public class MenuBar extends JMenuBar {
@@ -38,8 +44,6 @@ public class MenuBar extends JMenuBar {
 	private final Action actionRevertKB = new ActionRevertKB();
 	private JMenuItem mntmOptions;
 	private final Action action = new ActionOptions();
-	private JMenuItem mntmVerifyIdentifiers;
-	private final Action action_1 = new ActionVerify();
 
 	/**
 	 * Create the frame.
@@ -51,6 +55,8 @@ public class MenuBar extends JMenuBar {
     }
 
     public void localInitialization() {
+    	setDisconnectActionEnabled(false);
+    	controller.setMenuPanel(this);
     }
     
     private void initComponents() {
@@ -68,10 +74,6 @@ public class MenuBar extends JMenuBar {
 		mnEdit = new JMenu("Edit");
 		add(mnEdit);
 		
-		mntmVerifyIdentifiers = new JMenuItem("Verify Identifiers");
-		mntmVerifyIdentifiers.setAction(action_1);
-		mnEdit.add(mntmVerifyIdentifiers);
-		
 		mntmOptions = new JMenuItem("Options");
 		mntmOptions.setAction(action);
 		mnEdit.add(mntmOptions);
@@ -88,6 +90,10 @@ public class MenuBar extends JMenuBar {
 		mnAbout.add(mntmAbout);
 	}
     
+    public void setDisconnectActionEnabled(boolean enabled) {
+    	actionDisconnect.setEnabled(enabled);
+    }
+    
 	private class ActionDisconnect extends AbstractAction {
 		public ActionDisconnect() {
 			putValue(NAME, "Disconnect");
@@ -95,6 +101,7 @@ public class MenuBar extends JMenuBar {
 		}
 		public void actionPerformed(ActionEvent e) {
 			controller.setState(State.NOT_CONNECTED);
+			setDisconnectActionEnabled(false);
 		}
 	}
 	
@@ -113,9 +120,60 @@ public class MenuBar extends JMenuBar {
 			putValue(SHORT_DESCRIPTION, "About this program.");
 		}
 		public void actionPerformed(ActionEvent e) {
-			JOptionPane.showMessageDialog(DefaultController.mainJFrame, "This program was written by Jesse Walsh", "About", JOptionPane.INFORMATION_MESSAGE);
+			try {
+				final URI uri = new URI("https://github.com/jrwalsh/CycTools/wiki");
+				class OpenUrlAction implements ActionListener {
+					@Override public void actionPerformed(ActionEvent e) {
+						open(uri);
+					}
+				}
+				
+				JPanel panel = new JPanel();
+				panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+				JLabel label1 = new JLabel("<html><bold>CycTools: Software for Maintaining and Migrating Functional Annotations in BioCyc Model Organism Databases.</bold></html>");
+				label1.setFont(new Font("serif", Font.BOLD, 14));
+				label1.setAlignmentX(CENTER_ALIGNMENT);
+				panel.add(label1);
+				JLabel label2 = new JLabel("Beta Version: 0.1");
+				label2.setAlignmentX(CENTER_ALIGNMENT);
+				panel.add(label2);
+				JLabel label3 = new JLabel("Licensed under GNU GPL.");
+				label3.setAlignmentX(CENTER_ALIGNMENT);
+				panel.add(label3);
+				panel.add(Box.createVerticalStrut(10));
+				
+				JButton button = new JButton();
+			    button.setText("<HTML>Visit <FONT color=\"#000099\"><U>" + uri + "</U></FONT></HTML>");
+			    button.setHorizontalAlignment(SwingConstants.LEFT);
+			    button.setBorderPainted(false);
+			    button.setOpaque(false);
+			    button.setBackground(Color.WHITE);
+			    button.setToolTipText(uri.toString());
+			    button.addActionListener(new OpenUrlAction());
+			    button.setAlignmentX(Component.CENTER_ALIGNMENT);
+			    button.setMaximumSize(new Dimension(290,25));
+			    panel.add(button);
+			    panel.add(Box.createVerticalStrut(20));
+			    
+				JOptionPane.showMessageDialog(DefaultController.mainJFrame, panel, "About", JOptionPane.INFORMATION_MESSAGE);
+			} catch (URISyntaxException e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
+	
+	private static void open(URI uri) {
+	    if (Desktop.isDesktopSupported()) {
+	      try {
+	        Desktop.getDesktop().browse(uri);
+	      } catch (IOException e) {
+	    	  //error handling
+	      }
+	    } else { //error handling
+	    	
+	    }
+	  }
+	
 	private class ActionRevertKB extends AbstractAction {
 		public ActionRevertKB() {
 			putValue(NAME, "Revert KB");
@@ -136,6 +194,7 @@ public class MenuBar extends JMenuBar {
 			}
 		}
 	}
+	
 	private class ActionOptions extends AbstractAction {
 		public ActionOptions() {
 			putValue(NAME, "Options");
@@ -143,14 +202,10 @@ public class MenuBar extends JMenuBar {
 		}
 		public void actionPerformed(ActionEvent e) {
 			JTextField queryTimeOut = new JTextField(5);
-//			JTextField yField = new JTextField(5);
 			JPanel myPanel = new JPanel();
-			myPanel.add(new JLabel("Query TimeOut in Miliseconds"));
+			myPanel.add(new JLabel("Query TimeOut in Miliseconds (enter 0 to disable query timeout):"));
 			myPanel.add(queryTimeOut);
-//			myPanel.add(Box.createHorizontalStrut(15)); // a spacer
-//			myPanel.add(new JLabel("y:"));
-//			myPanel.add(yField);
-			int result = JOptionPane.showConfirmDialog(null, myPanel, "Please enter new option values.", JOptionPane.OK_CANCEL_OPTION);
+			int result = JOptionPane.showConfirmDialog(null, myPanel, "Change Settings.", JOptionPane.OK_CANCEL_OPTION);
 			if (result == JOptionPane.OK_OPTION) {
 				try {
 					String queryTimeOutResult = queryTimeOut.getText();
@@ -159,49 +214,6 @@ public class MenuBar extends JMenuBar {
 					JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Success.", "Valid Selection", JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception exception) {
 					JOptionPane.showMessageDialog(DefaultController.mainJFrame, "Unable to change options.", "Invalid Selection", JOptionPane.WARNING_MESSAGE);
-				}
-//				System.out.println("y value: " + yField.getText());
-			}
-		      
-//			JOptionPane.showInputDialog(parentComponent, message, title, messageType, icon, selectionValues, initialSelectionValue)(DefaultController.mainJFrame, "Database reverted to previous version.", "Database revert performed", JOptionPane.INFORMATION_MESSAGE);
-		}
-	}
-	private class ActionVerify extends AbstractAction {
-		public ActionVerify() {
-			putValue(NAME, "Verify Identifiers");
-			putValue(SHORT_DESCRIPTION, "Make sure identifiers are valid frame ID's, else initiate a search to find valid frame ID's");
-		}
-		public void actionPerformed(ActionEvent e) {
-			ArrayList<String> untestedIdentifiers = new ArrayList<String>();
-			ArrayList<String> validIdentifiers = new ArrayList<String>();
-			untestedIdentifiers.add("GDQC-104328-MONOMER");
-			untestedIdentifiers.add("GDQC-104349-MONOMER");
-			untestedIdentifiers.add("GDQC-104463-MONOMER");
-			untestedIdentifiers.add("GDQC-104578-MONOMER");
-			untestedIdentifiers.add("GDQC-104600-MONOMER");
-			
-			untestedIdentifiers.add("GRMZM2G070422_P01");
-			untestedIdentifiers.add("GRMZM2G163809_P02");
-			untestedIdentifiers.add("GRMZM2G068862_P01");
-			untestedIdentifiers.add("GRMZM2G044237_P03");
-			untestedIdentifiers.add("GRMZM2G097457_P01");
-			
-			JavacycConnection conn = controller.getConnection();
-			for (String untestedIdentifier : untestedIdentifiers) {
-				try {
-					if (conn.frameExists(untestedIdentifier)) {
-						System.out.println("Found frame " + untestedIdentifier + " :: " + Frame.load(conn, untestedIdentifier).getCommonName());
-						validIdentifiers.add(untestedIdentifier);
-					} else {
-						ArrayList<Frame> matches = conn.search(untestedIdentifier, Protein.GFPtype);
-						if (matches != null && matches.size() > 0) {
-							for (Frame match : matches) System.out.println("Possible Match: " + match.getLocalID());
-						} else {
-							System.out.println("No Matchs found for: " + untestedIdentifier);
-						}
-					}
-				} catch (PtoolsErrorException e1) {
-					e1.printStackTrace();
 				}
 			}
 		}

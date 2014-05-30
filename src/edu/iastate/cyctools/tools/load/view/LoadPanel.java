@@ -156,7 +156,6 @@ public class LoadPanel extends AbstractViewPanel {
     	JPanel searchPanel = initSearchPanel();
     	JPanel previewPanel = initPreviewPanel();
     	JPanel reviewPanel = initReviewPanel();
-    	JPanel finalPanel = initFinalPanel();
         
         setLayout(new CardLayout(0, 0));
         cardLayout = (CardLayout)(this.getLayout());
@@ -167,7 +166,6 @@ public class LoadPanel extends AbstractViewPanel {
 		add(searchPanel, "SearchPanel");
 		add(previewPanel, "PreviewPanel");
 		add(reviewPanel, "ReviewPanel");
-		add(finalPanel, "FinalPanel");
 	}
     
     private JPanel initDatabasePanel() {
@@ -405,6 +403,8 @@ public class LoadPanel extends AbstractViewPanel {
 		modelAdaptor.addElement("Standard CSV: Column header determines slot label");
         modelAdaptor.addElement("Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label");
         modelAdaptor.addElement("GO-Term Import: frameID, goTerm, pubMedID, evCode, timeStampString (mm-dd-yyyy hh-mm-ss), curator");
+        modelAdaptor.addElement("Regulation Import");
+        modelAdaptor.addElement("Frame Delete");
         cmbAdaptor = new JComboBox<String>(modelAdaptor);
         filePanel.add(cmbAdaptor, "flowx,cell 0 2,alignx right,aligny center");
         
@@ -467,6 +467,8 @@ public class LoadPanel extends AbstractViewPanel {
 					if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleSlotValueImport();
 					else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = new SimpleAnnotationValueImport();
 					else if (cmbAdaptor.getSelectedIndex() == 2) selectedAdaptor = new GOTermAdaptor();
+					else if (cmbAdaptor.getSelectedIndex() == 3) selectedAdaptor = null;//regulation import
+					else if (cmbAdaptor.getSelectedIndex() == 4) selectedAdaptor = null;//frame delete
 					
 					selectedAdaptor.setMultipleValueDelimiter(textMultipleValueDelimiter.getText());
 					selectedAdaptor.setAppend(chckbxAppend.getModel().isSelected());
@@ -614,19 +616,6 @@ public class LoadPanel extends AbstractViewPanel {
         reviewPanel.add(lblSaveOrRejectNote, "cell 0 2,alignx right,aligny center");
         
         return reviewPanel;
-    }
-    
-    private JPanel initFinalPanel() {
-    	JPanel finalPanel = new JPanel();
-    	
-    	finalPanel.setLayout(new MigLayout("", "[780px]", "[49px][23px]"));
-		
-		JLabel imageLabel = new JLabel("");
-		imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step5.png")));
-		finalPanel.add(imageLabel, "cell 0 0,alignx center,aligny center");
-		
-		return finalPanel;
     }
     
     protected void loadCreditableEntitiesLists() {

@@ -3,12 +3,9 @@ package edu.iastate.cyctools;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import edu.iastate.cyctools.tools.compare.DatabaseComparePanel;
 import edu.iastate.cyctools.tools.exportFrame.ExportFramePanel;
-import edu.iastate.cyctools.tools.exportPGDBStructure.ExportPGDBStructurePanel;
 import edu.iastate.cyctools.tools.frameView.FrameViewPanel;
 import edu.iastate.cyctools.tools.load.view.LoadPanel;
-import edu.iastate.cyctools.tools.search.SearchPanel;
 import edu.iastate.cyctools.view.LoginPanel;
 import edu.iastate.cyctools.view.MainCardPanel;
 import edu.iastate.cyctools.view.MenuBar;
@@ -16,9 +13,6 @@ import edu.iastate.cyctools.view.SelectPanel;
 import edu.iastate.cyctools.view.StatusPanel;
 import edu.iastate.cyctools.view.ToolPanel;
 
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import java.awt.Dimension;
 import net.miginfocom.swing.MigLayout;
 
@@ -47,9 +41,6 @@ public class Main {
 		cardPanel.add(new SelectPanel(controller), MainCardPanel.selectCard);
 		cardPanel.add(new FrameViewPanel(controller), MainCardPanel.frameBrowseCard);
 		cardPanel.add(new ExportFramePanel(controller), MainCardPanel.exportCard);
-		cardPanel.add(new SearchPanel(controller), MainCardPanel.searchCard);
-		cardPanel.add(new ExportPGDBStructurePanel(controller), MainCardPanel.structureExportCard);
-		cardPanel.add(new DatabaseComparePanel(controller), MainCardPanel.databaseCompareCard);
 		cardPanel.add(new LoadPanel(controller), MainCardPanel.loadCard);
 		
 		JFrame displayFrame = new JFrame("CycBrowser");

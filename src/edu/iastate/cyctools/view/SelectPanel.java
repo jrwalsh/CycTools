@@ -54,50 +54,18 @@ public class SelectPanel extends AbstractViewPanel {
     	btnFrameBrowse.setMargin(new Insets(2, 2, 2, 2));
     	btnFrameBrowse.setAction(actionSelectFrameBrowser);
 		
-		JButton btnExport = new JButton("Export");
-		btnExport.setMargin(new Insets(2, 2, 2, 2));
-		btnExport.setAction(actionSelectExportPanel);
-		
-		JButton btnSearch = new JButton("Search");
-		btnSearch.setMargin(new Insets(2, 2, 2, 2));
-		btnSearch.setAction(actionSelectSearchPanel);
-		
-		JButton btnExportStructure = new JButton("Export Structure");
-		btnExportStructure.setMargin(new Insets(2, 2, 2, 2));
-		btnExportStructure.setAction(actionExportStructurePanel);
-		
-		JButton btnCompare = new JButton("Compare");
-		btnCompare.setMargin(new Insets(2, 2, 2, 2));
-		btnCompare.setAction(actionComparePanel);
-		
-		JLabel lblFrameInspect = new JLabel("<html>The frame inspect tool allows for a direct view of individual frame data.  This can be useful in understanding the structure of the PGDB data objects and where data is stored. </html>");
-		
-		JLabel lblSearch = new JLabel("<html>The search tool can be used to look search for multiple terms at once in the same way the substring search works in PathwayTools.</html>");
-		
-		JLabel lblExport = new JLabel("<html>The export tool is used to print out frame data to a file.  Multiple file formats are allowed.</html>");
-		
-		JLabel lblStructure = new JLabel("<html>The structure export tool is used to view the underlying GFP structure of the PGDB.</html>");
-		
-		JLabel lbltheCompareTool = new JLabel("<html>The compare tool allows a frame by frame comparison between two databases and reports on any frames that do not match.</html>");
+		JLabel lblFrameInspect = new JLabel("<html>View the contents of a data frame as text</html>");
+		setLayout(new MigLayout("", "[grow][101px][25px][224px][grow]", "[grow][84px][25.00][84px][grow]"));
+		add(btnFrameBrowse, "cell 1 1,grow");
+		add(lblFrameInspect, "cell 3 1,grow");
 		
 		JButton btnLoadData = new JButton("Load Data");
 		btnLoadData.setAction(actionLoad);
 		btnLoadData.setMargin(new Insets(2, 2, 2, 2));
+		add(btnLoadData, "cell 1 3,grow");
 		
-		JLabel lblloadASpreadsheet = new JLabel("<html>Load a spreadsheet file into the database.</html>");
-		setLayout(new MigLayout("", "[grow][101px][224px][101px][255px][grow]", "[][84px][84px][84px][grow]"));
-		add(btnCompare, "cell 1 3,alignx left,growy");
-		add(lbltheCompareTool, "cell 2 3,grow");
-		add(btnLoadData, "cell 3 3,grow");
-		add(lblloadASpreadsheet, "cell 4 3,grow");
-		add(btnFrameBrowse, "cell 1 1,grow");
-		add(btnSearch, "cell 1 2,grow");
-		add(lblSearch, "cell 2 2,grow");
-		add(lblFrameInspect, "cell 2 1,grow");
-		add(btnExport, "cell 3 1,grow");
-		add(btnExportStructure, "cell 3 2,grow");
-		add(lblExport, "cell 4 1,grow");
-		add(lblStructure, "cell 4 2,grow");
+		JLabel lblloadASpreadsheet = new JLabel("<html>Load a data file into the database.</html>");
+		add(lblloadASpreadsheet, "cell 3 3,grow");
 	}
     
 	private class ActionSelectFrameBrowser extends AbstractAction {
