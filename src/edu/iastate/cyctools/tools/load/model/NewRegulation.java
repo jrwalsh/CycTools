@@ -5,12 +5,12 @@ import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
 
 public class NewRegulation extends AbstractFrameEdit {
-	private String regulationFrameID = "Unique ID Generated on Commit";
 	private String regulator;
 	private String regulatee;
 	private String mode;
 
-	public NewRegulation(String regulator, String regulatee, String mode, int[] associatedRows) {
+	public NewRegulation(String frameID, String regulator, String regulatee, String mode, int[] associatedRows) {
+		this.frameID = frameID;
 		this.regulator = regulator;
 		this.regulatee = regulatee;
 		this.mode = mode;
@@ -25,8 +25,8 @@ public class NewRegulation extends AbstractFrameEdit {
 
 	@Override
 	public boolean commit(JavacycConnection conn) throws PtoolsErrorException {
-		regulationFrameID = conn.createInstanceWGeneratedId("|Regulation-of-Transcription|");
-		Frame regulationFrame = Frame.load(conn, regulationFrameID);
+		frameID = conn.createInstanceWGeneratedId("|Regulation-of-Transcription|");
+		Frame regulationFrame = Frame.load(conn, frameID);
 		
 		if(!conn.frameExists(regulator)) {
 			return false;
@@ -34,7 +34,9 @@ public class NewRegulation extends AbstractFrameEdit {
 		if(!conn.frameExists(regulatee)) {
 			return false;
 		}
-		if(!mode.equalsIgnoreCase("-") && !mode.equalsIgnoreCase("+")) {
+		
+		if (mode == null) mode = "";
+		if(!mode.equalsIgnoreCase("-") && !mode.equalsIgnoreCase("+") && !mode.equalsIgnoreCase("")) {
 			return false;
 		}
 		
@@ -49,11 +51,14 @@ public class NewRegulation extends AbstractFrameEdit {
 
 	@Override
 	public Frame commitLocal(Frame frame) throws PtoolsErrorException {
+		frame.putSlotValue("REGULATOR", regulator);
+		frame.putSlotValue("REGULATED-ENTITY", regulatee);
+		frame.putSlotValue("MODE", mode);
 		return frame;
 	}
 
 	@Override
 	public String toString() {
-		return "creating regulation frame " + regulationFrameID + " with regulator: " + regulator + ", regulatee: " + regulatee + ", and regulation mode: " + mode;
+		return "creating regulation frame " + frameID + " with regulator: " + regulator + ", regulatee: " + regulatee + ", and regulation mode: " + mode;
 	}
 }

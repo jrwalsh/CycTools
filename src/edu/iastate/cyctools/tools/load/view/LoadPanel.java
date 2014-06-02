@@ -52,7 +52,6 @@ import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleAnnotationValueImport;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleSlotValueImport;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Event;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Status;
-import edu.iastate.cyctools.tools.load.model.DeleteFrame;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate;
 import edu.iastate.javacyco.Frame;
@@ -175,16 +174,31 @@ public class LoadPanel extends AbstractViewPanel {
     	JPanel databasePanel = new JPanel();
     	databasePanel.setLayout(new MigLayout("", "[][grow][]", "[][grow][]"));
     	
+    	DefaultComboBoxModel<String> modelAdaptor = new DefaultComboBoxModel<String>();
+		modelAdaptor.addElement("Slot Value Import: FrameID, SlotValues (Column header determines slot label)");
+        modelAdaptor.addElement("Annotation Value Import: FrameID, SlotValue, AnnotationValue.  Column header determines label");
+        modelAdaptor.addElement("GO-Term Import: FrameID, GoTerm, PubMedID, EVCode, TimeStampString (mm-dd-yyyy hh-mm-ss), Curator");
+        modelAdaptor.addElement("Create Transcriptional Regulation: RegulatorFrameID, RegulateeFrameID, RegulationMode(- or +)");
+        modelAdaptor.addElement("Delete Frame: FrameID");
+        cmbAdaptor = new JComboBox<String>(modelAdaptor);
+    	databasePanel.add(cmbAdaptor, "flowx,cell 1 2,alignx right,aligny center");
+    	
     	JButton btnNext_1 = new JButton("Next");
     	btnNext_1.addActionListener(new ActionListener() {
     		public void actionPerformed(ActionEvent arg0) {
+    			if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleSlotValueImport();
+				else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = new SimpleAnnotationValueImport();
+				else if (cmbAdaptor.getSelectedIndex() == 2) selectedAdaptor = new GOTermAdaptor();
+				else if (cmbAdaptor.getSelectedIndex() == 3) selectedAdaptor = new CreateRegulationAdaptor();
+				else if (cmbAdaptor.getSelectedIndex() == 4) selectedAdaptor = new DeleteFrameAdaptor();
+    			
     			controller.lockToolBarOrganismSelect();
     			cardLayout.show(contentPane, "OptionsPanel");
     			loadCreditableEntitiesLists();
     		}
     	});
     	
-    	JLabel lblPleaseSelectA = new JLabel("Please select a database and press Next to continue.");
+    	JLabel lblPleaseSelectA = new JLabel("<html>\r\n<p>Please select a database to modify in the upper right corner.</p>\r\n<p>Select an import type below and press Next to continue.</p>\r\n</html>");
     	databasePanel.add(lblPleaseSelectA, "cell 1 1,alignx center,aligny center");
     	databasePanel.add(btnNext_1, "cell 2 2,alignx right,aligny center");
     	return databasePanel;
@@ -402,15 +416,6 @@ public class LoadPanel extends AbstractViewPanel {
         SpreadsheetScrollPane.setViewportView(tableSpreadSheet);
         filePanel.add(SpreadsheetScrollPane, "cell 0 1 2 1,growx,growy,alignx left,aligny top");
         
-        DefaultComboBoxModel<String> modelAdaptor = new DefaultComboBoxModel<String>();
-		modelAdaptor.addElement("Standard CSV: Column header determines slot label");
-        modelAdaptor.addElement("Annotation Mod: FrameID, SlotValue, AnnotationValue.  Column header determines label");
-        modelAdaptor.addElement("GO-Term Import: frameID, goTerm, pubMedID, evCode, timeStampString (mm-dd-yyyy hh-mm-ss), curator");
-        modelAdaptor.addElement("Regulation Import");
-        modelAdaptor.addElement("Frame Delete");
-        cmbAdaptor = new JComboBox<String>(modelAdaptor);
-        filePanel.add(cmbAdaptor, "flowx,cell 0 2,alignx right,aligny center");
-        
         JButton btnBack = new JButton("Back");
         btnBack.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
@@ -422,7 +427,13 @@ public class LoadPanel extends AbstractViewPanel {
         JButton btnPreview = new JButton("Preview");
         btnPreview.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-				if (searchFrameIDs()) cardLayout.show(contentPane, "SearchPanel");
+        		if (cmbAdaptor.getSelectedIndex() == 3) {
+        			try {
+						openPreviewPanel();
+					} catch (PtoolsErrorException e1) {
+						e1.printStackTrace();
+					}
+        		} else if (searchFrameIDs()) cardLayout.show(contentPane, "SearchPanel");
         	}
         });
         btnPreview.setAction(actionPreview);
@@ -467,12 +478,6 @@ public class LoadPanel extends AbstractViewPanel {
 		btnAccept.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleSlotValueImport();
-					else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = new SimpleAnnotationValueImport();
-					else if (cmbAdaptor.getSelectedIndex() == 2) selectedAdaptor = new GOTermAdaptor();
-					else if (cmbAdaptor.getSelectedIndex() == 3) selectedAdaptor = new CreateRegulationAdaptor();
-					else if (cmbAdaptor.getSelectedIndex() == 4) selectedAdaptor = new DeleteFrameAdaptor();
-					
 					selectedAdaptor.setMultipleValueDelimiter(textMultipleValueDelimiter.getText());
 					selectedAdaptor.setAppend(chckbxAppend.getModel().isSelected());
 					selectedAdaptor.setIgnoreDuplicates(chckbxIgnoreDuplicate.getModel().isSelected());
@@ -752,6 +757,51 @@ public class LoadPanel extends AbstractViewPanel {
 		textAreaOld.setText("");
 		textAreaNew.setText("");
 		
+		DefaultTableModel model = new DefaultTableModel();
+		if (cmbAdaptor.getSelectedIndex() == 3) {
+			model = getDataFromFile();
+		} else model = getDataFromMatches();
+	    
+		if (model.getRowCount() == 0) {
+			JOptionPane.showMessageDialog(this, "No data could be matched to frames in this database for the selected frame type. Unable to proceed with import", "No Data to Import!", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+	    
+	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(model), this);
+		batchEdits.addPropertyChangeListener(controller);
+		
+		batchEdits.downloadFrames(controller.getConnection());
+		allFramesWithImports = batchEdits.getFrameIDsModel();
+		listFrames.setModel(allFramesWithImports);
+	}
+	
+	public DefaultTableModel getDataFromFile() {
+		DefaultTableModel model = new DefaultTableModel();
+		DefaultTableModel dtmFile = (DefaultTableModel) tableSpreadSheet.getModel();
+		int nRow = dtmFile.getRowCount();
+	    int nCol = dtmFile.getColumnCount();
+	    
+	    Object[] tableHeaders = new Object[nCol];
+	    for (int i = 1; i < nCol; i++) {
+			if (i < 1) tableHeaders[i] = tableSpreadSheet.getColumnModel().getColumn(i-1).getHeaderValue();
+	    }
+	    
+	    if (nCol != 0) { // If no data, then don't try to parse it out
+		    Object[][] tableData = new Object[nRow][nCol];
+			
+		    for (int i = 0 ; i < nRow; i++) {
+		        for (int j = 0 ; j < nCol ; j++) {
+		        	tableData[i][j] = dtmFile.getValueAt(i,j);
+		        }
+		    }
+		    
+		    model = new DefaultTableModel(tableData, tableHeaders);
+	    }
+	    
+	    return model;
+	}
+	
+	public DefaultTableModel getDataFromMatches() {
 		// Get data from exact frame matches
 		DefaultTableModel model = new DefaultTableModel();
 		DefaultTableModel dtmExactMatches = (DefaultTableModel) tableSearchExactMatches.getModel();
@@ -800,18 +850,7 @@ public class LoadPanel extends AbstractViewPanel {
 		    model = new DefaultTableModel(tableData, tableHeaders);
 	    }
 	    
-		if (model.getRowCount() == 0) {
-			JOptionPane.showMessageDialog(this, "No data could be matched to frames in this database for the selected frame type. Unable to proceed with import", "No Data to Import!", JOptionPane.WARNING_MESSAGE);
-			return;
-		}
-		
-	    
-	    batchEdits = new BatchUpdate(selectedAdaptor.tableToFrameUpdates(model), this);
-		batchEdits.addPropertyChangeListener(controller);
-		
-		batchEdits.downloadFrames(controller.getConnection());
-		allFramesWithImports = batchEdits.getFrameIDsModel();
-		listFrames.setModel(allFramesWithImports);
+	    return model;
 	}
 	
 	public void showPreviewPanel() {

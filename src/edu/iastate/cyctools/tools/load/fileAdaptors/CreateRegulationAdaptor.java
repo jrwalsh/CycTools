@@ -16,7 +16,7 @@ public class CreateRegulationAdaptor extends AbstractFileAdaptor {
 			String regulator = (String) tb.getValueAt(rowIndex, 0);
 			String regulatee = (String) tb.getValueAt(rowIndex, 1);
 			String mode = (String) tb.getValueAt(rowIndex, 2);
-			frameUpdates.add(new NewRegulation(regulator, regulatee, mode, new int[] {rowIndex + 1}));
+			frameUpdates.add(new NewRegulation("PlaceholdeID_" + rowIndex, regulator, regulatee, mode, new int[] {rowIndex + 1}));
 		}
 		return frameUpdates;
 	}
