@@ -3,7 +3,6 @@ package edu.iastate.cyctools;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import edu.iastate.cyctools.tools.exportFrame.ExportFramePanel;
 import edu.iastate.cyctools.tools.frameView.FrameViewPanel;
 import edu.iastate.cyctools.tools.load.view.LoadPanel;
 import edu.iastate.cyctools.view.LoginPanel;
@@ -40,7 +39,6 @@ public class Main {
 		cardPanel.add(new LoginPanel(controller), MainCardPanel.loginCard);
 		cardPanel.add(new SelectPanel(controller), MainCardPanel.selectCard);
 		cardPanel.add(new FrameViewPanel(controller), MainCardPanel.frameBrowseCard);
-		cardPanel.add(new ExportFramePanel(controller), MainCardPanel.exportCard);
 		cardPanel.add(new LoadPanel(controller), MainCardPanel.loadCard);
 		
 		JFrame displayFrame = new JFrame("CycBrowser");

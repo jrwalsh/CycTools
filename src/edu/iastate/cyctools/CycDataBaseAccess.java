@@ -40,7 +40,7 @@ public class CycDataBaseAccess implements PropertyChangeListener {
 	private ProgressMonitor progressMonitor;
 	private SwingWorker task;
 	
-	private JavacycConnection conn;
+	public static JavacycConnection conn;
 	private String host;
 	private int port;
 	private String userName;
