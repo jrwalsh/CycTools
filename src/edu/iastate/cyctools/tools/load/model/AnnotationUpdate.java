@@ -117,6 +117,14 @@ public class AnnotationUpdate extends AbstractFrameDataEdit {
 
 	@Override
 	public String toString() {
-		return "updating annotation: " + annotationLabel + " for slot: " + slotLabel + " on frame: " + frameID + " with the values: " + annotationValues.toString();//TODO don't really expect this toString to work, right?
+		String annotValues = "";
+		try {
+			for (String value : annotationValues) {
+			annotValues += value + ", ";
+			}
+			if (annotValues.length() > 0) annotValues = annotValues.substring(0, annotValues.length()-2);
+		} catch (Exception e) {}
+
+		return "updating annotation: " + annotationLabel + " for slot: " + slotLabel + " on frame: " + frameID + " with the values: " + annotValues;
 	}
 }
