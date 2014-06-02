@@ -16,16 +16,12 @@ import edu.iastate.javacyco.PtoolsErrorException;
 
 // Designed for the MaizeGDB teams curation updates.  To be designed to handle their specifically formated input file.  This generically imports GO-Term annotations.
 @SuppressWarnings("unchecked")
-public class GOTermAdaptor implements FileAdaptor {
-	private boolean append;
-	private boolean ignoreDuplicates;
-	@SuppressWarnings("unused")
-	private String multipleValueDelimiter; //Contains this parameter to conform to the interface, but this custom adaptor does not allow multiple values in a column
+public class GOTermAdaptor extends AbstractFileAdaptor {
 	
 	public GOTermAdaptor() {
-		append = true;
-		ignoreDuplicates = true;
-		multipleValueDelimiter = "$"; //TODO convert multiple value entries into arrays before insert
+		setAppend(true);
+		setIgnoreDuplicates(true);
+		setMultipleValueDelimiter("$"); // Unused
 	}
 	
 	// Assumes exact format for file with a defined column for each piece of info
@@ -119,9 +115,8 @@ public class GOTermAdaptor implements FileAdaptor {
 		return parsedString;
 	}
 	
-	
-	// Agreed upon format is mm-dd-yyyy hh-mm-ss
 	private String encodeTimeStampString(String timeStampString, JavacycConnection conn) {
+		// Agreed upon format of timeStampString is mm-dd-yyyy hh-mm-ss
 		String encodedTime = "";
 		
 		if (timeStampString == null || timeStampString.length() == 0) {
@@ -147,20 +142,5 @@ public class GOTermAdaptor implements FileAdaptor {
 		}
 		
 		return encodedTime;
-	}
-
-	@Override
-	public void setAppend(boolean append) {
-		this.append = append;
-	}
-
-	@Override
-	public void setIgnoreDuplicates(boolean ignoreDuplicates) {
-		this.ignoreDuplicates = ignoreDuplicates;
-	}
-
-	@Override
-	public void setMultipleValueDelimiter(String multipleValueDelimiter) {
-		this.multipleValueDelimiter = multipleValueDelimiter;
 	}
 }

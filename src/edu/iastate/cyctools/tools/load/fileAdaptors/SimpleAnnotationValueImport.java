@@ -8,15 +8,12 @@ import javax.swing.table.TableModel;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.AnnotationUpdate;
 
-public class SimpleAnnotationValueImport implements FileAdaptor {
-	private boolean append;
-	private boolean ignoreDuplicates;
-	private String multipleValueDelimiter;
+public class SimpleAnnotationValueImport extends AbstractFileAdaptor {
 
 	public SimpleAnnotationValueImport() {
-		append = true;
-		ignoreDuplicates = true;
-		multipleValueDelimiter = "$";
+		setAppend(true);
+		setIgnoreDuplicates(true);
+		setMultipleValueDelimiter("$");
 	}
 	
 	// Assumes one frame, one annotation per row
@@ -48,20 +45,5 @@ public class SimpleAnnotationValueImport implements FileAdaptor {
 			frameUpdates.add(new AnnotationUpdate(frameID, slotLabel, slotValue, annotationLabel, values, append, ignoreDuplicates, new int[] {rowIndex+1}));
 		}
 		return frameUpdates;
-	}
-	
-	@Override
-	public void setAppend(boolean append) {
-		this.append = append;
-	}
-
-	@Override
-	public void setIgnoreDuplicates(boolean ignoreDuplicates) {
-		this.ignoreDuplicates = ignoreDuplicates;
-	}
-
-	@Override
-	public void setMultipleValueDelimiter(String multipleValueDelimiter) {
-		this.multipleValueDelimiter = multipleValueDelimiter;
 	}
 }

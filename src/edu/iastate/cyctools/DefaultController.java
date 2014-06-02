@@ -13,7 +13,7 @@ import javax.swing.table.DefaultTableModel;
 
 import edu.iastate.cyctools.InternalStateModel.State;
 import edu.iastate.cyctools.externalSourceCode.AbstractViewPanel;
-import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
+import edu.iastate.cyctools.tools.load.fileAdaptors.AbstractFileAdaptor;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.view.MenuBar;
@@ -189,7 +189,7 @@ public class DefaultController implements PropertyChangeListener {
 		return dataAccess.getPGDBStructureTable(rootGFPtype, includeInstances, directionForward);
 	}
 	
-	public void submitTable(FileAdaptor interpreter) {
+	public void submitTable(AbstractFileAdaptor interpreter) {
     	ArrayList<AbstractFrameEdit> frameUpdates = interpreter.tableToFrameUpdates(documentModel.getTableModel());
 		dataAccess.commitFrameUpdates(frameUpdates);
 	}

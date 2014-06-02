@@ -216,7 +216,7 @@ public class BatchUpdate extends AbstractModel {
     	for (AbstractFrameEdit frameEdit : frameEdits) {
         	if (frameEdit.getFrameID().equals(originalFrame.getLocalID())) {
         		try {
-					frameEdit.commitLocal(frameToModify);
+					frameToModify = frameEdit.commitLocal(frameToModify);
 				} catch (PtoolsErrorException e) {
 					e.printStackTrace();
 					return null;

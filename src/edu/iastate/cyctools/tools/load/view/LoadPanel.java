@@ -44,12 +44,15 @@ import edu.iastate.cyctools.externalSourceCode.DiffMatchPatch.Patch;
 import edu.iastate.cyctools.externalSourceCode.KeyValueComboboxModel;
 import edu.iastate.cyctools.externalSourceCode.DiffMatchPatch;
 import edu.iastate.cyctools.externalSourceCode.DiffMatchPatch.Diff;
-import edu.iastate.cyctools.tools.load.fileAdaptors.FileAdaptor;
+import edu.iastate.cyctools.tools.load.fileAdaptors.AbstractFileAdaptor;
+import edu.iastate.cyctools.tools.load.fileAdaptors.CreateRegulationAdaptor;
+import edu.iastate.cyctools.tools.load.fileAdaptors.DeleteFrameAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.GOTermAdaptor;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleAnnotationValueImport;
 import edu.iastate.cyctools.tools.load.fileAdaptors.SimpleSlotValueImport;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Event;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate.Status;
+import edu.iastate.cyctools.tools.load.model.DeleteFrame;
 import edu.iastate.cyctools.tools.load.model.DocumentModel;
 import edu.iastate.cyctools.tools.load.model.BatchUpdate;
 import edu.iastate.javacyco.Frame;
@@ -76,7 +79,7 @@ import javax.swing.border.EtchedBorder;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public class LoadPanel extends AbstractViewPanel {
-	private FileAdaptor selectedAdaptor;
+	private AbstractFileAdaptor selectedAdaptor;
 	DefaultController controller;
 	private JTable tableSpreadSheet;
 	private CardLayout cardLayout;
@@ -467,8 +470,8 @@ public class LoadPanel extends AbstractViewPanel {
 					if (cmbAdaptor.getSelectedIndex() == 0) selectedAdaptor = new SimpleSlotValueImport();
 					else if (cmbAdaptor.getSelectedIndex() == 1) selectedAdaptor = new SimpleAnnotationValueImport();
 					else if (cmbAdaptor.getSelectedIndex() == 2) selectedAdaptor = new GOTermAdaptor();
-					else if (cmbAdaptor.getSelectedIndex() == 3) selectedAdaptor = null;//regulation import
-					else if (cmbAdaptor.getSelectedIndex() == 4) selectedAdaptor = null;//frame delete
+					else if (cmbAdaptor.getSelectedIndex() == 3) selectedAdaptor = new CreateRegulationAdaptor();
+					else if (cmbAdaptor.getSelectedIndex() == 4) selectedAdaptor = new DeleteFrameAdaptor();
 					
 					selectedAdaptor.setMultipleValueDelimiter(textMultipleValueDelimiter.getText());
 					selectedAdaptor.setAppend(chckbxAppend.getModel().isSelected());
@@ -1119,6 +1122,8 @@ public class LoadPanel extends AbstractViewPanel {
 		cmbImportType.setSelectedIndex(0);
 		selectedAdaptor = null;
 		tableSpreadSheet.setModel(new DefaultTableModel());
+		tableSearchExactMatches.setModel(new DefaultTableModel());
+		tableSearchGoodMatches.setModel(new DefaultTableModel());
 		listFrames.setModel(new DefaultListModel<String>());
 		textAreaOld.setText("");
 		textAreaNew.setText("");

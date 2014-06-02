@@ -8,15 +8,12 @@ import javax.swing.table.TableModel;
 import edu.iastate.cyctools.tools.load.model.AbstractFrameEdit;
 import edu.iastate.cyctools.tools.load.model.SlotUpdate;
 
-public class SimpleSlotValueImport implements FileAdaptor {
-	private boolean append;
-	private boolean ignoreDuplicates;
-	private String multipleValueDelimiter;
+public class SimpleSlotValueImport extends AbstractFileAdaptor {
 
 	public SimpleSlotValueImport() {
-		append = true;
-		ignoreDuplicates = true;
-		multipleValueDelimiter = "$";
+		setAppend(true);
+		setIgnoreDuplicates(true);
+		setMultipleValueDelimiter("$");
 	}
 	
 	// Assumes one frame per row
@@ -48,20 +45,5 @@ public class SimpleSlotValueImport implements FileAdaptor {
 			}
 		}
 		return frameUpdates;
-	}
-	
-	@Override
-	public void setAppend(boolean append) {
-		this.append = append;
-	}
-
-	@Override
-	public void setIgnoreDuplicates(boolean ignoreDuplicates) {
-		this.ignoreDuplicates = ignoreDuplicates;
-	}
-
-	@Override
-	public void setMultipleValueDelimiter(String multipleValueDelimiter) {
-		this.multipleValueDelimiter = multipleValueDelimiter;
 	}
 }
