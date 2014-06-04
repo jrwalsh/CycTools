@@ -74,12 +74,12 @@ public class ToolPanel extends AbstractViewPanel {
 	        }
 	    });
 		comboBoxOrganism.setAction(actionSetOrganism);
-		setLayout(new MigLayout("", "[59px][grow][]", "[23px]"));
+		setLayout(new MigLayout("", "[59px][grow]", "[23px]"));
 		
 		btnHome = new JButton("Home");
 		btnHome.setAction(action);
 		add(btnHome, "cell 0 0,alignx left,aligny center");
-		add(comboBoxOrganism, "cell 2 0,alignx right,aligny center");
+		add(comboBoxOrganism, "cell 1 0,alignx right,aligny center");
 	}
     
     public void lockToolBar() {

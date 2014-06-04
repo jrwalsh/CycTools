@@ -57,6 +57,7 @@ import edu.iastate.cyctools.tools.load.model.BatchUpdate;
 import edu.iastate.javacyco.Frame;
 import edu.iastate.javacyco.JavacycConnection;
 import edu.iastate.javacyco.PtoolsErrorException;
+
 import java.awt.CardLayout;
 import javax.swing.JComboBox;
 import javax.swing.JCheckBox;
@@ -118,6 +119,7 @@ public class LoadPanel extends AbstractViewPanel {
 	private JLabel lblChooseOrganization;
 	private JLabel lblChooseIndividualAuthor;
 	private JLabel lblSaveOrRejectNote;
+	private JLabel confirmImageLabel;
 	
 	private final Action actionUpload = new ActionUpload();
 	private final Action actionSave = new ActionSave();
@@ -449,7 +451,7 @@ public class LoadPanel extends AbstractViewPanel {
     	
     	JLabel imageLabel = new JLabel("");
         imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step2.png")));
+        imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step3.png")));
         searchPanel.add(imageLabel, "cell 0 0,alignx center,aligny center");
 		
 		labelSearchResults = new JLabel("Waiting for search results....");
@@ -514,7 +516,7 @@ public class LoadPanel extends AbstractViewPanel {
 		
     	JLabel imageLabel = new JLabel("");
 		imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step3.png")));
+		imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step4.png")));
 		previewPanel.add(imageLabel, "cell 0 0 2 1,alignx center,aligny center");
 		
 		listFrames = new JList<String>(new DefaultListModel<String>());
@@ -586,12 +588,12 @@ public class LoadPanel extends AbstractViewPanel {
     private JPanel initReviewPanel() {
     	JPanel reviewPanel = new JPanel();
     	
-    	reviewPanel.setLayout(new MigLayout("", "[109px,grow][155px]", "[49px][251px,grow][57px]"));
+    	reviewPanel.setLayout(new MigLayout("", "[109px,grow][155px]", "[][251px,grow][57px]"));
     	
-    	JLabel imageLabel = new JLabel("");
-        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        imageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step4.png")));
-        reviewPanel.add(imageLabel, "cell 0 0 2 1,alignx center,aligny center");
+    	confirmImageLabel = new JLabel("");
+    	confirmImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    	confirmImageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step5.png")));
+        reviewPanel.add(confirmImageLabel, "cell 0 0 2 1,alignx center,aligny center");
         
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         JScrollPane scrollPaneAll = new JScrollPane();
@@ -1126,6 +1128,7 @@ public class LoadPanel extends AbstractViewPanel {
 			actionSave.setEnabled(false);
 			actionRevert.setEnabled(false);
 			lblSaveOrRejectNote.setText("Updates permanently saved to database!");
+			confirmImageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step6.png")));
 		}
 	}
 	
@@ -1141,6 +1144,7 @@ public class LoadPanel extends AbstractViewPanel {
 			actionSave.setEnabled(false);
 			actionRevert.setEnabled(false);
 			lblSaveOrRejectNote.setText("Updates rejected by user. Database returned to original state!");
+			confirmImageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step6.png")));
 		}
 	}
 	
@@ -1187,6 +1191,7 @@ public class LoadPanel extends AbstractViewPanel {
 		actionSave.setEnabled(true);
 		actionRevert.setEnabled(true);
 		lblSaveOrRejectNote.setText("Save changes to database? *Warning, changes will be permanent if saved.");
+		confirmImageLabel.setIcon(new ImageIcon(LoadPanel.class.getResource("/resources/step5.png")));
 	}
 	
 	@Override
