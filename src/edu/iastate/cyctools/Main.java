@@ -41,7 +41,7 @@ public class Main {
 		cardPanel.add(new FrameViewPanel(controller), MainCardPanel.frameBrowseCard);
 		cardPanel.add(new LoadPanel(controller), MainCardPanel.loadCard);
 		
-		JFrame displayFrame = new JFrame("CycBrowser");
+		JFrame displayFrame = new JFrame("CycTools");
 		displayFrame.setMinimumSize(new Dimension(1000, 600));
 		controller.setMainJFrame(displayFrame);
 		displayFrame.setJMenuBar(new MenuBar(controller));

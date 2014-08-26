@@ -178,7 +178,7 @@ public class LoadPanel extends AbstractViewPanel {
     	
     	DefaultComboBoxModel<String> modelAdaptor = new DefaultComboBoxModel<String>();
 		modelAdaptor.addElement("Slot Value Import: FrameID, SlotValues (Column header determines slot label)");
-        modelAdaptor.addElement("Annotation Value Import: FrameID, SlotValue, AnnotationValue.  Column header determines label");
+        modelAdaptor.addElement("Annotation Value Import: FrameID, SlotValue, AnnotationValue (Column header determines slot and annotation labels)");
         modelAdaptor.addElement("GO-Term Import: FrameID, GoTerm, PubMedID, EVCode, TimeStampString (mm-dd-yyyy hh-mm-ss), Curator");
         modelAdaptor.addElement("Create Transcriptional Regulation: RegulatorFrameID, RegulateeFrameID, RegulationMode(- or +)");
         modelAdaptor.addElement("Delete Frame: FrameID");

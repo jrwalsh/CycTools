@@ -62,7 +62,7 @@ public class LoginPanel extends AbstractViewPanel {
 		
 		txtHost = new JTextField();
 		add(txtHost, "cell 2 2,alignx left,aligny center");
-		txtHost.setText("jrwalsh.student.iastate.edu");
+		txtHost.setText("");
 		txtHost.setColumns(20);
 		
 		JLabel lblPort = new JLabel("Port");
